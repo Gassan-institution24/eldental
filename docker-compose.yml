@@ -1,0 +1,40 @@
+# Local development infrastructure for ElDental.
+# Usage: docker compose up -d   (then run backend + frontend with npm on the host)
+services:
+  mongo:
+    image: mongo:7.0
+    container_name: eldental-mongo
+    command: ["--replSet", "rs0", "--bind_ip_all"]
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo_data:/data/db
+    healthcheck:
+      # Initialise the single-node replica set on first boot (transactions need a replica set)
+      test: >
+        mongosh --quiet --eval "try { rs.status().ok } catch (e) { rs.initiate({_id:'rs0',members:[{_id:0,host:'localhost:27017'}]}).ok }"
+      interval: 10s
+      timeout: 10s
+      retries: 10
+      start_period: 10s
+
+  redis:
+    image: redis:7.2-alpine
+    container_name: eldental-redis
+    command: ["redis-server", "--appendonly", "yes"]
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+
+  mailpit:
+    # Catches all dev emails — open http://localhost:8025
+    image: axllent/mailpit:v1.20
+    container_name: eldental-mailpit
+    ports:
+      - "1025:1025"
+      - "8025:8025"
+
+volumes:
+  mongo_data:
+  redis_data:

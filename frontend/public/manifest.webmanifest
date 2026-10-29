@@ -1,0 +1,11 @@
+{
+  "name": "ElDental",
+  "short_name": "ElDental",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#F7F9FB",
+  "theme_color": "#0E7C86",
+  "dir": "auto",
+  "lang": "ar",
+  "icons": [{ "src": "/favicon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any maskable" }]
+}

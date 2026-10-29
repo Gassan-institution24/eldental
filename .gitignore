@@ -1,0 +1,53 @@
+# Dependencies
+node_modules/
+.pnpm-store/
+
+# Builds
+dist/
+build/
+.vite/
+*.tsbuildinfo
+
+# Environment — never commit secrets (examples are committed)
+.env
+.env.*
+*.env
+!.env.example
+!**/.env.example
+
+# Runtime data
+uploads/
+backend/uploads/
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+dump/
+backups/
+*.archive
+*.gz
+
+# Tests / coverage
+coverage/
+.nyc_output/
+playwright-report/
+test-results/
+blob-report/
+
+# Editors / OS
+.vscode/*
+!.vscode/extensions.json
+!.vscode/settings.json
+.idea/
+*.swp
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Misc
+.cache/
+.turbo/
+.eslintcache
+*.stackdump

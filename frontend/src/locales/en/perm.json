@@ -1,0 +1,149 @@
+{
+  "modules": {
+    "clinic": "Clinic",
+    "staff": "Staff",
+    "patients": "Patients",
+    "scheduling": "Scheduling",
+    "clinical": "Clinical",
+    "billing": "Billing",
+    "accounting": "Accounting",
+    "hr": "HR & payroll",
+    "inventory": "Inventory",
+    "reports": "Reports",
+    "logs": "Logs",
+    "platform": "Platform"
+  },
+  "resources": {
+    "clinic": { "settings": "Clinic settings", "chair": "Chairs & rooms", "appointmentType": "Appointment types", "procedure": "Procedures & prices" },
+    "staff": { "member": "Employees", "role": "Roles & permissions" },
+    "patients": { "patient": "Patients", "medicalHistory": "Medical history", "document": "Documents" },
+    "scheduling": { "appointment": "Appointments", "schedule": "Dentist schedules", "waitlist": "Waiting list", "recall": "Recalls" },
+    "clinical": { "chart": "Tooth chart", "treatmentPlan": "Treatment plans", "procedure": "Procedures performed", "note": "Clinical notes", "perio": "Perio chart", "prescription": "Prescriptions", "labOrder": "Lab orders", "imaging": "Imaging", "consent": "Consents" },
+    "billing": { "invoice": "Invoices", "payment": "Payments", "insurance": "Insurance", "cashSession": "Cash sessions" },
+    "accounting": { "account": "Chart of accounts", "journal": "Journal entries", "period": "Fiscal periods", "supplier": "Suppliers & bills", "expense": "Expenses", "report": "Financial reports", "einvoice": "E-invoicing" },
+    "hr": { "shift": "Shifts", "attendance": "Attendance", "leave": "Leave", "leaveType": "Leave types", "compensation": "Compensation", "payroll": "Payroll & payslips" },
+    "inventory": { "item": "Items", "stock": "Stock" },
+    "reports": { "operational": "Operational reports", "production": "Production reports", "dashboard": "Dashboard" },
+    "logs": { "audit": "Audit log", "activity": "User activity", "issues": "User issues" },
+    "platform": {
+      "clinic": "Clinics", "clinicData": "Clinic data", "impersonate": "Impersonation", "plan": "Plans", "subscription": "Subscriptions",
+      "catalog": "Global catalogs", "settings": "Platform settings", "user": "Users", "superadmin": "Superadmins",
+      "logs": { "audit": "Audit logs", "activity": "Activity logs", "issues": "User issues", "errors": "System errors", "requests": "Request logs" },
+      "announcement": "Announcements", "ticket": "Support tickets", "stats": "Statistics"
+    }
+  },
+  "actions": {
+    "read": "View", "create": "Create", "update": "Edit", "delete": "Delete", "export": "Export", "print": "Print", "manage": "Manage",
+    "approve": "Approve", "book": "Book", "cancel": "Cancel", "checkin": "Check in / status", "issue": "Issue", "post": "Post", "void": "Void",
+    "refund": "Refund", "sign": "Sign", "present": "Present", "perform": "Record", "write": "Write", "upload": "Upload", "discount": "Discount above limit",
+    "reverse": "Reverse", "request": "Request", "adjust": "Adjust", "run": "Run", "suspend": "Suspend"
+  },
+  "scope": { "own": "Own", "all": "All", "ownHint": "Only records where they are the dentist, author, assignee or subject", "allHint": "All records in the clinic" },
+  "access": { "hidden": "Hidden", "masked": "Masked", "read": "Read", "write": "Write" },
+  "groups": {
+    "basic": "Basic", "contact": "Contact", "identity": "Identity", "family": "Family & guardian", "professional": "Professional", "employment": "Employment",
+    "compensation": "Compensation", "access": "Access", "financial": "Financial", "clinical": "Clinical", "lines": "Lines", "totals": "Totals", "pay": "Pay"
+  },
+  "fields": {
+    "name": "Name", "jobTitle": "Job title", "staffType": "Staff type", "photo": "Photo", "color": "Calendar colour", "status": "Status", "fileNumber": "File number",
+    "phone": "Phone", "altPhone": "Alternative phone", "email": "Email", "address": "Address", "nationalId": "National ID / passport", "dateOfBirth": "Date of birth",
+    "gender": "Gender", "nationality": "Nationality", "specialty": "Specialty", "licenseNumber": "Licence number", "licenseExpiry": "Licence expiry",
+    "bookableOnline": "Bookable online", "employment": "Employment details", "shift": "Shift", "basicSalary": "Basic salary", "allowances": "Allowances & deductions",
+    "commission": "Commission", "bank": "Bank account", "roles": "Roles", "tags": "Tags", "preferredDentist": "Preferred dentist", "preferredLanguage": "Preferred language",
+    "communicationPrefs": "Communication preferences", "guardian": "Guardian", "emergencyContact": "Emergency contact", "referralSource": "Referral source",
+    "insurance": "Insurance", "balance": "Balance", "medicalAlerts": "Medical alerts", "notes": "Notes", "patient": "Patient", "dentist": "Dentist", "lines": "Line items",
+    "prices": "Prices & tax", "discounts": "Discounts", "totals": "Totals", "balanceDue": "Balance due", "insuranceShare": "Insurance share", "amount": "Amount",
+    "method": "Method", "reference": "Reference", "basic": "Basic pay", "earnings": "Earnings & overtime", "deductions": "Deductions", "socialSecurity": "Social security",
+    "incomeTax": "Income tax", "net": "Gross & net", "patientNotes": "Patient notes"
+  },
+  "clinic": {
+    "settings": { "read": "View clinic settings", "update": "Edit clinic settings" },
+    "chair": { "manage": "Manage chairs & rooms" },
+    "appointmentType": { "manage": "Manage appointment types" },
+    "procedure": { "manage": "Manage procedures & prices" }
+  },
+  "staff": {
+    "member": { "read": "View employees", "create": "Invite employees", "update": "Edit employees", "delete": "Deactivate employees", "export": "Export employees" },
+    "role": { "manage": "Manage roles & permissions" }
+  },
+  "patients": {
+    "patient": { "read": "View patients", "create": "Register patients", "update": "Edit patients", "delete": "Delete / merge patients", "export": "Export patients", "print": "Print patient records" },
+    "medicalHistory": { "read": "View medical history", "update": "Update medical history" },
+    "document": { "read": "View documents", "upload": "Upload documents", "delete": "Delete documents" }
+  },
+  "scheduling": {
+    "appointment": { "read": "View appointments", "book": "Book appointments", "update": "Reschedule appointments", "cancel": "Cancel appointments", "checkin": "Check in & change status" },
+    "schedule": { "read": "View schedules", "manage": "Manage schedules & exceptions" },
+    "waitlist": { "manage": "Manage the waiting list" },
+    "recall": { "manage": "Manage recalls" }
+  },
+  "clinical": {
+    "chart": { "read": "View tooth chart", "update": "Update tooth chart" },
+    "treatmentPlan": { "read": "View treatment plans", "create": "Create treatment plans", "update": "Edit treatment plans", "present": "Present & accept plans" },
+    "procedure": { "perform": "Record performed procedures", "void": "Void procedures" },
+    "note": { "read": "View clinical notes", "write": "Write clinical notes", "sign": "Sign clinical notes" },
+    "perio": { "read": "View perio charts", "write": "Record perio charts" },
+    "prescription": { "read": "View prescriptions", "write": "Write prescriptions" },
+    "labOrder": { "read": "View lab orders", "manage": "Manage lab orders" },
+    "imaging": { "read": "View imaging", "upload": "Upload imaging" },
+    "consent": { "manage": "Manage consents" }
+  },
+  "billing": {
+    "invoice": { "read": "View invoices", "create": "Create invoices", "update": "Edit draft invoices", "issue": "Issue invoices", "void": "Void invoices", "discount": "Give discounts above the limit" },
+    "payment": { "read": "View payments", "create": "Take payments", "refund": "Refund payments" },
+    "insurance": { "manage": "Manage insurance & claims" },
+    "cashSession": { "manage": "Manage cash sessions" }
+  },
+  "accounting": {
+    "account": { "read": "View chart of accounts", "manage": "Manage chart of accounts & taxes" },
+    "journal": { "read": "View journal entries", "create": "Create manual journals", "post": "Post journals", "reverse": "Reverse journals" },
+    "period": { "manage": "Close & reopen periods" },
+    "supplier": { "manage": "Manage suppliers & bills" },
+    "expense": { "create": "Record expenses", "approve": "Approve expenses" },
+    "report": { "read": "View financial reports", "export": "Export financial reports" },
+    "einvoice": { "manage": "Manage e-invoicing (JoFotara)" }
+  },
+  "hr": {
+    "shift": { "manage": "Manage shifts" },
+    "attendance": { "read": "View attendance", "checkin": "Check in / out", "adjust": "Adjust attendance" },
+    "leave": { "request": "Request leave", "read": "View leave", "approve": "Approve leave" },
+    "leaveType": { "manage": "Manage leave types" },
+    "compensation": { "read": "View compensation", "update": "Edit compensation" },
+    "payroll": { "read": "View payslips", "run": "Run payroll", "approve": "Approve payroll" }
+  },
+  "inventory": {
+    "item": { "read": "View inventory", "manage": "Manage inventory items" },
+    "stock": { "adjust": "Adjust stock" }
+  },
+  "reports": {
+    "operational": { "read": "View operational reports" },
+    "production": { "read": "View production reports" },
+    "dashboard": { "read": "View dashboard" }
+  },
+  "logs": {
+    "audit": { "read": "View audit log" },
+    "activity": { "read": "View user activity" },
+    "issues": { "read": "View user issues" }
+  },
+  "platform": {
+    "clinic": { "read": "View clinics", "manage": "Manage clinics", "suspend": "Suspend / activate clinics" },
+    "clinicData": { "read": "Read any clinic's data", "write": "Edit clinic data" },
+    "impersonate": "Impersonate clinic users",
+    "plan": { "manage": "Manage plans" },
+    "subscription": { "manage": "Manage subscriptions" },
+    "catalog": { "manage": "Manage global catalogs & role templates" },
+    "settings": { "manage": "Manage platform settings & integrations" },
+    "user": { "read": "View all users", "manage": "Manage all users" },
+    "superadmin": { "manage": "Manage superadmins & their permissions" },
+    "logs": {
+      "audit": { "read": "View audit logs" },
+      "activity": { "read": "View activity logs" },
+      "issues": { "read": "View user issues" },
+      "errors": { "read": "View system errors" },
+      "requests": { "read": "View request logs" }
+    },
+    "announcement": { "manage": "Manage announcements" },
+    "ticket": { "manage": "Manage support tickets" },
+    "stats": { "read": "View platform statistics" }
+  }
+}

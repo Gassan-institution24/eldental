@@ -1,0 +1,33 @@
+{
+  "markAllRead": "تعليم الكل كمقروء",
+  "preferences": "تفضيلات الإشعارات",
+  "channels": { "inApp": "داخل التطبيق", "email": "البريد الإلكتروني", "whatsapp": "واتساب" },
+  "types": {
+    "appointment_booked": "حجز موعد",
+    "appointment_cancelled": "إلغاء موعد",
+    "appointment_rescheduled": "تغيير موعد",
+    "waitlist_match": "تطابق في قائمة الانتظار",
+    "leave_requested": "طلب إجازة",
+    "leave_decided": "قرار إجازة",
+    "payslip_ready": "قسيمة الراتب متاحة",
+    "system_error": "خطأ في النظام",
+    "low_stock": "مخزون منخفض",
+    "license_expiry": "انتهاء ترخيص",
+    "lab_due": "موعد طلب مختبر",
+    "tomorrow_list": "مواعيد الغد"
+  },
+  "msg": {
+    "appointmentBooked": "تم حجز موعد لـ {{patient}} في {{time}}",
+    "appointmentCancelled": "أُلغي موعد {{patient}} في {{time}}",
+    "appointmentRescheduled": "نُقل موعد {{patient}} إلى {{time}}",
+    "waitlistMatch": "توفر وقت في {{time}} يطابق {{count}} من قائمة الانتظار",
+    "leaveRequested": "طلب {{staff}} إجازة من {{from}} إلى {{to}}",
+    "leaveDecided": "تم {{decision}} طلب إجازتك",
+    "payslipReady": "قسيمة راتبك لشهر {{period}} جاهزة",
+    "systemError": "خطأ خادم جديد: {{message}}",
+    "lowStock": "مخزون {{item}} منخفض (متبقٍ {{qty}})",
+    "licenseExpiry": "ينتهي ترخيص {{staff}} في {{date}}",
+    "labDue": "طلب المختبر {{number}} مستحق في {{date}}",
+    "tomorrowList": "{{count}} موعدًا غدًا"
+  }
+}

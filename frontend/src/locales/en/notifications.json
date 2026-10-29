@@ -1,0 +1,33 @@
+{
+  "markAllRead": "Mark all as read",
+  "preferences": "Notification preferences",
+  "channels": { "inApp": "In-app", "email": "Email", "whatsapp": "WhatsApp" },
+  "types": {
+    "appointment_booked": "Appointment booked",
+    "appointment_cancelled": "Appointment cancelled",
+    "appointment_rescheduled": "Appointment rescheduled",
+    "waitlist_match": "Waiting-list match",
+    "leave_requested": "Leave request",
+    "leave_decided": "Leave decision",
+    "payslip_ready": "Payslip available",
+    "system_error": "System error",
+    "low_stock": "Low stock",
+    "license_expiry": "Licence expiring",
+    "lab_due": "Lab order due",
+    "tomorrow_list": "Tomorrow's appointments"
+  },
+  "msg": {
+    "appointmentBooked": "{{patient}} booked for {{time}}",
+    "appointmentCancelled": "{{patient}}'s appointment at {{time}} was cancelled",
+    "appointmentRescheduled": "{{patient}} moved to {{time}}",
+    "waitlistMatch": "A slot opened at {{time}} that matches {{count}} waiting-list entries",
+    "leaveRequested": "{{staff}} requested leave from {{from}} to {{to}}",
+    "leaveDecided": "Your leave request was {{decision}}",
+    "payslipReady": "Your payslip for {{period}} is ready",
+    "systemError": "New server error: {{message}}",
+    "lowStock": "{{item}} is low on stock ({{qty}} left)",
+    "licenseExpiry": "{{staff}}'s licence expires on {{date}}",
+    "labDue": "Lab order {{number}} is due on {{date}}",
+    "tomorrowList": "{{count}} appointments tomorrow"
+  }
+}

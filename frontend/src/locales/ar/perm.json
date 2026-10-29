@@ -1,0 +1,149 @@
+{
+  "modules": {
+    "clinic": "العيادة",
+    "staff": "الموظفون",
+    "patients": "المرضى",
+    "scheduling": "المواعيد",
+    "clinical": "السريري",
+    "billing": "الفوترة",
+    "accounting": "المحاسبة",
+    "hr": "الموارد البشرية والرواتب",
+    "inventory": "المخزون",
+    "reports": "التقارير",
+    "logs": "السجلات",
+    "platform": "المنصة"
+  },
+  "resources": {
+    "clinic": { "settings": "إعدادات العيادة", "chair": "الكراسي والغرف", "appointmentType": "أنواع المواعيد", "procedure": "الإجراءات والأسعار" },
+    "staff": { "member": "الموظفون", "role": "الأدوار والصلاحيات" },
+    "patients": { "patient": "المرضى", "medicalHistory": "التاريخ الطبي", "document": "المستندات" },
+    "scheduling": { "appointment": "المواعيد", "schedule": "جداول الأطباء", "waitlist": "قائمة الانتظار", "recall": "التذكيرات الدورية" },
+    "clinical": { "chart": "مخطط الأسنان", "treatmentPlan": "خطط العلاج", "procedure": "الإجراءات المنفّذة", "note": "الملاحظات السريرية", "perio": "مخطط اللثة", "prescription": "الوصفات الطبية", "labOrder": "طلبات المختبر", "imaging": "الصور الشعاعية", "consent": "الإقرارات" },
+    "billing": { "invoice": "الفواتير", "payment": "الدفعات", "insurance": "التأمين", "cashSession": "جلسات الصندوق" },
+    "accounting": { "account": "دليل الحسابات", "journal": "القيود اليومية", "period": "الفترات المالية", "supplier": "الموردون والفواتير", "expense": "المصروفات", "report": "التقارير المالية", "einvoice": "الفوترة الإلكترونية" },
+    "hr": { "shift": "الورديات", "attendance": "الحضور", "leave": "الإجازات", "leaveType": "أنواع الإجازات", "compensation": "التعويضات", "payroll": "الرواتب والقسائم" },
+    "inventory": { "item": "الأصناف", "stock": "المخزون" },
+    "reports": { "operational": "التقارير التشغيلية", "production": "تقارير الإنتاج", "dashboard": "لوحة التحكم" },
+    "logs": { "audit": "سجل التدقيق", "activity": "نشاط المستخدمين", "issues": "مشاكل المستخدمين" },
+    "platform": {
+      "clinic": "العيادات", "clinicData": "بيانات العيادات", "impersonate": "انتحال الهوية", "plan": "الباقات", "subscription": "الاشتراكات",
+      "catalog": "القوائم العامة", "settings": "إعدادات المنصة", "user": "المستخدمون", "superadmin": "المشرفون العامّون",
+      "logs": { "audit": "سجلات التدقيق", "activity": "سجلات النشاط", "issues": "مشاكل المستخدمين", "errors": "أخطاء النظام", "requests": "سجلات الطلبات" },
+      "announcement": "الإعلانات", "ticket": "تذاكر الدعم", "stats": "الإحصائيات"
+    }
+  },
+  "actions": {
+    "read": "عرض", "create": "إنشاء", "update": "تعديل", "delete": "حذف", "export": "تصدير", "print": "طباعة", "manage": "إدارة",
+    "approve": "اعتماد", "book": "حجز", "cancel": "إلغاء", "checkin": "تسجيل الوصول / الحالة", "issue": "إصدار", "post": "ترحيل", "void": "إبطال",
+    "refund": "استرداد", "sign": "توقيع", "present": "تقديم", "perform": "تسجيل", "write": "كتابة", "upload": "رفع", "discount": "خصم يتجاوز الحد",
+    "reverse": "عكس", "request": "طلب", "adjust": "تعديل", "run": "تشغيل", "suspend": "إيقاف"
+  },
+  "scope": { "own": "الخاصة", "all": "الكل", "ownHint": "فقط السجلات التي يكون فيها الطبيب أو الكاتب أو المكلّف أو صاحب السجل", "allHint": "جميع سجلات العيادة" },
+  "access": { "hidden": "مخفي", "masked": "مقنّع", "read": "قراءة", "write": "كتابة" },
+  "groups": {
+    "basic": "أساسي", "contact": "التواصل", "identity": "الهوية", "family": "العائلة وولي الأمر", "professional": "مهني", "employment": "التوظيف",
+    "compensation": "التعويضات", "access": "الوصول", "financial": "مالي", "clinical": "سريري", "lines": "البنود", "totals": "الإجماليات", "pay": "الراتب"
+  },
+  "fields": {
+    "name": "الاسم", "jobTitle": "المسمى الوظيفي", "staffType": "نوع الموظف", "photo": "الصورة", "color": "لون التقويم", "status": "الحالة", "fileNumber": "رقم الملف",
+    "phone": "الهاتف", "altPhone": "هاتف بديل", "email": "البريد الإلكتروني", "address": "العنوان", "nationalId": "الرقم الوطني / جواز السفر", "dateOfBirth": "تاريخ الميلاد",
+    "gender": "الجنس", "nationality": "الجنسية", "specialty": "التخصص", "licenseNumber": "رقم الترخيص", "licenseExpiry": "انتهاء الترخيص",
+    "bookableOnline": "متاح للحجز الإلكتروني", "employment": "تفاصيل التوظيف", "shift": "الوردية", "basicSalary": "الراتب الأساسي", "allowances": "العلاوات والاقتطاعات",
+    "commission": "العمولة", "bank": "الحساب البنكي", "roles": "الأدوار", "tags": "الوسوم", "preferredDentist": "الطبيب المفضل", "preferredLanguage": "اللغة المفضلة",
+    "communicationPrefs": "تفضيلات التواصل", "guardian": "ولي الأمر", "emergencyContact": "جهة اتصال الطوارئ", "referralSource": "مصدر الإحالة",
+    "insurance": "التأمين", "balance": "الرصيد", "medicalAlerts": "التنبيهات الطبية", "notes": "ملاحظات", "patient": "المريض", "dentist": "الطبيب", "lines": "البنود",
+    "prices": "الأسعار والضريبة", "discounts": "الخصومات", "totals": "الإجماليات", "balanceDue": "الرصيد المستحق", "insuranceShare": "حصة التأمين", "amount": "المبلغ",
+    "method": "طريقة الدفع", "reference": "المرجع", "basic": "الراتب الأساسي", "earnings": "المستحقات والعمل الإضافي", "deductions": "الاقتطاعات", "socialSecurity": "الضمان الاجتماعي",
+    "incomeTax": "ضريبة الدخل", "net": "الإجمالي والصافي", "patientNotes": "ملاحظات المريض"
+  },
+  "clinic": {
+    "settings": { "read": "عرض إعدادات العيادة", "update": "تعديل إعدادات العيادة" },
+    "chair": { "manage": "إدارة الكراسي والغرف" },
+    "appointmentType": { "manage": "إدارة أنواع المواعيد" },
+    "procedure": { "manage": "إدارة الإجراءات والأسعار" }
+  },
+  "staff": {
+    "member": { "read": "عرض الموظفين", "create": "دعوة موظفين", "update": "تعديل الموظفين", "delete": "تعطيل الموظفين", "export": "تصدير الموظفين" },
+    "role": { "manage": "إدارة الأدوار والصلاحيات" }
+  },
+  "patients": {
+    "patient": { "read": "عرض المرضى", "create": "تسجيل المرضى", "update": "تعديل المرضى", "delete": "حذف / دمج المرضى", "export": "تصدير المرضى", "print": "طباعة سجلات المرضى" },
+    "medicalHistory": { "read": "عرض التاريخ الطبي", "update": "تحديث التاريخ الطبي" },
+    "document": { "read": "عرض المستندات", "upload": "رفع المستندات", "delete": "حذف المستندات" }
+  },
+  "scheduling": {
+    "appointment": { "read": "عرض المواعيد", "book": "حجز المواعيد", "update": "تغيير المواعيد", "cancel": "إلغاء المواعيد", "checkin": "تسجيل الوصول وتغيير الحالة" },
+    "schedule": { "read": "عرض الجداول", "manage": "إدارة الجداول والاستثناءات" },
+    "waitlist": { "manage": "إدارة قائمة الانتظار" },
+    "recall": { "manage": "إدارة التذكيرات الدورية" }
+  },
+  "clinical": {
+    "chart": { "read": "عرض مخطط الأسنان", "update": "تحديث مخطط الأسنان" },
+    "treatmentPlan": { "read": "عرض خطط العلاج", "create": "إنشاء خطط العلاج", "update": "تعديل خطط العلاج", "present": "تقديم الخطط وقبولها" },
+    "procedure": { "perform": "تسجيل الإجراءات المنفّذة", "void": "إبطال الإجراءات" },
+    "note": { "read": "عرض الملاحظات السريرية", "write": "كتابة الملاحظات السريرية", "sign": "توقيع الملاحظات السريرية" },
+    "perio": { "read": "عرض مخططات اللثة", "write": "تسجيل مخططات اللثة" },
+    "prescription": { "read": "عرض الوصفات", "write": "كتابة الوصفات" },
+    "labOrder": { "read": "عرض طلبات المختبر", "manage": "إدارة طلبات المختبر" },
+    "imaging": { "read": "عرض الصور", "upload": "رفع الصور" },
+    "consent": { "manage": "إدارة الإقرارات" }
+  },
+  "billing": {
+    "invoice": { "read": "عرض الفواتير", "create": "إنشاء الفواتير", "update": "تعديل الفواتير المسوّدة", "issue": "إصدار الفواتير", "void": "إبطال الفواتير", "discount": "منح خصومات تتجاوز الحد" },
+    "payment": { "read": "عرض الدفعات", "create": "قبض الدفعات", "refund": "استرداد الدفعات" },
+    "insurance": { "manage": "إدارة التأمين والمطالبات" },
+    "cashSession": { "manage": "إدارة جلسات الصندوق" }
+  },
+  "accounting": {
+    "account": { "read": "عرض دليل الحسابات", "manage": "إدارة دليل الحسابات والضرائب" },
+    "journal": { "read": "عرض القيود", "create": "إنشاء قيود يدوية", "post": "ترحيل القيود", "reverse": "عكس القيود" },
+    "period": { "manage": "إغلاق الفترات وإعادة فتحها" },
+    "supplier": { "manage": "إدارة الموردين والفواتير" },
+    "expense": { "create": "تسجيل المصروفات", "approve": "اعتماد المصروفات" },
+    "report": { "read": "عرض التقارير المالية", "export": "تصدير التقارير المالية" },
+    "einvoice": { "manage": "إدارة الفوترة الإلكترونية (جو فوترة)" }
+  },
+  "hr": {
+    "shift": { "manage": "إدارة الورديات" },
+    "attendance": { "read": "عرض الحضور", "checkin": "تسجيل الحضور والانصراف", "adjust": "تعديل الحضور" },
+    "leave": { "request": "طلب إجازة", "read": "عرض الإجازات", "approve": "اعتماد الإجازات" },
+    "leaveType": { "manage": "إدارة أنواع الإجازات" },
+    "compensation": { "read": "عرض التعويضات", "update": "تعديل التعويضات" },
+    "payroll": { "read": "عرض قسائم الرواتب", "run": "تشغيل الرواتب", "approve": "اعتماد الرواتب" }
+  },
+  "inventory": {
+    "item": { "read": "عرض المخزون", "manage": "إدارة الأصناف" },
+    "stock": { "adjust": "تعديل المخزون" }
+  },
+  "reports": {
+    "operational": { "read": "عرض التقارير التشغيلية" },
+    "production": { "read": "عرض تقارير الإنتاج" },
+    "dashboard": { "read": "عرض لوحة التحكم" }
+  },
+  "logs": {
+    "audit": { "read": "عرض سجل التدقيق" },
+    "activity": { "read": "عرض نشاط المستخدمين" },
+    "issues": { "read": "عرض مشاكل المستخدمين" }
+  },
+  "platform": {
+    "clinic": { "read": "عرض العيادات", "manage": "إدارة العيادات", "suspend": "إيقاف / تفعيل العيادات" },
+    "clinicData": { "read": "قراءة بيانات أي عيادة", "write": "تعديل بيانات العيادات" },
+    "impersonate": "انتحال هوية مستخدمي العيادات",
+    "plan": { "manage": "إدارة الباقات" },
+    "subscription": { "manage": "إدارة الاشتراكات" },
+    "catalog": { "manage": "إدارة القوائم العامة وقوالب الأدوار" },
+    "settings": { "manage": "إدارة إعدادات المنصة والتكاملات" },
+    "user": { "read": "عرض جميع المستخدمين", "manage": "إدارة جميع المستخدمين" },
+    "superadmin": { "manage": "إدارة المشرفين العامّين وصلاحياتهم" },
+    "logs": {
+      "audit": { "read": "عرض سجلات التدقيق" },
+      "activity": { "read": "عرض سجلات النشاط" },
+      "issues": { "read": "عرض مشاكل المستخدمين" },
+      "errors": { "read": "عرض أخطاء النظام" },
+      "requests": { "read": "عرض سجلات الطلبات" }
+    },
+    "announcement": { "manage": "إدارة الإعلانات" },
+    "ticket": { "manage": "إدارة تذاكر الدعم" },
+    "stats": { "read": "عرض إحصائيات المنصة" }
+  }
+}
