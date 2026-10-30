@@ -533,6 +533,11 @@ clinicalRouter.post(
     }
     if (b.to === 'fitted') doc.fittedAt = now;
     await doc.save();
+    if (b.to === 'received' && doc.cost && doc.labSupplierId) {
+      // Lab cost per case shows in profitability: received with a cost → supplier bill draft (07 §8).
+      const { labBillDraft } = await import('@/modules/billing/billing.routes');
+      await labBillDraft(req.auth!, String(doc._id));
+    }
     await recordAudit({ action: 'status_change', entity: 'labOrder', entityId: doc._id, after: { status: b.to } });
     ok(res, labDto(doc.toObject() as never));
   }),

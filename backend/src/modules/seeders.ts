@@ -4,3 +4,4 @@ import './clinic/clinic.seeders';
 import './patients/patient.seeders';
 import './scheduling/scheduling.seeders';
 import './clinical/clinical.seeders';
+import './accounting/accounting.seeders';

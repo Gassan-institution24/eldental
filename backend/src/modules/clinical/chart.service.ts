@@ -4,7 +4,7 @@ import type { AuthContext } from '@/core/auth/auth.types';
 import { ApiError } from '@/core/http/ApiError';
 import { ClinicProcedureModel } from '@/modules/clinic/clinic.models';
 import { InsuranceCompanyModel, InsurancePolicyModel } from '@/modules/patients/patient.models';
-import { mulFraction, mul, sub, maxOf, minOf } from '@/shared/money';
+import { maxOf, minOf, mul, mulRate, percentToBasisPoints, sub } from '@/shared/money';
 import { isValidSurface, isValidTooth, type Surface } from '@/shared/validation/fields';
 import { ChartEntryModel, ToothChartModel, type ToothState } from './clinical.models';
 
@@ -201,7 +201,7 @@ export function estimate<T extends PricedLine>(lines: T[], cov: Coverage | null)
   let remaining = cov?.remaining ?? null;
   const out = lines.map((l) => {
     const net = maxOf(0, sub(mul(l.unitPrice, l.quantity), l.discount));
-    let insurance = cov ? mulFraction(net, cov.percentFor(l.category), 100) : 0;
+    let insurance = cov ? mulRate(net, percentToBasisPoints(cov.percentFor(l.category))) : 0;
     if (remaining !== null) {
       insurance = minOf(insurance, remaining);
       remaining = sub(remaining, insurance);
