@@ -1,15 +1,38 @@
-import { Box, ButtonBase, Dialog, InputAdornment, List, ListItemButton, ListItemText, TextField, Typography, useMediaQuery } from '@mui/material';
+import {
+  Box,
+  ButtonBase,
+  Dialog,
+  InputAdornment,
+  List,
+  ListItemButton,
+  ListItemText,
+  TextField,
+  Typography,
+  useMediaQuery,
+} from '@mui/material';
 import { useTheme } from '@mui/material/styles';
 import { Search } from 'lucide-react';
 import { useEffect, useState, type ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
 import { trackActivity } from '@/lib/telemetry';
 
-export type SearchResult = { id: string; title: string; subtitle?: string; group: string; onSelect: () => void };
+export type SearchResult = {
+  id: string;
+  title: string;
+  subtitle?: string;
+  group: string;
+  onSelect: () => void;
+};
 export type SearchProvider = (q: string) => Promise<SearchResult[]>;
 
 /** Ctrl/⌘+K global search (16_UX_UI_AND_VALIDATION.md §3). Providers are injected per app. */
-export function GlobalSearch({ provider, emptyHint }: { provider?: SearchProvider; emptyHint?: ReactNode }) {
+export function GlobalSearch({
+  provider,
+  emptyHint,
+}: {
+  provider?: SearchProvider;
+  emptyHint?: ReactNode;
+}) {
   const { t } = useTranslation();
   const theme = useTheme();
   const compact = useMediaQuery(theme.breakpoints.down('md'));
@@ -76,13 +99,23 @@ export function GlobalSearch({ provider, emptyHint }: { provider?: SearchProvide
             <Typography variant="body2" sx={{ flex: 1, textAlign: 'start' }} noWrap>
               {t('layout.searchPlaceholder')}
             </Typography>
-            <Typography variant="caption" sx={{ border: 1, borderColor: 'divider', borderRadius: 1, px: 1 }} dir="ltr">
+            <Typography
+              variant="caption"
+              sx={{ border: 1, borderColor: 'divider', borderRadius: 1, px: 1 }}
+              dir="ltr"
+            >
               {t('layout.searchShortcut')}
             </Typography>
           </>
         )}
       </ButtonBase>
-      <Dialog open={open} onClose={() => setOpen(false)} fullWidth maxWidth="sm" fullScreen={compact}>
+      <Dialog
+        open={open}
+        onClose={() => setOpen(false)}
+        fullWidth
+        maxWidth="sm"
+        fullScreen={compact}
+      >
         <Box sx={{ p: 4 }}>
           <TextField
             autoFocus
@@ -95,11 +128,21 @@ export function GlobalSearch({ provider, emptyHint }: { provider?: SearchProvide
               if (e.key === 'ArrowUp') setActive((a) => Math.max(a - 1, 0));
               if (e.key === 'Enter') select(results[active]);
             }}
-            InputProps={{ startAdornment: <InputAdornment position="start"><Search size={18} /></InputAdornment> }}
+            InputProps={{
+              startAdornment: (
+                <InputAdornment position="start">
+                  <Search size={18} />
+                </InputAdornment>
+              ),
+            }}
           />
           <List sx={{ mt: 2, maxHeight: 420, overflow: 'auto' }}>
             {results.map((r, i) => (
-              <ListItemButton key={`${r.group}-${r.id}`} selected={i === active} onClick={() => select(r)}>
+              <ListItemButton
+                key={`${r.group}-${r.id}`}
+                selected={i === active}
+                onClick={() => select(r)}
+              >
                 <ListItemText primary={<span dir="auto">{r.title}</span>} secondary={r.subtitle} />
                 <Typography variant="caption" color="text.secondary">
                   {r.group}

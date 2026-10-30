@@ -1,0 +1,39 @@
+{
+  "greeting": {
+    "morning": "Good morning, {{name}}",
+    "afternoon": "Good afternoon, {{name}}",
+    "evening": "Good evening, {{name}}"
+  },
+  "subtitle": "Here's what's happening at {{clinic}} today.",
+  "kpi": {
+    "appointments": "Appointments today",
+    "patients": "Active patients",
+    "collected": "Collected today",
+    "team": "Team members"
+  },
+  "quick": {
+    "title": "Quick actions",
+    "book": "Book an appointment",
+    "bookHint": "Find a free slot in seconds",
+    "patient": "Register a patient",
+    "patientHint": "Name and phone is all it takes",
+    "payment": "Take a payment",
+    "paymentHint": "Cash, card or transfer",
+    "team": "Manage your team",
+    "teamHint": "Invite staff and set permissions"
+  },
+  "setup": {
+    "title": "Finish setting up your clinic",
+    "subtitle": "A few steps and you're ready for your first patient.",
+    "progress": "{{done}} of {{total}} done",
+    "profile": "Clinic profile & working hours",
+    "chairs": "Add chairs and rooms",
+    "team": "Invite your dentists and team",
+    "procedures": "Import procedures and prices",
+    "go": "Go"
+  },
+  "comingSoon": {
+    "title": "This module is on its way",
+    "body": "We're building this part of ElDental right now. It will appear here automatically as soon as it's ready."
+  }
+}

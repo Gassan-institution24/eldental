@@ -116,3 +116,15 @@ describe('error handling', () => {
     expect(rows[0]?.message).toBe('kaboom');
   });
 });
+
+describe('public contact form', () => {
+  it('stores a valid lead and rejects invalid input with codes', async () => {
+    const app = createApp();
+    const ok = await request(app).post('/api/v1/public/contact').send({ name: 'سارة أحمد', email: 'Sara@Clinic.jo', phone: '0791234567', interest: 'demo', clinicSize: 's2' });
+    expect(ok.status).toBe(201);
+    const bad = await request(app).post('/api/v1/public/contact').send({ name: 'S', email: 'x', interest: 'nope' });
+    expect(bad.status).toBe(422);
+    const codes = bad.body.error.details.fields.map((f: { code: string }) => f.code);
+    expect(codes).toEqual(expect.arrayContaining(['too_short', 'invalid_email', 'invalid_option']));
+  });
+});

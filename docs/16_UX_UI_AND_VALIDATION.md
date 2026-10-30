@@ -24,14 +24,16 @@
 ## 2. Visual Design System
 | Token | Value |
 |---|---|
-| Primary | Teal/dental blue `#0E7C86` (light) / `#4FB3BC` (dark), with a full 50–900 scale |
-| Secondary | Soft indigo `#5B6CFF` |
-| Semantic | success `#2E7D32`, warning `#ED6C02`, error `#D32F2F`, info `#0288D1` |
-| Neutrals | grey 50–900; background `#F7F9FB` (light) / `#0F1419` (dark); paper `#FFFFFF` / `#161C22` |
+| Primary | Indigo `#4F46E5` (light) / `#8B87FF` (dark), with a full 50–900 scale |
+| Secondary | Cyan `#06B6D4` (light) / `#22D3EE` (dark) |
+| Brand gradient | `linear-gradient(135deg, #4F46E5, #7C3AED 55%, #06B6D4)` for primary buttons, the logo mark, highlights |
+| Sidebar | Deep navy gradient `#0B1020 → #111936` in both modes, white text, gradient pill for the active item |
+| Semantic | success `#10B981`, warning `#F59E0B`, error `#EF4444`, info `#0EA5E9` |
+| Neutrals | background `#F5F6FB` (light) / `#0A0F1E` (dark); paper `#FFFFFF` / `#11172B` |
 | Typography | Arabic **IBM Plex Sans Arabic** or **Tajawal**; Latin **Inter**. Scale: h1 32, h2 26, h3 22, h4 18, body 15, small 13; line-height 1.6 for Arabic |
-| Radius | 10 px (cards, inputs), 8 px (buttons), 16 px (dialogs) |
+| Radius | 16 px (cards), 12 px (inputs, buttons), 20 px (dialogs) |
 | Spacing | 4-px grid; page gutter 24 desktop / 16 mobile |
-| Elevation | Flat cards with a 1 px border; shadows only on floating elements (menus, dialogs, drawers) |
+| Elevation | Cards with a 1 px border and a soft shadow; deeper shadows on hover and floating elements; frosted (blurred) top bars |
 | Icons | One icon set only (Iconify Solar or Lucide), 20 px default |
 | Motion | 150–200 ms ease-out; respects `prefers-reduced-motion` |
 | Dark mode | Full support; user toggle + system default |
@@ -48,6 +50,9 @@
 - The patient portal is mobile-first.
 
 ---
+
+## 2.1 Public website
+Marketing pages live at `/` (home), `/features`, `/pricing`, `/about`, `/security`, `/contact`, `/privacy`, `/terms` in `PublicLayout`. Signed-in users reach their app via `/app`. Contact requests are stored in `contactRequests` (`POST /public/contact`, public, rate-limited).
 
 ## 3. Layout & Navigation
 - **Clinic app shell:**

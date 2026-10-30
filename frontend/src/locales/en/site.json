@@ -1,0 +1,406 @@
+{
+  "meta": {
+    "homeTitle": "ElDental — Dental clinic management, beautifully simple",
+    "features": "Features",
+    "pricing": "Pricing",
+    "about": "About",
+    "security": "Security",
+    "contact": "Contact",
+    "privacy": "Privacy policy",
+    "terms": "Terms of service"
+  },
+  "nav": {
+    "features": "Features",
+    "pricing": "Pricing",
+    "about": "About",
+    "security": "Security",
+    "contact": "Contact",
+    "signIn": "Sign in",
+    "bookDemo": "Book a demo",
+    "goToApp": "Open dashboard",
+    "menu": "Menu"
+  },
+  "hero": {
+    "badge": "New · JoFotara e-invoicing built in",
+    "title": "The modern way to run",
+    "highlight": "your dental clinic",
+    "subtitle": "Appointments, dental charts, treatment plans, billing with a real ledger, HR and payroll — in one fast, Arabic-first platform your whole team will love.",
+    "ctaPrimary": "Book a free demo",
+    "ctaSecondary": "Explore features",
+    "trust1": "Arabic & English",
+    "trust2": "Bank-grade security",
+    "trust3": "Set up in under an hour"
+  },
+  "mock": {
+    "greeting": "Good morning, Dr. Ahmad",
+    "today": "Today",
+    "appointments": "Appointments",
+    "revenue": "Collected today",
+    "newPatients": "New patients",
+    "noShow": "No-show rate",
+    "schedule": "Today's schedule",
+    "chairs": "Chairs",
+    "waiting": "Waiting",
+    "inChair": "In chair",
+    "done": "Done",
+    "week": "This week",
+    "chart": "Tooth chart",
+    "plan": "Treatment plan accepted",
+    "paid": "Invoice paid",
+    "booked": "Online booking",
+    "p1": "Lina Haddad",
+    "p2": "Omar Saleh",
+    "p3": "Maya Khoury",
+    "p4": "Yousef Ali",
+    "t1": "Check-up & cleaning",
+    "t2": "Root canal — 36",
+    "t3": "Composite filling",
+    "t4": "Ortho adjustment",
+    "caries": "Caries",
+    "crown": "Crown",
+    "filling": "Filling",
+    "rct": "Root canal",
+    "posted": "Posted",
+    "arPatients": "AR – Patients",
+    "revRestorative": "Restorative revenue",
+    "vat": "VAT payable"
+  },
+  "stats": {
+    "s1v": "< 30 min",
+    "s1l": "from sign-up to the first booked appointment",
+    "s2v": "0",
+    "s2l": "double bookings — guaranteed by design",
+    "s3v": "100%",
+    "s3l": "of payments posted to a balanced ledger",
+    "s4v": "2",
+    "s4l": "languages, perfect RTL and LTR"
+  },
+  "features": {
+    "overline": "Everything in one place",
+    "title": "Built for how dental clinics really work",
+    "subtitle": "Every module talks to the others. Book a patient, chart a finding, perform the procedure — the invoice and the journal entry follow automatically.",
+    "scheduling": {
+      "title": "Smart scheduling",
+      "body": "Resource calendar by dentist or chair, drag-to-reschedule, free-slot search and a live front-desk board. Double booking is impossible."
+    },
+    "charting": {
+      "title": "Dental charting",
+      "body": "FDI odontogram for permanent and primary teeth with surfaces, findings, planned and completed work — keyboard friendly."
+    },
+    "plans": {
+      "title": "Treatment plans",
+      "body": "Phases, alternatives, insurance estimates and e-signature acceptance. Convert accepted items into appointments in a click."
+    },
+    "billing": {
+      "title": "Billing & JoFotara",
+      "body": "Invoices from performed procedures, insurance splits, payments and receipts — submitted to JoFotara with the QR on every invoice."
+    },
+    "accounting": {
+      "title": "Real accounting",
+      "body": "Double-entry ledger, chart of accounts, period closing, trial balance, P&L and balance sheet — generated from the ledger itself."
+    },
+    "hr": {
+      "title": "HR & payroll",
+      "body": "Shifts, attendance, leave approvals and payroll with social security, overtime and dentist commission — posted to the ledger."
+    },
+    "portal": {
+      "title": "Patient portal",
+      "body": "Patients book online, accept plans, see invoices and manage family members from a mobile-first, Arabic-first portal."
+    },
+    "security": {
+      "title": "Permissions to the field",
+      "body": "Decide who sees what, down to a single field. Salaries hidden, IDs masked, every change audited."
+    }
+  },
+  "how": {
+    "overline": "Get started",
+    "title": "Live in three simple steps",
+    "s1": {
+      "title": "Set up your clinic",
+      "body": "Our wizard walks you through hours, chairs, dentists and prices imported from a ready-made procedure catalog."
+    },
+    "s2": {
+      "title": "Invite your team",
+      "body": "Each role gets the right screens from day one: dentists, reception, accountants and HR."
+    },
+    "s3": {
+      "title": "Run your day",
+      "body": "Book, chart, treat, invoice and get paid — while the ledger and reports update themselves."
+    }
+  },
+  "spotlight": {
+    "s1": {
+      "overline": "Front desk",
+      "title": "Book in three clicks after you find the patient",
+      "body": "Type a name or phone, pick the treatment, choose a suggested slot. If someone grabs it first, ElDental offers the next three free times.",
+      "b1": "Resource calendar for dentists and chairs",
+      "b2": "WhatsApp and email reminders",
+      "b3": "Live today board with wait-time timers"
+    },
+    "s2": {
+      "overline": "Chairside",
+      "title": "A tooth chart dentists actually enjoy",
+      "body": "Click a surface, record a finding, add it to the plan. Completed procedures update the chart and the invoice automatically.",
+      "b1": "Permanent, primary and mixed dentition",
+      "b2": "Perio charting with fast keyboard entry",
+      "b3": "Signed notes, prescriptions and lab orders"
+    },
+    "s3": {
+      "overline": "Back office",
+      "title": "Your accountant will finally smile",
+      "body": "Every financial event posts a balanced, immutable journal entry. Close the month in minutes, not days.",
+      "b1": "Trial balance, P&L, balance sheet, cash flow",
+      "b2": "Cash sessions and daily close",
+      "b3": "Insurance claims and AR aging"
+    }
+  },
+  "roles": {
+    "overline": "For every role",
+    "title": "One platform, the right view for everyone",
+    "owner": {
+      "title": "Clinic owners",
+      "body": "Production, collections and conversion at a glance — with full control over roles and permissions."
+    },
+    "dentist": {
+      "title": "Dentists",
+      "body": "Your schedule, your patients, your chart and notes — and your commission, always up to date."
+    },
+    "reception": {
+      "title": "Reception",
+      "body": "Fast booking, check-in, payments and recalls without ever leaving the today board."
+    },
+    "accountant": {
+      "title": "Accountants",
+      "body": "Ledger-backed reports, supplier bills, expenses and period closing that always balance."
+    }
+  },
+  "pricing": {
+    "overline": "Pricing",
+    "title": "Simple plans that grow with your clinic",
+    "subtitle": "Start with a free 30-day trial. No credit card required.",
+    "monthly": "Monthly",
+    "yearly": "Yearly",
+    "save": "Save 2 months",
+    "perMonth": "/ month",
+    "billedYearly": "billed yearly",
+    "popular": "Most popular",
+    "currency": "JOD",
+    "custom": "Custom",
+    "starter": {
+      "name": "Starter",
+      "desc": "For solo practices getting organised.",
+      "f1": "Up to 2 chairs and 5 staff",
+      "f2": "Scheduling, charting and treatment plans",
+      "f3": "Invoices, payments and receipts",
+      "f4": "Email reminders",
+      "cta": "Start free trial"
+    },
+    "pro": {
+      "name": "Professional",
+      "desc": "For growing clinics that want everything.",
+      "f1": "Up to 6 chairs and 25 staff",
+      "f2": "Full accounting and JoFotara",
+      "f3": "HR, attendance and payroll",
+      "f4": "WhatsApp reminders and patient portal",
+      "cta": "Start free trial"
+    },
+    "enterprise": {
+      "name": "Enterprise",
+      "desc": "For groups and multi-branch clinics.",
+      "f1": "Unlimited chairs and staff",
+      "f2": "Multiple clinics, one login",
+      "f3": "Priority support and onboarding",
+      "f4": "Custom integrations",
+      "cta": "Talk to sales"
+    },
+    "compareTitle": "Compare plans",
+    "feature": "Feature",
+    "included": "Included",
+    "notIncluded": "Not included",
+    "rows": {
+      "r1": "Online booking",
+      "r2": "Tooth chart & perio",
+      "r3": "Double-entry accounting",
+      "r4": "JoFotara e-invoicing",
+      "r5": "Payroll",
+      "r6": "Field-level permissions",
+      "r7": "Audit & activity logs",
+      "r8": "Dedicated success manager"
+    }
+  },
+  "faq": {
+    "overline": "FAQ",
+    "title": "Questions, answered",
+    "q1": "Is ElDental available in Arabic?",
+    "a1": "Yes. Arabic is the default language with perfect right-to-left layout, and you can switch to English at any time — even on the sign-in page.",
+    "q2": "Does it support JoFotara e-invoicing?",
+    "a2": "Yes. Issued invoices are submitted to JoFotara automatically and the returned QR code is printed on the invoice.",
+    "q3": "Can I control what each employee sees?",
+    "a3": "Completely. Permissions go down to individual fields — for example, reception can see staff names and phones but never salaries.",
+    "q4": "Is my data secure?",
+    "a4": "Data is isolated per clinic, sensitive fields are encrypted, every change is audited and backups are encrypted daily.",
+    "q5": "Can I move from another system?",
+    "a5": "Yes. We help you import patients and opening balances so you can start with your history in place.",
+    "q6": "Do I need to install anything?",
+    "a6": "No. ElDental runs in the browser on any computer, tablet or phone, and patients can install the portal like an app."
+  },
+  "cta": {
+    "title": "Ready to give your clinic superpowers?",
+    "subtitle": "Join clinics that run their whole day from ElDental. Your 30-day trial starts today.",
+    "primary": "Book a free demo",
+    "secondary": "Sign in"
+  },
+  "footer": {
+    "tagline": "The all-in-one platform for modern dental clinics.",
+    "product": "Product",
+    "company": "Company",
+    "legal": "Legal",
+    "rights": "All rights reserved.",
+    "madeIn": "Made with care in Amman"
+  },
+  "about": {
+    "overline": "About us",
+    "title": "We build software dentists are proud to use",
+    "subtitle": "ElDental started inside real clinics. We watched receptionists juggle paper calendars, dentists re-type notes and accountants rebuild the books every month — and decided it should be better.",
+    "missionTitle": "Our mission",
+    "missionBody": "Give every dental clinic in the region a calm, connected workday: from the first phone call to the final journal entry, without spreadsheets, double entry or guesswork.",
+    "storyTitle": "Our story",
+    "storyBody": "We spent years building healthcare software for clinics in Jordan. ElDental is the result of everything we learned — rebuilt from scratch for dentistry, with Arabic first, security by design and accounting that actually balances.",
+    "valuesTitle": "What we believe",
+    "v1": {
+      "title": "Clinics first",
+      "body": "Every screen is designed around a real task, timed in a real clinic."
+    },
+    "v2": {
+      "title": "Arabic by default",
+      "body": "Right-to-left isn't a translation layer for us — it's where we start."
+    },
+    "v3": {
+      "title": "Trust is earned",
+      "body": "Patient data is sacred. We encrypt it, isolate it and audit every access."
+    },
+    "v4": {
+      "title": "Numbers that add up",
+      "body": "Every financial event is a balanced journal entry. Always."
+    },
+    "numbersTitle": "ElDental in numbers",
+    "n1v": "12+",
+    "n1l": "integrated modules",
+    "n2v": "80+",
+    "n2l": "procedures in the starter catalog",
+    "n3v": "5",
+    "n3l": "audit and log streams",
+    "n4v": "24/7",
+    "n4l": "monitoring"
+  },
+  "securityPage": {
+    "overline": "Security & privacy",
+    "title": "Your patients trust you. You can trust us.",
+    "subtitle": "Security isn't a feature we added — it's how ElDental is built, from the database to the browser.",
+    "i1": {
+      "title": "Strict clinic isolation",
+      "body": "Every record belongs to one clinic and is filtered in the data layer. Automated tests prove clinics can never see each other's data."
+    },
+    "i2": {
+      "title": "Encryption everywhere",
+      "body": "TLS in transit; national IDs, bank details and integration secrets encrypted at rest with AES-256."
+    },
+    "i3": {
+      "title": "Field-level permissions",
+      "body": "Hidden fields never leave the server. Masked values are masked before they reach the browser."
+    },
+    "i4": {
+      "title": "Complete audit trail",
+      "body": "Who changed what, when and from where — with before and after values — for every clinical and financial record."
+    },
+    "i5": {
+      "title": "Modern authentication",
+      "body": "Short-lived tokens, rotating sessions with theft detection, lockout protection and two-factor authentication."
+    },
+    "i6": {
+      "title": "Encrypted backups",
+      "body": "Daily encrypted off-site backups with regular restore drills. Your data is never sent through chat apps."
+    }
+  },
+  "contact": {
+    "overline": "Contact",
+    "title": "Let's talk about your clinic",
+    "subtitle": "Book a personalised demo or ask us anything. We usually reply within one business day.",
+    "name": "Your name",
+    "email": "Work email",
+    "phone": "Mobile number",
+    "clinicName": "Clinic name",
+    "clinicSize": "Number of chairs",
+    "message": "How can we help?",
+    "messageHelper": "Tell us about your clinic and what you'd like to see",
+    "interest": "I'm interested in",
+    "interests": {
+      "demo": "A product demo",
+      "pricing": "Pricing",
+      "migration": "Moving from another system",
+      "other": "Something else"
+    },
+    "sizes": {
+      "s1": "1 chair",
+      "s2": "2–3 chairs",
+      "s3": "4–6 chairs",
+      "s4": "7+ chairs"
+    },
+    "submit": "Send message",
+    "success": "Thank you! We'll be in touch shortly.",
+    "successBody": "A member of our team will contact you within one business day.",
+    "sendAnother": "Send another message",
+    "infoTitle": "Reach us directly",
+    "emailLabel": "Email",
+    "phoneLabel": "Phone",
+    "addressLabel": "Office",
+    "address": "Amman, Jordan",
+    "hoursLabel": "Working hours",
+    "hours": "Sunday – Thursday, 9:00 – 17:00"
+  },
+  "legal": {
+    "updated": "Last updated: {{date}}",
+    "privacy": {
+      "title": "Privacy policy",
+      "intro": "This policy explains what information ElDental processes, why, and the choices you have. Clinics remain the controllers of their patients' data; ElDental processes it on their behalf.",
+      "s1t": "Information we process",
+      "s1b": "Account information for clinic staff (name, email, phone), clinic configuration, and the patient, clinical and financial records that clinics enter. We also keep security and usage logs without the values you type into forms.",
+      "s2t": "How we use it",
+      "s2b": "To provide the service, keep it secure, send the notifications clinics enable (such as appointment reminders), and improve reliability. We never sell personal data.",
+      "s3t": "Security",
+      "s3b": "Data is isolated per clinic, encrypted in transit and, for sensitive fields, at rest. Access is restricted by role and field-level permissions, and every change is audited.",
+      "s4t": "Retention",
+      "s4b": "Clinical and financial records are kept as long as the clinic's account is active and as required by law. Logs are kept for limited periods and then deleted automatically.",
+      "s5t": "Your rights",
+      "s5b": "Patients should contact their clinic to access or correct their records. Clinic users can contact us to exercise their rights regarding their account.",
+      "s6t": "Contact",
+      "s6b": "Questions about privacy? Write to us through the contact page and our team will respond."
+    },
+    "terms": {
+      "title": "Terms of service",
+      "intro": "These terms govern the use of ElDental by clinics and their staff. By creating an account you agree to them on behalf of your clinic.",
+      "s1t": "The service",
+      "s1b": "ElDental provides cloud software for scheduling, clinical records, billing, accounting, HR and patient communication. Features depend on your plan.",
+      "s2t": "Your responsibilities",
+      "s2b": "You are responsible for the accuracy of the data you enter, for granting permissions appropriately and for keeping your login credentials secure.",
+      "s3t": "Subscriptions & billing",
+      "s3b": "Plans are billed monthly or yearly in advance. If a subscription lapses, the clinic switches to read-only mode until it is renewed — your data is never deleted for non-payment.",
+      "s4t": "Data ownership",
+      "s4b": "Your clinic owns its data. You can export it at any time, and we will help you move it if you decide to leave.",
+      "s5t": "Availability",
+      "s5b": "We work hard to keep ElDental available around the clock and announce planned maintenance in advance.",
+      "s6t": "Changes",
+      "s6b": "We may update these terms and will notify clinic owners of material changes before they take effect."
+    }
+  },
+  "authPanel": {
+    "title": "Everything your clinic needs, in one calm place.",
+    "subtitle": "Scheduling, charting, billing, accounting and HR — designed Arabic-first.",
+    "p1": "Book in three clicks",
+    "p2": "Ledger-backed financial reports",
+    "p3": "Permissions down to each field",
+    "statValue": "98%",
+    "statLabel": "on-time appointments this week",
+    "back": "Back to website"
+  }
+}

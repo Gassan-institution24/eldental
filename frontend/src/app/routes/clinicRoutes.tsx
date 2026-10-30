@@ -1,10 +1,11 @@
 import { Navigate, type RouteObject } from 'react-router-dom';
-import { placeholder } from '../routeHelpers';
+import { DashboardPage } from '@/features/dashboard/DashboardPage';
+import { page, placeholder } from '../routeHelpers';
 
 /** Clinic route tree (10_FRONTEND.md §3). Modules replace placeholders as phases land. */
 export const clinicRoutes: RouteObject[] = [
   { index: true, element: <Navigate to="dashboard" replace /> },
-  placeholder('dashboard', 'nav:dashboard', 'reports.dashboard.read'),
+  page(<DashboardPage />, { title: 'nav:dashboard' }, 'dashboard'),
   placeholder('calendar', 'nav:calendar', 'scheduling.appointment.read'),
   placeholder('today', 'nav:today', 'scheduling.appointment.read'),
   placeholder('waitlist', 'nav:waitlist', 'scheduling.waitlist.manage'),

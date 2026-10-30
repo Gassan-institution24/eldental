@@ -67,7 +67,11 @@ export function QuickActions({ actions }: { actions: QuickAction[] }) {
   return (
     <>
       <Tooltip title={t('layout.quickActions')}>
-        <IconButton aria-label={t('layout.quickActions')} onClick={(e) => setAnchor(e.currentTarget)} color="primary">
+        <IconButton
+          aria-label={t('layout.quickActions')}
+          onClick={(e) => setAnchor(e.currentTarget)}
+          color="primary"
+        >
           <Plus size={22} />
         </IconButton>
       </Tooltip>
@@ -89,7 +93,13 @@ export function QuickActions({ actions }: { actions: QuickAction[] }) {
   );
 }
 
-export function NotificationsButton({ count, onClick }: { count: number; onClick: (e: React.MouseEvent<HTMLElement>) => void }) {
+export function NotificationsButton({
+  count,
+  onClick,
+}: {
+  count: number;
+  onClick: (e: React.MouseEvent<HTMLElement>) => void;
+}) {
   const { t } = useTranslation();
   return (
     <Tooltip title={t('layout.notifications')}>
@@ -111,20 +121,39 @@ type UserMenuProps = {
   onSwitchClinic?: () => void;
 };
 
-export function UserMenu({ name, subtitle, onLogout, onProfile, onPayslips, onSwitchClinic }: UserMenuProps) {
+export function UserMenu({
+  name,
+  subtitle,
+  onLogout,
+  onProfile,
+  onPayslips,
+  onSwitchClinic,
+}: UserMenuProps) {
   const { t } = useTranslation();
   const [anchor, setAnchor] = useState<HTMLElement | null>(null);
   const openReport = useReportProblem((s) => s.open);
   const close = () => setAnchor(null);
-  const initials = name.trim().split(/\s+/).slice(0, 2).map((p) => p[0]).join('');
+  const initials = name
+    .trim()
+    .split(/\s+/)
+    .slice(0, 2)
+    .map((p) => p[0])
+    .join('');
   return (
     <>
       <Tooltip title={t('layout.userMenu')}>
         <IconButton aria-label={t('layout.userMenu')} onClick={(e) => setAnchor(e.currentTarget)}>
-          <Avatar sx={{ width: 32, height: 32, fontSize: 14, bgcolor: 'primary.main' }}>{initials || <User size={16} />}</Avatar>
+          <Avatar sx={{ width: 32, height: 32, fontSize: 14, bgcolor: 'primary.main' }}>
+            {initials || <User size={16} />}
+          </Avatar>
         </IconButton>
       </Tooltip>
-      <Menu anchorEl={anchor} open={Boolean(anchor)} onClose={close} slotProps={{ paper: { sx: { minWidth: 240 } } }}>
+      <Menu
+        anchorEl={anchor}
+        open={Boolean(anchor)}
+        onClose={close}
+        slotProps={{ paper: { sx: { minWidth: 240 } } }}
+      >
         <Box sx={{ px: 4, py: 2 }}>
           <Typography fontWeight={600} dir="auto" noWrap>
             {name}

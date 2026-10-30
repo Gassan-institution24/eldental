@@ -6,6 +6,10 @@ import { AdminLayout } from '@/layouts/AdminLayout';
 import { AuthLayout } from '@/layouts/AuthLayout';
 import { ClinicLayout } from '@/layouts/ClinicLayout';
 import { PortalLayout } from '@/layouts/PortalLayout';
+import { PublicLayout } from '@/layouts/PublicLayout';
+import { HomePage } from '@/features/site/pages/HomePage';
+import { AboutPage, FeaturesPage, LegalPage, PricingPage, SecurityPage } from '@/features/site/pages/InfoPages';
+import { ContactPage } from '@/features/site/pages/ContactPage';
 import { NotFoundPage } from '@/shared/components/PlaceholderPage';
 import { AuthGuard, GuestGuard, HomeRedirect } from './guards';
 import { RouteTracker } from './RouteTracker';
@@ -26,7 +30,20 @@ export const routes: RouteObject[] = [
   {
     element: <Root />,
     children: [
-      { path: '/', element: <HomeRedirect /> },
+      {
+        element: <PublicLayout />,
+        children: [
+          { path: '/', element: <HomePage /> },
+          { path: '/features', element: <FeaturesPage /> },
+          { path: '/pricing', element: <PricingPage /> },
+          { path: '/about', element: <AboutPage /> },
+          { path: '/security', element: <SecurityPage /> },
+          { path: '/contact', element: <ContactPage /> },
+          { path: '/privacy', element: <LegalPage kind="privacy" /> },
+          { path: '/terms', element: <LegalPage kind="terms" /> },
+        ],
+      },
+      { path: '/app', element: <HomeRedirect /> },
       {
         element: (
           <GuestGuard>

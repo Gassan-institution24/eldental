@@ -1,4 +1,5 @@
-import { Alert, Box, Button, Link, Stack, Typography } from '@mui/material';
+import { Alert, Box, Button, Chip, Link, Stack, Typography } from '@mui/material';
+import { env } from '@/config/env';
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link as RouterLink, useNavigate, useSearchParams } from 'react-router-dom';
@@ -97,6 +98,29 @@ export function LoginPage() {
           </Button>
         </Stack>
       </Form>
+      {env.isDev && (
+        <Box sx={{ mt: 6, p: 4, borderRadius: 3, border: 1, borderStyle: 'dashed', borderColor: 'divider' }}>
+          <Typography variant="body2" fontWeight={700}>
+            {t('demo.title')}
+          </Typography>
+          <Typography variant="caption" color="text.secondary">
+            {t('demo.hint')}
+          </Typography>
+          <Stack direction="row" spacing={1} sx={{ mt: 2, flexWrap: 'wrap', rowGap: 1 }}>
+            {(['owner', 'dentist', 'reception', 'accountant', 'hr'] as const).map((k) => (
+              <Chip
+                key={k}
+                label={t(`demo.${k}`)}
+                size="small"
+                onClick={() => {
+                  form.setValue('identifier', `${k}@smile.local`);
+                  form.setValue('password', 'Password123!');
+                }}
+              />
+            ))}
+          </Stack>
+        </Box>
+      )}
       <Typography variant="body2" color="text.secondary" sx={{ mt: 6, textAlign: 'center' }}>
         <Link component={RouterLink} to="/portal/login">
           {t('login.patientPortal')}

@@ -176,7 +176,7 @@ export function ChangePasswordPage() {
       <Typography variant="h2" component="h1" sx={{ mb: 6 }}>
         {t('change.title')}
       </Typography>
-      <ChangePasswordForm mustChange onDone={() => navigate('/', { replace: true })} />
+      <ChangePasswordForm mustChange onDone={() => navigate('/app', { replace: true })} />
     </Box>
   );
 }
