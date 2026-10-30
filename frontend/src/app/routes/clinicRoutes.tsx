@@ -20,6 +20,24 @@ import { PatientListPage } from '@/features/patients/pages/PatientListPage';
 import { PatientCreatePage, PatientEditPage } from '@/features/patients/pages/PatientFormPage';
 import { PatientWorkspace } from '@/features/patients/pages/PatientWorkspace';
 import { PATIENT_EXTRA_ROUTES } from './patientExtraRoutes';
+import {
+  AccountsPage,
+  BillsPage,
+  EInvoicesPage,
+  ExpensesPage,
+  JournalsPage,
+  PeriodsPage,
+  SuppliersPage,
+} from '@/features/accounting/pages/AccountingPages';
+import { ReportsPage } from '@/features/accounting/pages/ReportsPage';
+import {
+  CashPage,
+  ClaimsPage,
+  InsuranceCompaniesPage,
+  PatientBillingTab,
+  PaymentsPage,
+} from '@/features/billing/pages/BillingPages';
+import { InvoiceDetailPage, InvoicesPage } from '@/features/billing/pages/InvoicePages';
 import { ChartTab } from '@/features/clinical/pages/ChartTab';
 import { NotesTab, PerioTab } from '@/features/clinical/pages/NotesPerioTabs';
 import { PlansTab } from '@/features/clinical/pages/PlansTab';
@@ -70,8 +88,70 @@ export const clinicRoutes: RouteObject[] = [
     handle: { perm: 'patients.patient.read' },
     children: patientTabRoutes(),
   },
-  placeholder('billing/*', 'nav:invoices', 'billing.invoice.read'),
-  placeholder('accounting/*', 'nav:accounts', 'accounting.account.read'),
+  page(
+    <InvoicesPage />,
+    { perm: 'billing.invoice.read', title: 'nav:invoices' },
+    'billing/invoices',
+  ),
+  page(
+    <InvoiceDetailPage />,
+    { perm: 'billing.invoice.read', title: 'nav:invoices' },
+    'billing/invoices/:id',
+  ),
+  page(
+    <PaymentsPage />,
+    { perm: 'billing.payment.read', title: 'nav:payments' },
+    'billing/payments',
+  ),
+  page(<CashPage />, { perm: 'billing.cashSession.manage', title: 'nav:cash' }, 'billing/cash'),
+  page(
+    <InsuranceCompaniesPage />,
+    { perm: 'billing.insurance.manage', title: 'nav:insurance' },
+    'billing/insurance',
+  ),
+  page(<ClaimsPage />, { perm: 'billing.insurance.manage', title: 'nav:claims' }, 'billing/claims'),
+  { path: 'billing', element: <Navigate to="invoices" replace /> },
+  page(
+    <AccountsPage />,
+    { perm: 'accounting.account.read', title: 'nav:accounts' },
+    'accounting/accounts',
+  ),
+  page(
+    <JournalsPage />,
+    { perm: 'accounting.journal.read', title: 'nav:journals' },
+    'accounting/journals',
+  ),
+  page(
+    <SuppliersPage />,
+    { perm: 'accounting.supplier.manage', title: 'nav:suppliers' },
+    'accounting/suppliers',
+  ),
+  page(
+    <BillsPage />,
+    { perm: 'accounting.supplier.manage', title: 'nav:bills' },
+    'accounting/bills',
+  ),
+  page(
+    <ExpensesPage />,
+    { perm: 'accounting.expense.create', title: 'nav:expenses' },
+    'accounting/expenses',
+  ),
+  page(
+    <PeriodsPage />,
+    { perm: 'accounting.period.manage', title: 'nav:periods' },
+    'accounting/periods',
+  ),
+  page(
+    <ReportsPage />,
+    { perm: 'accounting.report.read', title: 'nav:accountingReports' },
+    'accounting/reports',
+  ),
+  page(
+    <EInvoicesPage />,
+    { perm: 'accounting.einvoice.manage', title: 'nav:einvoices' },
+    'accounting/einvoices',
+  ),
+  { path: 'accounting', element: <Navigate to="accounts" replace /> },
   page(<LabOrdersPage />, { perm: 'clinical.labOrder.read', title: 'nav:labOrders' }, 'lab-orders'),
   page(<StaffListPage />, { perm: 'staff.member.read' }, 'hr/staff'),
   page(<StaffProfilePage />, { perm: 'staff.member.read' }, 'hr/staff/:id'),
@@ -118,6 +198,7 @@ function patientTabRoutes(): RouteObject[] {
     page(<PrescriptionsTab />, { perm: 'clinical.prescription.read' }, 'prescriptions'),
     page(<LabTab />, { perm: 'clinical.labOrder.read' }, 'lab'),
     page(<ConsentsTab />, { perm: 'clinical.chart.read' }, 'consents'),
+    page(<PatientBillingTab />, { perm: 'billing.invoice.read' }, 'billing'),
     page(<MedicalTab />, { perm: 'patients.medicalHistory.read' }, 'medical'),
     page(<InsuranceTab />, {}, 'insurance'),
     page(<DocumentsTab />, { perm: 'patients.document.read' }, 'documents'),

@@ -254,6 +254,8 @@ Implementation: `accounting/posting/postingRules.ts` exports one pure builder pe
 
 Exports: JSON for the UI, PDF and XLSX via report jobs for large ranges.
 
+> **v1 printing:** invoices, receipts, statements and every report render as print-ready A4 pages in the browser (Print / Save as PDF), which keeps Arabic text correct. Server-side PDF/XLSX jobs for e-mail attachments and very large ranges come later.
+
 ## 9. Tests (must exist)
 - Every posting rule builder gives balanced output, for many fixture cases.
 - An end-to-end ledger scenario: issue → partial pay → pay rest → credit note → refund. The trial balance stays balanced and AR is zero at the end.

@@ -90,20 +90,20 @@
 - [x] Treatment plans (phases, alternatives, estimates, present PDF, accept with signature)
 - [x] Performed procedures (events → recalls; billing hook stubbed until Phase 6)
 - [x] Clinical notes (templates, sign, amend), perio chart, prescriptions (PDF), lab orders, imaging viewer, consents
-- [ ] Lab cost → supplier bill draft (needs Phase 6 suppliers/bills)
+- [x] Lab cost → supplier bill draft (needs Phase 6 suppliers/bills)
 - [x] Frontend: `<ToothChart>`, plan builder, perio grid, notes editor, Rx, lab orders, imaging gallery, consent signing
 
 **Accept:** an end-to-end flow: chart finding → plan → accept → book → perform → chart shows completed.
 
 ## Phase 6 — Billing & Accounting
-- [ ] money.ts + tests; chart of accounts seed; account tree CRUD
-- [ ] Journal service (validate, post, reverse), fiscal years/periods, posting rules (pure + tests)
-- [ ] Invoices (draft from appointment, issue with numbering + journal, void, credit note, PDF), insurance split
-- [ ] Payments (allocations, credit, refunds, receipts, idempotency), cheques, cash sessions
-- [ ] Insurance claims; suppliers, supplier bills, supplier payments, expenses; lab order → bill draft
-- [ ] JoFotara builder + client + worker (feature-flagged)
-- [ ] Reports: trial balance, P&L, balance sheet, GL, AR/AP aging, VAT return, daily cash, patient statement
-- [ ] Frontend for all of the above
+- [x] money.ts + tests; chart of accounts seed; account tree CRUD
+- [x] Journal service (validate, post, reverse), fiscal years/periods, posting rules (pure + tests)
+- [x] Invoices (draft from appointment, issue with numbering + journal, void, credit note, PDF), insurance split
+- [x] Payments (allocations, credit, refunds, receipts, idempotency), cheques, cash sessions
+- [x] Insurance claims; suppliers, supplier bills, supplier payments, expenses; lab order → bill draft
+- [x] JoFotara builder + client + worker (feature-flagged)
+- [x] Reports: trial balance, P&L, balance sheet, GL, AR/AP aging, VAT return, daily cash, patient statement
+- [x] Frontend for all of the above
 
 **Accept:** the ledger scenario test passes; the trial balance balances after the seeded demo activity; the PDFs render in Arabic.
 
