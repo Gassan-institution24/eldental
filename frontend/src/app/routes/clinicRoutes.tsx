@@ -13,6 +13,9 @@ import {
   TaxRatesPage,
 } from '@/features/clinic-settings/pages/ResourcePages';
 import { SettingsLayout } from '@/features/clinic-settings/pages/SettingsLayout';
+import { RolesPage } from '@/features/staff/pages/RolesPage';
+import { StaffListPage } from '@/features/staff/pages/StaffListPage';
+import { MyProfileRedirect, StaffProfilePage } from '@/features/staff/pages/StaffProfilePage';
 import { page, placeholder } from '../routeHelpers';
 
 /** Clinic route tree (10_FRONTEND.md §3). Modules replace placeholders as they land. */
@@ -26,7 +29,9 @@ export const clinicRoutes: RouteObject[] = [
   placeholder('patients/*', 'nav:patients', 'patients.patient.read'),
   placeholder('billing/*', 'nav:invoices', 'billing.invoice.read'),
   placeholder('accounting/*', 'nav:accounts', 'accounting.account.read'),
-  placeholder('hr/*', 'nav:staff', 'staff.member.read'),
+  page(<StaffListPage />, { perm: 'staff.member.read' }, 'hr/staff'),
+  page(<StaffProfilePage />, { perm: 'staff.member.read' }, 'hr/staff/:id'),
+  placeholder('hr/*', 'nav:shifts', 'hr.shift.manage'),
   placeholder('inventory', 'nav:inventoryItems', 'inventory.item.read'),
   placeholder('reports', 'nav:reportsOperational', 'reports.operational.read'),
   {
@@ -47,9 +52,9 @@ export const clinicRoutes: RouteObject[] = [
       page(<ProceduresPage />, { perm: 'clinic.procedure.manage' }, 'procedures'),
       page(<TaxRatesPage />, { perm: 'accounting.account.read' }, 'taxes'),
       page(<IntegrationsPage />, { perm: 'clinic.settings.update' }, 'integrations'),
-      placeholder('roles', 'settings:tabs.roles', 'staff.role.manage'),
+      page(<RolesPage />, { perm: 'staff.role.manage' }, 'roles'),
       placeholder('logs', 'settings:tabs.logs', 'logs.activity.read'),
     ],
   },
-  placeholder('me', 'common:layout.profile'),
+  page(<MyProfileRedirect />, {}, 'me'),
 ];
