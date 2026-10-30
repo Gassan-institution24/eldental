@@ -26,6 +26,7 @@ import {
   Wallet,
   CalendarPlus,
   Plane,
+  Clock3,
 } from 'lucide-react';
 import { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -35,6 +36,9 @@ import { useSessionData } from '@/features/auth/api/session';
 import { usePatientSearchProvider } from '@/features/patients/api/patientSearch';
 import { NotificationsMenu } from '@/features/notifications/components/NotificationsMenu';
 import { usePermission } from '@/shared/rbac/usePermission';
+import { AppointmentDrawer } from '@/features/scheduling/components/AppointmentDrawer';
+import { QuickBookDrawer } from '@/features/scheduling/components/QuickBookDrawer';
+import { useRealtime } from '@/lib/socket';
 import { AppShell, Brand, type NavGroup } from './shell/AppShell';
 import { GlobalSearch } from './shell/GlobalSearch';
 import { LanguageToggle, QuickActions, ThemeToggle, UserMenu } from './shell/ShellControls';
@@ -65,6 +69,12 @@ export const CLINIC_NAV: GroupDef[] = [
         to: '/clinic/today',
         icon: <ListChecks size={I} />,
         perm: 'scheduling.appointment.read',
+      },
+      {
+        key: 'schedules',
+        to: '/clinic/schedules',
+        icon: <Clock3 size={I} />,
+        perm: 'scheduling.schedule.read',
       },
       {
         key: 'waitlist',
@@ -254,6 +264,7 @@ export function ClinicLayout() {
   const navigate = useNavigate();
   const logout = useLogout();
   const searchProvider = usePatientSearchProvider();
+  useRealtime();
   const openQuickBook = useQuickBook((s) => s.open);
 
   const nav: NavGroup[] = useMemo(
@@ -313,33 +324,44 @@ export function ClinicLayout() {
   );
 
   return (
-    <AppShell
-      nav={nav}
-      brand={<Brand subtitle={session?.clinic?.name} />}
-      banner={banner}
-      topbar={
-        <>
-          <GlobalSearch provider={can('patients.patient.read') ? searchProvider : undefined} />
-          <Stack direction="row" spacing={1} alignItems="center" sx={{ marginInlineStart: 'auto' }}>
-            <QuickActions actions={quick} />
-            <NotificationsMenu />
-            <LanguageToggle />
-            <ThemeToggle />
-            <UserMenu
-              name={session?.staff?.name ?? session?.user.displayName ?? ''}
-              subtitle={session?.clinic?.name}
-              onLogout={() => void logout()}
-              onProfile={() => navigate('/clinic/me')}
-              onPayslips={
-                can('hr.payroll.read') ? () => navigate('/clinic/hr/my-payslips') : undefined
-              }
-              onSwitchClinic={
-                session && session.clinics.length > 1 ? () => navigate('/select-clinic') : undefined
-              }
-            />
-          </Stack>
-        </>
-      }
-    />
+    <>
+      <AppShell
+        nav={nav}
+        brand={<Brand subtitle={session?.clinic?.name} />}
+        banner={banner}
+        topbar={
+          <>
+            <GlobalSearch provider={can('patients.patient.read') ? searchProvider : undefined} />
+            <Stack
+              direction="row"
+              spacing={1}
+              alignItems="center"
+              sx={{ marginInlineStart: 'auto' }}
+            >
+              <QuickActions actions={quick} />
+              <NotificationsMenu />
+              <LanguageToggle />
+              <ThemeToggle />
+              <UserMenu
+                name={session?.staff?.name ?? session?.user.displayName ?? ''}
+                subtitle={session?.clinic?.name}
+                onLogout={() => void logout()}
+                onProfile={() => navigate('/clinic/me')}
+                onPayslips={
+                  can('hr.payroll.read') ? () => navigate('/clinic/hr/my-payslips') : undefined
+                }
+                onSwitchClinic={
+                  session && session.clinics.length > 1
+                    ? () => navigate('/select-clinic')
+                    : undefined
+                }
+              />
+            </Stack>
+          </>
+        }
+      />
+      {can('scheduling.appointment.book') && <QuickBookDrawer />}
+      {can('scheduling.appointment.read') && <AppointmentDrawer />}
+    </>
   );
 }

@@ -51,6 +51,7 @@
   "invalid_id": "Invalid selection",
   "not_balanced": "Debits and credits must be equal",
   "duplicate": "This value is already used",
+  "overlap": "This period overlaps another one",
   "field_forbidden": "You don't have permission to change this field",
   "summary_one": "1 field needs attention",
   "summary_other": "{{count}} fields need attention",

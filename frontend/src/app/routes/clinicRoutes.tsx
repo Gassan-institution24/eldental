@@ -20,6 +20,11 @@ import { PatientListPage } from '@/features/patients/pages/PatientListPage';
 import { PatientCreatePage, PatientEditPage } from '@/features/patients/pages/PatientFormPage';
 import { PatientWorkspace } from '@/features/patients/pages/PatientWorkspace';
 import { PATIENT_EXTRA_ROUTES } from './patientExtraRoutes';
+import { PatientAppointmentsTab } from '@/features/scheduling/components/PatientAppointmentsTab';
+import { CalendarPage } from '@/features/scheduling/pages/CalendarPage';
+import { SchedulesPage } from '@/features/scheduling/pages/SchedulesPage';
+import { TodayBoardPage } from '@/features/scheduling/pages/TodayBoardPage';
+import { RecallsPage, WaitlistPage } from '@/features/scheduling/pages/WaitlistRecallPages';
 import {
   DocumentsTab,
   HistoryTab,
@@ -33,10 +38,19 @@ import { page, placeholder } from '../routeHelpers';
 export const clinicRoutes: RouteObject[] = [
   { index: true, element: <Navigate to="dashboard" replace /> },
   page(<DashboardPage />, { title: 'nav:dashboard' }, 'dashboard'),
-  placeholder('calendar', 'nav:calendar', 'scheduling.appointment.read'),
-  placeholder('today', 'nav:today', 'scheduling.appointment.read'),
-  placeholder('waitlist', 'nav:waitlist', 'scheduling.waitlist.manage'),
-  placeholder('recalls', 'nav:recalls', 'scheduling.recall.manage'),
+  page(
+    <CalendarPage />,
+    { perm: 'scheduling.appointment.read', title: 'nav:calendar' },
+    'calendar',
+  ),
+  page(<TodayBoardPage />, { perm: 'scheduling.appointment.read', title: 'nav:today' }, 'today'),
+  page(
+    <SchedulesPage />,
+    { perm: 'scheduling.schedule.read', title: 'nav:schedules' },
+    'schedules',
+  ),
+  page(<WaitlistPage />, { perm: 'scheduling.waitlist.manage', title: 'nav:waitlist' }, 'waitlist'),
+  page(<RecallsPage />, { perm: 'scheduling.recall.manage', title: 'nav:recalls' }, 'recalls'),
   page(<PatientListPage />, { perm: 'patients.patient.read' }, 'patients'),
   page(<PatientCreatePage />, { perm: 'patients.patient.create' }, 'patients/new'),
   page(<PatientEditPage />, { perm: 'patients.patient.update' }, 'patients/:id/edit'),
@@ -82,6 +96,7 @@ export const clinicRoutes: RouteObject[] = [
 function patientTabRoutes(): RouteObject[] {
   return [
     { index: true, element: <OverviewTab /> },
+    page(<PatientAppointmentsTab />, { perm: 'scheduling.appointment.read' }, 'appointments'),
     page(<MedicalTab />, { perm: 'patients.medicalHistory.read' }, 'medical'),
     page(<InsuranceTab />, {}, 'insurance'),
     page(<DocumentsTab />, { perm: 'patients.document.read' }, 'documents'),

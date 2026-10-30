@@ -1,0 +1,255 @@
+{
+  "hiddenPatient": "Patient hidden",
+  "medicalAlerts": "This patient has medical alerts. Check the medical history before treatment.",
+  "frequentNoShow_one": "{{count}} missed appointment before",
+  "frequentNoShow_other": "Frequent no-show: {{count}} missed appointments",
+  "minutes_one": "{{count}} min",
+  "minutes_other": "{{count}} min",
+  "overbooked": "Double-booked",
+  "openPatient": "Open patient file",
+  "history": "Status history",
+  "fields": {
+    "patient": "Patient",
+    "dentist": "Dentist",
+    "type": "Appointment type",
+    "date": "Date",
+    "duration": "Duration (min)",
+    "time": "Time",
+    "chair": "Chair",
+    "notes": "Notes",
+    "source": "Source",
+    "priority": "Priority",
+    "status": "Status"
+  },
+  "source": {
+    "staff": "Booked by staff",
+    "online": "Online",
+    "walk_in": "Walk-in",
+    "recall": "Recall"
+  },
+  "book": {
+    "title": "New appointment",
+    "subtitle": "Pick the patient, then choose one of the free times.",
+    "submit": "Book appointment",
+    "booked": "Appointment {{number}} booked",
+    "patientRequired": "Choose a patient or register a new one",
+    "suggested": "Free times",
+    "slotsError": "Couldn't load free times. You can still type a time.",
+    "noSlots": "No free time on this day. Try another day or dentist.",
+    "timeHelper": "24-hour format, e.g. 14:30",
+    "emergency": "Emergency",
+    "override": "Book outside the schedule",
+    "overrideHelper": "Skips the schedule check (audited). Use for emergencies.",
+    "quickPatient": "Register a new patient",
+    "firstName": "First name",
+    "familyName": "Family name",
+    "mobile": "Mobile number"
+  },
+  "cancel": {
+    "title": "Cancel the appointment of {{name}}?",
+    "reason": "Cancellation reason",
+    "comment": "Comment",
+    "late": "Late cancellation",
+    "reasons": {
+      "patient_request": "Patient asked",
+      "patient_sick": "Patient is sick",
+      "clinic_closed": "Clinic closed",
+      "dentist_unavailable": "Dentist unavailable",
+      "rescheduled": "Rescheduled",
+      "other": "Other"
+    }
+  },
+  "actions": {
+    "title": "Actions",
+    "noShowTitle": "Mark as no-show?",
+    "noShowBody": "{{name}} did not come. This counts on the patient's record.",
+    "noProceduresTitle": "No procedure recorded",
+    "noProceduresBody": "No procedure was recorded for this visit. Complete it anyway?",
+    "noProceduresReason": "Why were there no procedures?",
+    "to": {
+      "confirmed": "Confirm",
+      "arrived": "Check in",
+      "in_chair": "Seat",
+      "completed": "Complete",
+      "no_show": "No-show",
+      "cancelled": "Cancel appointment"
+    },
+    "done": {
+      "confirmed": "Appointment confirmed",
+      "arrived": "Patient checked in",
+      "in_chair": "Patient seated",
+      "completed": "Visit completed",
+      "no_show": "Marked as no-show",
+      "cancelled": "Appointment cancelled"
+    }
+  },
+  "reschedule": {
+    "title": "Reschedule",
+    "done": "Appointment moved",
+    "save": "Move appointment"
+  },
+  "calendar": {
+    "title": "Calendar",
+    "subtitle": "Click a free time to book. Drag an appointment to move it.",
+    "today": "Today",
+    "previous": "Previous",
+    "next": "Next",
+    "day": "Day",
+    "week": "Week",
+    "byDentist": "Dentists",
+    "byChair": "Chairs",
+    "showCancelled": "Show cancelled",
+    "noDentists": "No dentists yet",
+    "noDentistsHint": "Add a dentist or hygienist in Staff, then set their weekly hours.",
+    "hint": "Hatched areas are time off, holidays or chair maintenance."
+  },
+  "board": {
+    "title": "Today board",
+    "walkIn": "Walk-in",
+    "waiting_one": "Waiting {{count}} min",
+    "waiting_other": "Waiting {{count}} min",
+    "empty": "Nobody here",
+    "columns": {
+      "upcoming": "Upcoming",
+      "arrived": "Waiting room",
+      "inChair": "In chair",
+      "completed": "Done",
+      "missed": "No-show / cancelled"
+    }
+  },
+  "schedules": {
+    "title": "Dentist schedules",
+    "subtitle": "Weekly working hours decide when patients can be booked.",
+    "summary": "{{hours}} h per week · {{step}}-minute slots",
+    "none": "No schedule yet",
+    "online": "Online",
+    "edit": "Edit",
+    "off": "Day off",
+    "editFor": "Working hours — {{name}}",
+    "editHint": "Changes apply from the start date. Earlier dates keep the old hours.",
+    "saved": "Schedule saved",
+    "effectiveFrom": "Starts on",
+    "effectiveHelper": "The previous hours end the day before",
+    "step": "Slot length",
+    "addBlock": "Add hours",
+    "from": "From",
+    "to": "To",
+    "removeBlock": "Remove hours"
+  },
+  "exceptions": {
+    "title": "Time off and holidays",
+    "subtitle": "Vacations, public holidays, extra hours and chair maintenance for the next year.",
+    "add": "Add time off",
+    "edit": "Edit time off",
+    "empty": "Nothing planned",
+    "type": "Type",
+    "who": "For",
+    "from": "From",
+    "to": "To",
+    "reason": "Reason",
+    "wholeClinic": "Whole clinic",
+    "delete": "Delete",
+    "deleteTitle": "Delete this entry?",
+    "deleted": "Entry deleted",
+    "saved": "Saved",
+    "types": {
+      "time_off": "Time off",
+      "extra_hours": "Extra hours",
+      "holiday": "Public holiday",
+      "chair_maintenance": "Chair maintenance"
+    }
+  },
+  "weekdays": {
+    "0": "Sunday",
+    "1": "Monday",
+    "2": "Tuesday",
+    "3": "Wednesday",
+    "4": "Thursday",
+    "5": "Friday",
+    "6": "Saturday"
+  },
+  "weekdaysShort": {
+    "0": "Sun",
+    "1": "Mon",
+    "2": "Tue",
+    "3": "Wed",
+    "4": "Thu",
+    "5": "Fri",
+    "6": "Sat"
+  },
+  "waitlist": {
+    "title": "Waiting list",
+    "subtitle": "Patients who want an earlier appointment. You'll be alerted when a matching time frees up.",
+    "add": "Add to waiting list",
+    "saved": "Added to the waiting list",
+    "matchFound_one": "A cancelled time fits {{count}} waiting patient",
+    "matchFound_other": "A cancelled time fits {{count}} waiting patients",
+    "anyDay": "Any day",
+    "anyDentist": "Any dentist",
+    "priority": "Priority",
+    "priorities": {
+      "low": "Low",
+      "normal": "Normal",
+      "high": "High",
+      "urgent": "Urgent"
+    },
+    "when": "Preferred time",
+    "added": "Added",
+    "book": "Book",
+    "offer": "Mark as offered",
+    "offered": "Marked as offered",
+    "remove": "Remove",
+    "removeTitle": "Remove {{name}} from the waiting list?",
+    "removed": "Removed from the waiting list",
+    "tabs": {
+      "active": "Waiting",
+      "booked": "Booked",
+      "removed": "Removed"
+    },
+    "empty": "The waiting list is empty",
+    "emptyHint": "Add patients who want an earlier time.",
+    "preferredDays": "Preferred days",
+    "fromTime": "From (time)",
+    "toTime": "To (time)"
+  },
+  "recalls": {
+    "title": "Recalls",
+    "subtitle": "Patients due for cleaning, check-ups and follow-ups.",
+    "add": "Add recall",
+    "created": "Recall added",
+    "due": "Due date",
+    "overdue": "Overdue",
+    "lastContact": "Last contact",
+    "book": "Book",
+    "markContacted": "Mark contacted",
+    "contacted": "Marked as contacted",
+    "dismiss": "Dismiss",
+    "dismissed": "Recall dismissed",
+    "search": "Search by name, file or phone",
+    "empty": "No recalls here",
+    "emptyHint": "Recalls are added after cleanings or by hand.",
+    "interval": "Repeat every (months)",
+    "intervalHelper_one": "Every month",
+    "intervalHelper_other": "Every {{count}} months",
+    "types": {
+      "cleaning": "Cleaning",
+      "checkup": "Check-up",
+      "ortho_adjustment": "Ortho adjustment",
+      "custom": "Other"
+    },
+    "buckets": {
+      "due": "Due soon",
+      "overdue": "Overdue",
+      "upcoming": "Upcoming",
+      "contacted": "Contacted",
+      "booked": "Booked",
+      "dismissed": "Dismissed"
+    }
+  },
+  "patientTab": {
+    "upcoming": "Upcoming",
+    "noUpcoming": "No upcoming appointments",
+    "past": "Past appointments",
+    "noPast": "No past appointments"
+  }
+}

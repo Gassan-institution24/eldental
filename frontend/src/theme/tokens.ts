@@ -65,6 +65,7 @@ export const STATUS_TONES: Record<string, StatusTone> = {
   completed: 'green',
   cancelled: 'redOutline',
   no_show: 'red',
+  overdue: 'red',
   // invoices
   draft: 'grey',
   issued: 'blue',

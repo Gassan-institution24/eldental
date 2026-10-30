@@ -2,3 +2,4 @@
 // Modules append themselves here as they are built.
 import './clinic/clinic.seeders';
 import './patients/patient.seeders';
+import './scheduling/scheduling.seeders';

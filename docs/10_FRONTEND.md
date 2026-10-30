@@ -14,7 +14,7 @@
 | HTTP | axios instance with interceptors (see §4) |
 | i18n | i18next + react-i18next + `i18next-browser-languagedetector`; `ar` default (RTL), `en` |
 | Dates | dayjs (+ utc, timezone, localizedFormat, `ar` locale); always display in the clinic timezone |
-| Calendar | FullCalendar v6 (`resource-timegrid`, `timegrid`, `daygrid`, `interaction`) |
+| Calendar | Own `TimeGrid` component (resource day view + week view). FullCalendar v6 stays available for free views; its resource views are premium and are not used. |
 | Charts | Recharts |
 | Tables | MUI DataGrid (server-side pagination/sort/filter) |
 | Realtime | socket.io-client |
@@ -132,7 +132,7 @@ Rule: a feature imports from `shared/` and `lib/`, never from another feature's 
 |---|---|
 | `<ToothChart>` | SVG odontogram (see `07_MODULE_DENTAL_CLINICAL.md` §2), keyboard accessible |
 | `<PerioChartGrid>` | Fast entry grid, auto-advance |
-| `<AppointmentCalendar>` | FullCalendar resource view, drag/drop, exception backgrounds, status colours |
+| `<TimeGrid>` | Resource/day columns, drag/drop, exception backgrounds, status colours |
 | `<SlotPicker>` | Availability results grouped by day, dentist filter |
 | `<PatientPicker>` | Async typeahead (`/patients/search`), "create quick patient" |
 | `<PatientHeader>` | Name, file no., age, alerts banner, balance, quick actions (book, invoice, pay) |

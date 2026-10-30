@@ -53,6 +53,7 @@ export type WorkspaceTab = { key: string; path: string; perm?: string; label?: s
 /** Clinical/billing modules append their tabs here (chart, plans, notes, perio, imaging, billing). */
 export const PATIENT_TABS: WorkspaceTab[] = [
   { key: 'overview', path: '' },
+  { key: 'appointments', path: 'appointments', perm: 'scheduling.appointment.read' },
   { key: 'medical', path: 'medical', perm: 'patients.medicalHistory.read' },
   { key: 'insurance', path: 'insurance' },
   { key: 'documents', path: 'documents', perm: 'patients.document.read' },

@@ -21,7 +21,12 @@
   "deleteBody": "يُخفى السجل من القوائم، ويبقى السجل السريري والمالي محفوظًا.",
   "duplicateWarning": "يوجد مريض بهذا الرقم مسبقًا:",
   "open": "فتح",
-  "statuses": { "active": "نشط", "inactive": "غير نشط", "deceased": "متوفى", "merged": "مدموج" },
+  "statuses": {
+    "active": "نشط",
+    "inactive": "غير نشط",
+    "deceased": "متوفى",
+    "merged": "مدموج"
+  },
   "sections": {
     "personal": "البيانات الشخصية",
     "contact": "التواصل",
@@ -68,7 +73,10 @@
     "status": "الحالة",
     "alerts": "التنبيهات"
   },
-  "genders": { "male": "ذكر", "female": "أنثى" },
+  "genders": {
+    "male": "ذكر",
+    "female": "أنثى"
+  },
   "header": {
     "fileNo": "ملف {{n}}",
     "balance": "الرصيد",
@@ -85,6 +93,7 @@
   },
   "tabs": {
     "overview": "نظرة عامة",
+    "appointments": "المواعيد",
     "chart": "مخطط الأسنان",
     "plans": "خطط العلاج",
     "notes": "الملاحظات السريرية",
@@ -124,7 +133,11 @@
     "substance": "المادة",
     "reaction": "رد الفعل",
     "severity": "الشدة",
-    "severities": { "mild": "خفيفة", "moderate": "متوسطة", "severe": "شديدة" },
+    "severities": {
+      "mild": "خفيفة",
+      "moderate": "متوسطة",
+      "severe": "شديدة"
+    },
     "notes": "ملاحظات",
     "reviewed": "راجعت هذا التاريخ مع المريض",
     "saved": "تم حفظ التاريخ الطبي (النسخة {{n}})",
@@ -156,7 +169,12 @@
     "plan": "الخطة",
     "member": "رقم العضوية",
     "relation": "الصلة بالمشترك",
-    "relations": { "self": "نفسه", "spouse": "زوج/زوجة", "child": "ابن/ابنة", "other": "أخرى" },
+    "relations": {
+      "self": "نفسه",
+      "spouse": "زوج/زوجة",
+      "child": "ابن/ابنة",
+      "other": "أخرى"
+    },
     "validFrom": "سارية من",
     "validTo": "سارية حتى",
     "coverage": "نسبة تغطية خاصة (%)",
@@ -175,7 +193,14 @@
     "drop": "اسحب الملفات هنا أو انقر للاختيار",
     "dropHint": "JPEG أو PNG أو WebP أو PDF · حتى {{max}} ميغابايت",
     "category": "الفئة",
-    "categories": { "xray": "أشعة", "photo": "صورة", "document": "مستند", "consent": "إقرار", "id": "هوية", "other": "أخرى" },
+    "categories": {
+      "xray": "أشعة",
+      "photo": "صورة",
+      "document": "مستند",
+      "consent": "إقرار",
+      "id": "هوية",
+      "other": "أخرى"
+    },
     "notes": "ملاحظات",
     "empty": "لا توجد مستندات بعد",
     "uploaded": "تم رفع {{count}} ملف",

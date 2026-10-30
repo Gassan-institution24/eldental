@@ -37,7 +37,7 @@
 3. Return slots grouped by day.
    - "Any dentist" mode (no `dentistId`): union across bookable dentists, each slot labelled with its dentist.
 
-Implementation: a pure function `computeSlots(input): Slot[]` in `scheduling/availability/availability.engine.ts`, with **thorough unit tests**. Cover DST-free Asia/Amman, but use the clinic TZ generically. The service only gathers data and calls the engine.
+Implementation: a pure function `computeSlots(input): Slot[]` in `scheduling/availability.engine.ts`, with **thorough unit tests**. Cover DST-free Asia/Amman, but use the clinic TZ generically. The service only gathers data and calls the engine.
 
 ---
 
@@ -134,7 +134,7 @@ This keeps Hakeemna's `presentationStatus` idea without storing it.
 It updates live via `appointment:changed`. The board replaces Hakeemna's `entrance_management` with a simpler model.
 
 ## 9. Calendar UI Requirements
-- FullCalendar `resourceTimeGrid` with **resources = dentists** (toggle to chairs), day/week views, and drag to create.
+- A resource time grid with **columns = dentists** (toggle to chairs) for the day view, and columns = days for one dentist in the week view; click a free time to book. It is our own `TimeGrid` component, because FullCalendar's resource views are a paid premium plugin.
   - Drag/resize to reschedule; this calls PATCH, optimistically updates, and rolls back on 409.
   - Colour by appointment type, with a border colour for status.
   - Blocked time (exceptions) is shown as background events.

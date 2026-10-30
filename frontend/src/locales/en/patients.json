@@ -17,7 +17,12 @@
   "deleteBody": "The record is hidden from lists. Clinical and financial history is kept.",
   "duplicateWarning": "A patient with this phone already exists:",
   "open": "Open",
-  "statuses": { "active": "Active", "inactive": "Inactive", "deceased": "Deceased", "merged": "Merged" },
+  "statuses": {
+    "active": "Active",
+    "inactive": "Inactive",
+    "deceased": "Deceased",
+    "merged": "Merged"
+  },
   "sections": {
     "personal": "Personal details",
     "contact": "Contact",
@@ -64,7 +69,10 @@
     "status": "Status",
     "alerts": "Alerts"
   },
-  "genders": { "male": "Male", "female": "Female" },
+  "genders": {
+    "male": "Male",
+    "female": "Female"
+  },
   "header": {
     "fileNo": "File {{n}}",
     "balance": "Balance",
@@ -81,6 +89,7 @@
   },
   "tabs": {
     "overview": "Overview",
+    "appointments": "Appointments",
     "chart": "Tooth chart",
     "plans": "Treatment plans",
     "notes": "Clinical notes",
@@ -120,7 +129,11 @@
     "substance": "Substance",
     "reaction": "Reaction",
     "severity": "Severity",
-    "severities": { "mild": "Mild", "moderate": "Moderate", "severe": "Severe" },
+    "severities": {
+      "mild": "Mild",
+      "moderate": "Moderate",
+      "severe": "Severe"
+    },
     "notes": "Notes",
     "reviewed": "I reviewed this history with the patient",
     "saved": "Medical history saved (version {{n}})",
@@ -152,7 +165,12 @@
     "plan": "Plan",
     "member": "Member no.",
     "relation": "Relation to subscriber",
-    "relations": { "self": "Self", "spouse": "Spouse", "child": "Child", "other": "Other" },
+    "relations": {
+      "self": "Self",
+      "spouse": "Spouse",
+      "child": "Child",
+      "other": "Other"
+    },
     "validFrom": "Valid from",
     "validTo": "Valid to",
     "coverage": "Coverage override (%)",
@@ -171,7 +189,14 @@
     "drop": "Drag files here or click to choose",
     "dropHint": "JPEG, PNG, WebP or PDF · up to {{max}} MB",
     "category": "Category",
-    "categories": { "xray": "X-ray", "photo": "Photo", "document": "Document", "consent": "Consent", "id": "ID", "other": "Other" },
+    "categories": {
+      "xray": "X-ray",
+      "photo": "Photo",
+      "document": "Document",
+      "consent": "Consent",
+      "id": "ID",
+      "other": "Other"
+    },
     "notes": "Notes",
     "empty": "No documents yet",
     "uploaded": "{{count}} file(s) uploaded",

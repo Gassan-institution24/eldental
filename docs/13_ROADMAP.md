@@ -75,12 +75,13 @@
 **Accept:** a receptionist registers a patient, uploads an ID and records history; a dentist with `own` scope cannot see untreated patients (404).
 
 ## Phase 4 — Scheduling & Appointments
-- [ ] Dentist schedules, schedule exceptions, availability engine (pure + tests)
-- [ ] Appointments: book with slotLocks in a transaction, reschedule, state machine, cancel/no-show, bulk shift, today board
-- [ ] BullMQ setup (queues, workers, repeatables) + reminders (email now; WhatsApp in Phase 8) + "tomorrow list"
-- [ ] Waiting list + recalls (basic)
-- [ ] Socket.IO (auth handshake, clinic rooms, `appointment:changed`)
-- [ ] Frontend: resource calendar (dentists/chairs), quick-book drawer with slot picker, drag to reschedule, today board (live), schedule editor, waitlist, recalls
+- [x] Dentist schedules, schedule exceptions, availability engine (pure + tests)
+- [x] Appointments: book with slotLocks in a transaction, reschedule, state machine, cancel/no-show, bulk shift, today board
+- [x] BullMQ setup (queues, workers, repeatables) + reminders (email now; WhatsApp in Phase 8)
+- [ ] "Tomorrow list" daily job for reception
+- [x] Waiting list + recalls (basic)
+- [x] Socket.IO (auth handshake, clinic rooms, `appointment:changed`)
+- [x] Frontend: resource calendar (dentists/chairs), quick-book drawer with slot picker, drag to reschedule, today board (live), schedule editor, waitlist, recalls
 
 **Accept:** a concurrency test (20 parallel bookings → 1 success); the calendar updates live in two browsers.
 
