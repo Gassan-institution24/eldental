@@ -1,0 +1,228 @@
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { api, deleteData, getData, patchData, postData } from '@/lib/api/axios';
+import { resourceHooks, type Entity } from '@/shared/api/resource';
+
+export type PatientName = { first: string; father?: string; grandfather?: string; family: string };
+export type Patient = Entity & {
+  fileNumber: string;
+  name: PatientName;
+  fullName: string;
+  gender?: 'male' | 'female';
+  dateOfBirth?: string;
+  nationalId?: string;
+  passportNo?: string;
+  phone?: string;
+  altPhone?: string;
+  email?: string;
+  address?: { line1?: string; city?: string };
+  guardian?: { patientId?: string; name: string; relation: string; phone: string };
+  familyGroupId?: string;
+  emergencyContact?: { name: string; relation?: string; phone: string };
+  referralSource?: string;
+  preferredDentist?: string;
+  preferredLanguage?: 'ar' | 'en';
+  communicationPrefs?: { whatsapp?: boolean; sms?: boolean; email?: boolean; marketing?: boolean };
+  medicalAlerts: string[];
+  balance?: number;
+  tags: string[];
+  notes?: string;
+  status: 'active' | 'inactive' | 'deceased' | 'merged';
+  lastVisitAt?: string;
+  noShowCount?: number;
+  hasPortalAccount?: boolean;
+  createdAt: string;
+};
+
+export const patientsApi = resourceHooks<Patient>('/patients');
+
+export type PatientHit = {
+  id: string;
+  fileNumber: string;
+  fullName: string;
+  phone?: string;
+  dateOfBirth?: string;
+  gender?: string;
+  medicalAlerts?: string[];
+  balance?: number;
+  status: string;
+};
+
+export function usePatientSearch(q: string) {
+  return useQuery({
+    queryKey: ['/patients', 'search', q],
+    queryFn: () => getData<PatientHit[]>('/patients/search', { params: { q, limit: 8 } }),
+    enabled: q.trim().length >= 2,
+    staleTime: 15_000,
+  });
+}
+
+export function useDuplicateCheck(phone: string | undefined, excludeId?: string) {
+  return useQuery({
+    queryKey: ['/patients', 'duplicate', phone, excludeId],
+    queryFn: () =>
+      getData<{ id: string; fileNumber: string; fullName: string }[]>('/patients/check-duplicate', {
+        params: { phone, excludeId },
+        silent: true,
+      }),
+    enabled: Boolean(phone && phone.replace(/\D/g, '').length >= 9),
+    staleTime: 30_000,
+  });
+}
+
+export function useMergePatient() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({ id, sourceId, reason }: { id: string; sourceId: string; reason: string }) =>
+      postData<Patient>(`/patients/${id}/merge`, { sourceId, reason }),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['/patients'] }),
+  });
+}
+
+export type MedicalHistory = Entity & {
+  version: number;
+  conditions: string[];
+  medications: string;
+  allergies: { substance: string; reaction?: string; severity: 'mild' | 'moderate' | 'severe' }[];
+  notes: string;
+  reviewedAt?: string;
+  createdAt: string;
+};
+
+export function useMedicalHistory(patientId: string) {
+  return useQuery({
+    queryKey: ['/patients', patientId, 'medical'],
+    queryFn: () => getData<MedicalHistory | null>(`/patients/${patientId}/medical-history`),
+  });
+}
+
+export function useMedicalVersions(patientId: string, enabled: boolean) {
+  return useQuery({
+    queryKey: ['/patients', patientId, 'medical', 'versions'],
+    queryFn: () => getData<MedicalHistory[]>(`/patients/${patientId}/medical-history/versions`),
+    enabled,
+  });
+}
+
+export function useSaveMedicalHistory(patientId: string) {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (body: Record<string, unknown>) =>
+      postData<MedicalHistory>(`/patients/${patientId}/medical-history`, body),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['/patients'] }),
+  });
+}
+
+export type Policy = Entity & {
+  insuranceCompanyId: string;
+  insuranceCompanyName: string;
+  planName?: string;
+  memberNumber: string;
+  relationToSubscriber: 'self' | 'spouse' | 'child' | 'other';
+  validFrom?: string;
+  validTo?: string;
+  coveragePercentOverride?: number;
+  annualMax?: number;
+  usedThisYear?: number;
+  isPrimary: boolean;
+};
+
+export function usePolicies(patientId: string) {
+  return useQuery({
+    queryKey: ['/patients', patientId, 'policies'],
+    queryFn: () => getData<Policy[]>(`/patients/${patientId}/insurance-policies`),
+  });
+}
+
+export function useSavePolicy(patientId: string) {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({ id, ...body }: Record<string, unknown> & { id?: string }) =>
+      id
+        ? patchData<Policy>(`/patients/${patientId}/insurance-policies/${id}`, body)
+        : postData<Policy>(`/patients/${patientId}/insurance-policies`, body),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['/patients', patientId, 'policies'] }),
+  });
+}
+
+export function useDeletePolicy(patientId: string) {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (id: string) => deleteData(`/patients/${patientId}/insurance-policies/${id}`),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['/patients', patientId, 'policies'] }),
+  });
+}
+
+export type InsuranceCompany = Entity & {
+  name: string;
+  code?: string;
+  defaultCoveragePercent: number;
+  isActive: boolean;
+};
+export const insuranceCompaniesApi = resourceHooks<InsuranceCompany>('/insurance-companies');
+
+export type FileItem = {
+  id: string;
+  ownerType: string;
+  category: string;
+  mime: string;
+  size: number;
+  originalName: string;
+  notes?: string;
+  toothNumbers?: number[];
+  takenAt?: string;
+  createdAt: string;
+  url: string;
+};
+
+export function useDocuments(patientId: string, category?: string) {
+  return useQuery({
+    queryKey: ['/patients', patientId, 'documents', category ?? ''],
+    queryFn: () =>
+      getData<FileItem[]>(`/patients/${patientId}/documents`, {
+        params: category ? { category } : {},
+      }),
+  });
+}
+
+export function useUploadDocument(patientId: string) {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async ({
+      file,
+      category,
+      notes,
+      onProgress,
+    }: {
+      file: File;
+      category: string;
+      notes?: string;
+      onProgress?: (p: number) => void;
+    }) => {
+      const fd = new FormData();
+      fd.append('file', file);
+      fd.append('category', category);
+      if (notes) fd.append('notes', notes);
+      const res = await api.post<{ data: FileItem }>(`/patients/${patientId}/documents`, fd, {
+        onUploadProgress: (e) => onProgress?.(e.total ? Math.round((e.loaded / e.total) * 100) : 0),
+      });
+      return res.data.data;
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['/patients', patientId, 'documents'] }),
+  });
+}
+
+export function useDeleteDocument(patientId: string) {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (fileId: string) => deleteData(`/patients/${patientId}/documents/${fileId}`),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['/patients', patientId, 'documents'] }),
+  });
+}
+
+export type TimelineEvent = { at: string; kind: string; title: string; ref?: string };
+export function useTimeline(patientId: string) {
+  return useQuery({
+    queryKey: ['/patients', patientId, 'timeline'],
+    queryFn: () => getData<TimelineEvent[]>(`/patients/${patientId}/timeline`),
+  });
+}

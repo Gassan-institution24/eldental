@@ -16,6 +16,17 @@ import { SettingsLayout } from '@/features/clinic-settings/pages/SettingsLayout'
 import { RolesPage } from '@/features/staff/pages/RolesPage';
 import { StaffListPage } from '@/features/staff/pages/StaffListPage';
 import { MyProfileRedirect, StaffProfilePage } from '@/features/staff/pages/StaffProfilePage';
+import { PatientListPage } from '@/features/patients/pages/PatientListPage';
+import { PatientCreatePage, PatientEditPage } from '@/features/patients/pages/PatientFormPage';
+import { PatientWorkspace } from '@/features/patients/pages/PatientWorkspace';
+import { PATIENT_EXTRA_ROUTES } from './patientExtraRoutes';
+import {
+  DocumentsTab,
+  HistoryTab,
+  InsuranceTab,
+  MedicalTab,
+  OverviewTab,
+} from '@/features/patients/pages/PatientTabs';
 import { page, placeholder } from '../routeHelpers';
 
 /** Clinic route tree (10_FRONTEND.md §3). Modules replace placeholders as they land. */
@@ -26,7 +37,15 @@ export const clinicRoutes: RouteObject[] = [
   placeholder('today', 'nav:today', 'scheduling.appointment.read'),
   placeholder('waitlist', 'nav:waitlist', 'scheduling.waitlist.manage'),
   placeholder('recalls', 'nav:recalls', 'scheduling.recall.manage'),
-  placeholder('patients/*', 'nav:patients', 'patients.patient.read'),
+  page(<PatientListPage />, { perm: 'patients.patient.read' }, 'patients'),
+  page(<PatientCreatePage />, { perm: 'patients.patient.create' }, 'patients/new'),
+  page(<PatientEditPage />, { perm: 'patients.patient.update' }, 'patients/:id/edit'),
+  {
+    path: 'patients/:id',
+    element: <PatientWorkspace />,
+    handle: { perm: 'patients.patient.read' },
+    children: patientTabRoutes(),
+  },
   placeholder('billing/*', 'nav:invoices', 'billing.invoice.read'),
   placeholder('accounting/*', 'nav:accounts', 'accounting.account.read'),
   page(<StaffListPage />, { perm: 'staff.member.read' }, 'hr/staff'),
@@ -58,3 +77,15 @@ export const clinicRoutes: RouteObject[] = [
   },
   page(<MyProfileRedirect />, {}, 'me'),
 ];
+
+/** Workspace tabs; clinical and billing modules add their own children. */
+function patientTabRoutes(): RouteObject[] {
+  return [
+    { index: true, element: <OverviewTab /> },
+    page(<MedicalTab />, { perm: 'patients.medicalHistory.read' }, 'medical'),
+    page(<InsuranceTab />, {}, 'insurance'),
+    page(<DocumentsTab />, { perm: 'patients.document.read' }, 'documents'),
+    page(<HistoryTab />, {}, 'history'),
+    ...PATIENT_EXTRA_ROUTES,
+  ];
+}

@@ -12,7 +12,10 @@ export function usePatientSearchProvider(): SearchProvider {
   const { t } = useTranslation('nav');
   return useCallback<SearchProvider>(
     async (q) => {
-      const hits = await getData<Hit[]>('/patients/search', { params: { q, limit: 8 }, silent: true }).catch(() => []);
+      const hits = await getData<Hit[]>('/patients/search', {
+        params: { q, limit: 8 },
+        silent: true,
+      }).catch(() => []);
       return hits.map((h) => ({
         id: h.id,
         title: h.fullName,

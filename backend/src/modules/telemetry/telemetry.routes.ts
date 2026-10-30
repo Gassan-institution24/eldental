@@ -7,7 +7,18 @@ import { registerPath } from '@/core/openapi/registry';
 import { zodErrorToFields } from '@/core/validation/zodIssues';
 import { activityBody, issuesBody } from './telemetry.schemas';
 import { recordActivity, recordIssues } from './telemetry.service';
-import { saveScreenshotHook } from './screenshot';
+import { saveScreenshotHook, setScreenshotSaver } from './screenshot';
+import { saveFile } from '@/core/storage/storage';
+import { runInTenant } from '@/core/tenancy/tenantPlugin';
+import { Types } from 'mongoose';
+
+/** "Report a problem" screenshots are private files of the reporting clinic (15 §3). */
+setScreenshotSaver(async (dataUrl, clinicId) => {
+  if (!clinicId) return undefined;
+  const buffer = Buffer.from(dataUrl.slice(dataUrl.indexOf(',') + 1), 'base64');
+  const f = await runInTenant(clinicId, () => saveFile({ clinicId, ownerType: 'issue', ownerId: new Types.ObjectId(), buffer, category: 'other' }));
+  return f._id;
+});
 
 export const telemetryRouter = Router();
 

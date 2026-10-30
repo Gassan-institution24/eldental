@@ -2,6 +2,7 @@ import { runInTenant } from '@/core/tenancy/tenantPlugin';
 import { RoleModel } from '@/modules/roles/role.model';
 import { ChairModel, ClinicProcedureModel } from '@/modules/clinic/clinic.models';
 import { StaffModel } from '@/modules/staff/staff.model';
+import { PatientModel } from '@/modules/patients/patient.models';
 import type { Session } from './helpers';
 
 /**
@@ -47,6 +48,15 @@ export const TENANT_RESOURCES: TenantResource[] = [
     listPath: '/procedures?limit=100',
     createIn: async (clinicId) => runInTenant(clinicId, async () => String((await ClinicProcedureModel.create({ code: 'B1', name: 'B proc', category: 'other', price: 1000 }))._id)),
     update: { version: 0, price: 1 },
+    canDelete: true,
+  },
+  {
+    name: 'patients',
+    basePath: '/patients',
+    listPath: '/patients?limit=100',
+    createIn: async (clinicId) =>
+      runInTenant(clinicId, async () => String((await PatientModel.create({ fileNumber: 'P-B1', name: { first: 'Bee', family: 'Patient' }, fullName: 'Bee Patient', searchName: 'bee patient' }))._id)),
+    update: { version: 0, notes: 'hacked' },
     canDelete: true,
   },
 ];
