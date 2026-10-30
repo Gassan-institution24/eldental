@@ -2,7 +2,7 @@ import { createServer } from 'node:http';
 import { env } from '@/config/env';
 import { connectDb, disconnectDb } from '@/config/db';
 import { logger } from '@/config/logger';
-import { closeRedis, getRedis } from '@/config/redis';
+import { closeRedis, probeRedis } from '@/config/redis';
 import { flushRequestLogs } from '@/core/logging/requestLogger';
 import { recordSystemError } from '@/core/logging/systemErrors.service';
 import { startRuntime, stopRuntime } from '@/runtime';
@@ -11,7 +11,7 @@ import { createApp } from './app';
 /** Boot order: env → db → redis → http → socket → jobs (02_ARCHITECTURE.md §2). */
 async function main(): Promise<void> {
   await connectDb();
-  getRedis();
+  await probeRedis();
   const app = createApp();
   const server = createServer(app);
   await startRuntime(server);

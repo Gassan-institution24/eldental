@@ -1,7 +1,7 @@
 import type { RequestHandler } from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
-import { rateLimit, type Options, type Store } from 'express-rate-limit';
+import { ipKeyGenerator, rateLimit, type Options, type Store } from 'express-rate-limit';
 import { RedisStore, type RedisReply } from 'rate-limit-redis';
 import { env, isTest } from '@/config/env';
 import { getRedis } from '@/config/redis';
@@ -56,16 +56,23 @@ function redisStore(prefix: string): Store | undefined {
 
 function limiter(prefix: string, opts: Partial<Options>): RequestHandler {
   if (isTest) return (_req, _res, next) => next();
-  const store = redisStore(prefix);
-  return rateLimit({
-    windowMs: env.RATE_LIMIT_WINDOW_MS,
-    standardHeaders: 'draft-7',
-    legacyHeaders: false,
-    ...(store ? { store } : {}),
-    handler: (_req, _res, next, options) =>
-      next(new ApiError(429, 'RATE_LIMITED', 'Too many requests', { retryAfterMs: options.windowMs })),
-    ...opts,
-  });
+  // Built on first use: the Redis probe runs at boot, after this module is imported.
+  let instance: RequestHandler | null = null;
+  return (req, res, next) => {
+    if (!instance) {
+      const store = redisStore(prefix);
+      instance = rateLimit({
+        windowMs: env.RATE_LIMIT_WINDOW_MS,
+        standardHeaders: 'draft-7',
+        legacyHeaders: false,
+        ...(store ? { store } : {}),
+        handler: (_req, _res, nxt, options) =>
+          nxt(new ApiError(429, 'RATE_LIMITED', 'Too many requests', { retryAfterMs: options.windowMs })),
+        ...opts,
+      });
+    }
+    instance(req, res, next);
+  };
 }
 
 export const globalRateLimit = limiter('global', { limit: env.RATE_LIMIT_MAX });
@@ -74,7 +81,7 @@ export const publicBookingRateLimit = limiter('public', { limit: 20 });
 export const exportRateLimit = limiter('export', {
   windowMs: 60 * 60 * 1000,
   limit: 5,
-  keyGenerator: (req) => req.auth?.userId ?? req.ip ?? 'anon',
+  keyGenerator: (req) => req.auth?.userId ?? ipKeyGenerator(req.ip ?? '0.0.0.0'),
 });
 
 const MUTATING = new Set(['POST', 'PUT', 'PATCH', 'DELETE']);
