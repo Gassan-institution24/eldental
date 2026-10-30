@@ -4,7 +4,12 @@ import { PlaceholderPage } from '@/shared/components/PlaceholderPage';
 import { PageSkeleton } from '@/shared/components/States';
 import { RequirePermission, type RouteHandle } from './guards';
 
-export function page(element: ReactNode, handle: RouteHandle = {}, path?: string, index?: boolean): RouteObject {
+export function page(
+  element: ReactNode,
+  handle: RouteHandle = {},
+  path?: string,
+  index?: boolean,
+): RouteObject {
   const wrapped = (
     <RequirePermission>
       <Suspense fallback={<PageSkeleton />}>{element}</Suspense>
@@ -16,4 +21,3 @@ export function page(element: ReactNode, handle: RouteHandle = {}, path?: string
 export function placeholder(path: string, titleKey: string, perm?: string): RouteObject {
   return page(<PlaceholderPage titleKey={titleKey} />, { perm, title: titleKey }, path);
 }
-

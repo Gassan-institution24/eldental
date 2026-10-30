@@ -10,7 +10,12 @@ import { useEffect } from 'react';
 
 export type RouteHandle = { perm?: string; title?: string };
 
-function useAuthed(): { status: 'loading' | 'guest' | 'error' | 'ok'; session?: Session; error?: unknown; retry?: () => void } {
+function useAuthed(): {
+  status: 'loading' | 'guest' | 'error' | 'ok';
+  session?: Session;
+  error?: unknown;
+  retry?: () => void;
+} {
   const token = useAuthStore((s) => s.accessToken);
   const bootstrapped = useAuthStore((s) => s.bootstrapped);
   const q = useSession();
@@ -44,7 +49,11 @@ export function GuestGuard({ children }: { children: ReactNode }) {
   return <>{children}</>;
 }
 
-type AuthGuardProps = { kind?: Session['user']['kind']; needsClinic?: boolean; children: ReactNode };
+type AuthGuardProps = {
+  kind?: Session['user']['kind'];
+  needsClinic?: boolean;
+  children: ReactNode;
+};
 
 /** AuthGuard + KindGuard + ClinicGuard (10_FRONTEND.md §3). */
 export function AuthGuard({ kind, needsClinic, children }: AuthGuardProps) {
@@ -54,10 +63,16 @@ export function AuthGuard({ kind, needsClinic, children }: AuthGuardProps) {
   if (a.status === 'error') return <ErrorState error={a.error} onRetry={a.retry} />;
   if (a.status === 'guest' || !a.session) {
     const next = encodeURIComponent(location.pathname + location.search);
-    return <Navigate to={kind === 'patient' ? `/portal/login?next=${next}` : `/login?next=${next}`} replace />;
+    return (
+      <Navigate
+        to={kind === 'patient' ? `/portal/login?next=${next}` : `/login?next=${next}`}
+        replace
+      />
+    );
   }
   const s = a.session;
-  if (s.user.mustChangePassword && location.pathname !== '/change-password') return <Navigate to="/change-password" replace />;
+  if (s.user.mustChangePassword && location.pathname !== '/change-password')
+    return <Navigate to="/change-password" replace />;
   if (kind && s.user.kind !== kind) return <Navigate to={homeFor(s)} replace />;
   if (needsClinic && !s.clinic) return <Navigate to="/select-clinic" replace />;
   return <>{children}</>;
@@ -67,10 +82,17 @@ export function AuthGuard({ kind, needsClinic, children }: AuthGuardProps) {
 export function RequirePermission({ children }: { children: ReactNode }) {
   const matches = useMatches();
   const { can } = usePermission();
-  const handle = [...matches].reverse().find((m) => (m.handle as RouteHandle | undefined)?.perm)?.handle as RouteHandle | undefined;
+  const handle = [...matches].reverse().find((m) => (m.handle as RouteHandle | undefined)?.perm)
+    ?.handle as RouteHandle | undefined;
   const allowed = can(handle?.perm);
   useEffect(() => {
-    if (!allowed && handle?.perm) reportIssue({ kind: 'permission_denied', severity: 'low', message: 'permission screen', code: handle.perm });
+    if (!allowed && handle?.perm)
+      reportIssue({
+        kind: 'permission_denied',
+        severity: 'low',
+        message: 'permission screen',
+        code: handle.perm,
+      });
   }, [allowed, handle?.perm]);
   if (!allowed) return <NoPermission permission={handle?.perm} />;
   return <>{children}</>;

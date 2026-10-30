@@ -27,7 +27,7 @@ function cookieOptions(remember: boolean, expiresAt?: Date): CookieOptions {
   };
 }
 
-function setRefreshCookie(res: Response, r: IssuedRefresh | undefined): void {
+export function setRefreshCookieFor(res: Response, r: IssuedRefresh | undefined): void {
   if (r) res.cookie(env.REFRESH_COOKIE_NAME, r.raw, cookieOptions(r.remember, r.expiresAt));
 }
 
@@ -41,7 +41,7 @@ const readCookie = (req: Request): string | undefined => {
 };
 
 function sendLogin(res: Response, result: auth.LoginResult) {
-  setRefreshCookie(res, result.refresh);
+  setRefreshCookieFor(res, result.refresh);
   const { refresh: _r, ...rest } = result;
   return ok(res, rest);
 }
@@ -64,7 +64,7 @@ authRouter.post(
   asyncHandler(async (req, res) => {
     try {
       const r = await auth.refresh(readCookie(req));
-      setRefreshCookie(res, r.refresh);
+      setRefreshCookieFor(res, r.refresh);
       ok(res, { accessToken: r.accessToken });
     } catch (err) {
       clearRefreshCookie(res);

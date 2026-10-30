@@ -91,14 +91,14 @@ export async function selectClinic(clinicId: string): Promise<void> {
   trackActivity({ type: 'clinic_switch', entity: 'clinic', entityId: clinicId });
 }
 
-export function useLogout() {
+export function useLogout(redirectTo = '/login') {
   return useCallback(async () => {
     trackActivity({ type: 'session_end' });
     await flush();
     await api.post('/auth/logout', undefined, { skipAuthRefresh: true, silent: true }).catch(() => undefined);
     localLogout();
-    window.location.assign('/login');
-  }, []);
+    window.location.assign(redirectTo);
+  }, [redirectTo]);
 }
 
 export const authApi = {

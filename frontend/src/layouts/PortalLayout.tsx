@@ -39,7 +39,7 @@ const TABS = [
 export function PortalLayout() {
   const { t } = useTranslation('nav');
   const session = useSessionData();
-  const logout = useLogout();
+  const logout = useLogout('/portal/login');
   const location = useLocation();
   const navigate = useNavigate();
   const online = useOnline();

@@ -119,3 +119,6 @@ export const STATUS_TONES: Record<string, StatusTone> = {
   on_leave: 'blue',
   holiday: 'teal',
 };
+
+/** Patient-facing accent: calmer cyan → mint, used on the portal and its sign-in screens. */
+export const patientGradient = 'linear-gradient(135deg, #0891B2 0%, #06B6D4 45%, #10B981 100%)';

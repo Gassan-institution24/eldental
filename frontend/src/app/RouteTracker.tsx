@@ -14,7 +14,12 @@ export function RouteTracker() {
     const route = buildPattern(matches) || pattern || location.pathname;
     const now = performance.now();
     if (last.current) {
-      trackActivity({ type: 'page_view', route: last.current.route, durationMs: Math.round(now - last.current.at), meta: { leave: true } });
+      trackActivity({
+        type: 'page_view',
+        route: last.current.route,
+        durationMs: Math.round(now - last.current.at),
+        meta: { leave: true },
+      });
     }
     setCurrentRoute(route);
     trackActivity({ type: 'page_view', route });

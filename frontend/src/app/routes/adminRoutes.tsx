@@ -4,7 +4,12 @@ import { PlaceholderPage } from '@/shared/components/PlaceholderPage';
 
 /** Superadmin route tree. */
 export const adminRoutes: RouteObject[] = [
-  page(<PlaceholderPage titleKey="nav:admin.dashboard" />, { perm: 'platform.stats.read' }, undefined, true),
+  page(
+    <PlaceholderPage titleKey="nav:admin.dashboard" />,
+    { perm: 'platform.stats.read' },
+    undefined,
+    true,
+  ),
   placeholder('clinics/*', 'nav:admin.clinics', 'platform.clinic.read'),
   placeholder('plans', 'nav:admin.plans', 'platform.plan.manage'),
   placeholder('subscriptions', 'nav:admin.subscriptions', 'platform.subscription.manage'),

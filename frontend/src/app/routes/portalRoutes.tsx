@@ -1,10 +1,10 @@
 import type { RouteObject } from 'react-router-dom';
 import { page, placeholder } from '../routeHelpers';
-import { PlaceholderPage } from '@/shared/components/PlaceholderPage';
+import { PortalHomePage } from '@/features/portal/pages/PortalHomePage';
 
 /** Patient portal (Phase 9). */
 export const portalRoutes: RouteObject[] = [
-  page(<PlaceholderPage titleKey="nav:portal.home" />, {}, undefined, true),
+  page(<PortalHomePage />, {}, undefined, true),
   placeholder('book', 'nav:portal.book'),
   placeholder('appointments', 'nav:portal.appointments'),
   placeholder('plans', 'nav:portal.plans'),

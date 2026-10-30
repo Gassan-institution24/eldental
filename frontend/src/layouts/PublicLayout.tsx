@@ -28,6 +28,7 @@ import { LanguageToggle, ThemeToggle } from './shell/ShellControls';
 
 const LINKS = [
   { key: 'features', to: '/features' },
+  { key: 'patients', to: '/patients' },
   { key: 'pricing', to: '/pricing' },
   { key: 'security', to: '/security' },
   { key: 'about', to: '/about' },
@@ -77,7 +78,7 @@ function NavBar() {
                   '&.active, &:hover': { color: 'text.primary', bgcolor: 'action.hover' },
                 }}
               >
-                {t(`nav.${l.key}`)}
+                {l.key === 'patients' ? t('patient:site.nav') : t(`nav.${l.key}`)}
               </Button>
             ))}
           </Stack>
@@ -146,7 +147,7 @@ function NavBar() {
           {LINKS.map((l) => (
             <ListItemButton key={l.key} component={NavLink} to={l.to} sx={{ borderRadius: 2 }}>
               <ListItemText
-                primary={t(`nav.${l.key}`)}
+                primary={l.key === 'patients' ? t('patient:site.nav') : t(`nav.${l.key}`)}
                 primaryTypographyProps={{ fontWeight: 600 }}
               />
             </ListItemButton>
@@ -184,6 +185,8 @@ function Footer() {
         ['/features', t('nav.features')],
         ['/pricing', t('nav.pricing')],
         ['/security', t('nav.security')],
+        ['/patients', t('patient:site.nav')],
+        ['/portal/login', t('patient:site.signIn')],
         ['/login', t('nav.signIn')],
       ],
     },

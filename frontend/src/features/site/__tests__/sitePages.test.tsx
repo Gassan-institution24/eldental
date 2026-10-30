@@ -9,6 +9,9 @@ import { PublicLayout } from '@/layouts/PublicLayout';
 import { HomePage } from '../pages/HomePage';
 import { AboutPage, FeaturesPage, LegalPage, PricingPage, SecurityPage } from '../pages/InfoPages';
 import { ContactPage } from '../pages/ContactPage';
+import { PatientsPage } from '../pages/PatientsPage';
+import { PatientAuthLayout } from '@/layouts/PatientAuthLayout';
+import { PatientLoginPage, PatientRegisterPage } from '@/features/portal/pages/PatientAuthPages';
 
 const pages: [string, JSX.Element][] = [
   ['/', <HomePage key="h" />],
@@ -17,12 +20,25 @@ const pages: [string, JSX.Element][] = [
   ['/about', <AboutPage key="a" />],
   ['/security', <SecurityPage key="s" />],
   ['/contact', <ContactPage key="c" />],
+  ['/patients', <PatientsPage key="pt" />],
   ['/privacy', <LegalPage key="pr" kind="privacy" />],
   ['/terms', <LegalPage key="t" kind="terms" />],
 ];
 
 function renderAt(path: string) {
-  const router = createMemoryRouter([{ element: <PublicLayout />, children: pages.map(([p, el]) => ({ path: p, element: el })) }], { initialEntries: [path] });
+  const router = createMemoryRouter(
+    [
+      { element: <PublicLayout />, children: pages.map(([p, el]) => ({ path: p, element: el })) },
+      {
+        element: <PatientAuthLayout />,
+        children: [
+          { path: '/portal/login', element: <PatientLoginPage /> },
+          { path: '/portal/register', element: <PatientRegisterPage /> },
+        ],
+      },
+    ],
+    { initialEntries: [path] },
+  );
   return render(
     <AppThemeProvider>
       <QueryClientProvider client={new QueryClient()}>
@@ -44,8 +60,23 @@ describe('public website renders in both languages', () => {
         renderAt(path);
         expect(screen.getAllByRole('heading', { level: 1 }).length).toBeGreaterThan(0);
         // No raw i18n keys leaked into the page.
-        expect(document.body.textContent).not.toMatch(/\b(site|hero|features|pricing|legal|about)\.[a-z]+\.[a-zA-Z0-9]+\b/);
+        expect(document.body.textContent).not.toMatch(
+          /\b(site|hero|features|pricing|legal|about)\.[a-z]+\.[a-zA-Z0-9]+\b/,
+        );
         expect(document.documentElement.dir).toBe(lng === 'ar' ? 'rtl' : 'ltr');
+      });
+    }
+  }
+});
+
+describe('patient sign-in screens render in both languages', () => {
+  for (const lng of ['en', 'ar'] as const) {
+    for (const path of ['/portal/login', '/portal/register']) {
+      it(`${lng} ${path}`, async () => {
+        await i18n.changeLanguage(lng);
+        renderAt(path);
+        expect(screen.getByRole('heading', { level: 1 })).toBeInTheDocument();
+        expect(document.body.textContent).not.toMatch(/\bauth\.[a-zA-Z]+\b/);
       });
     }
   }

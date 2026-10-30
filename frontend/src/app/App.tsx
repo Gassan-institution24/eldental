@@ -21,7 +21,11 @@ export function App() {
   return (
     <AppThemeProvider>
       <QueryClientProvider client={queryClient}>
-        <SnackbarProvider maxSnack={3} autoHideDuration={4000} anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}>
+        <SnackbarProvider
+          maxSnack={3}
+          autoHideDuration={4000}
+          anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+        >
           <ConfirmProvider>
             <ErrorBoundary name="root">
               <RouterProvider router={router} />
