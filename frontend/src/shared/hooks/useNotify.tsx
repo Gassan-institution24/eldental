@@ -37,12 +37,18 @@ export function useNotify() {
 
   const error = useCallback(
     (err: unknown) => {
-      enqueueSnackbar(typeof err === 'string' ? err : getErrorMessage(err, t), { variant: 'error', autoHideDuration: 6000 });
+      enqueueSnackbar(typeof err === 'string' ? err : getErrorMessage(err, t), {
+        variant: 'error',
+        autoHideDuration: 6000,
+      });
     },
     [enqueueSnackbar, t],
   );
 
-  const info = useCallback((message: string) => enqueueSnackbar(message, { variant: 'info' }), [enqueueSnackbar]);
+  const info = useCallback(
+    (message: string) => enqueueSnackbar(message, { variant: 'info' }),
+    [enqueueSnackbar],
+  );
 
   return useMemo(() => ({ success, error, info }), [success, error, info]);
 }

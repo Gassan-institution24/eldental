@@ -11,7 +11,9 @@ export function useErrorText() {
     return t(`validation:${decoded.code}`, {
       field: label,
       ...(decoded.params ?? {}),
-      defaultValue: t(`errors:${decoded.code}`, { defaultValue: t('validation:invalid', { field: label }) }),
+      defaultValue: t(`errors:${decoded.code}`, {
+        defaultValue: t('validation:invalid', { field: label }),
+      }),
     });
   };
 }

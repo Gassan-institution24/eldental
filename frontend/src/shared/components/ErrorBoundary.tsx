@@ -5,7 +5,11 @@ import i18n from '@/i18n';
 import { reportIssue } from '@/lib/telemetry';
 import { useReportProblem } from './reportProblemStore';
 
-type Props = { children: ReactNode; name?: string; fallback?: (reset: () => void, ref: string) => ReactNode };
+type Props = {
+  children: ReactNode;
+  name?: string;
+  fallback?: (reset: () => void, ref: string) => ReactNode;
+};
 type State = { error: Error | null; ref: string };
 
 function shortRef(): string {
@@ -52,7 +56,9 @@ export class ErrorBoundary extends Component<Props, State> {
           <Button variant="contained" onClick={() => window.location.reload()}>
             {t('actions.reload')}
           </Button>
-          <Button onClick={() => useReportProblem.getState().open(`ref ${this.state.ref}`)}>{t('layout.reportProblem')}</Button>
+          <Button onClick={() => useReportProblem.getState().open(`ref ${this.state.ref}`)}>
+            {t('layout.reportProblem')}
+          </Button>
         </Stack>
       </Stack>
     );

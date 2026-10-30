@@ -6,7 +6,13 @@ import { useTranslation } from 'react-i18next';
 import { getErrorMessage, isApiError } from '@/lib/api/apiError';
 import { useReportProblem } from './reportProblemStore';
 
-function Illustration({ icon, tone = 'primary' }: { icon: ReactNode; tone?: 'primary' | 'error' | 'warning' }) {
+function Illustration({
+  icon,
+  tone = 'primary',
+}: {
+  icon: ReactNode;
+  tone?: 'primary' | 'error' | 'warning';
+}) {
   return (
     <Box
       aria-hidden
@@ -26,13 +32,24 @@ function Illustration({ icon, tone = 'primary' }: { icon: ReactNode; tone?: 'pri
   );
 }
 
-type EmptyProps = { title?: string; description?: string; action?: ReactNode; icon?: ReactNode; compact?: boolean };
+type EmptyProps = {
+  title?: string;
+  description?: string;
+  action?: ReactNode;
+  icon?: ReactNode;
+  compact?: boolean;
+};
 
 /** Illustration + one sentence + primary action (16_UX_UI_AND_VALIDATION.md §4). */
 export function EmptyState({ title, description, action, icon, compact }: EmptyProps) {
   const { t } = useTranslation();
   return (
-    <Stack alignItems="center" textAlign="center" sx={{ py: compact ? 6 : 12, px: 4 }} role="status">
+    <Stack
+      alignItems="center"
+      textAlign="center"
+      sx={{ py: compact ? 6 : 12, px: 4 }}
+      role="status"
+    >
       <Illustration icon={icon ?? <Inbox size={32} />} />
       <Typography variant="h4" component="p">
         {title ?? t('states.empty')}
@@ -81,7 +98,12 @@ export function ErrorState({ error, onRetry, compact, title }: ErrorProps) {
         {error ? getErrorMessage(error, t) : t('states.errorHint')}
       </Typography>
       {reqId && (
-        <Typography variant="caption" color="text.secondary" sx={{ mt: 2, fontFamily: 'monospace' }} dir="ltr">
+        <Typography
+          variant="caption"
+          color="text.secondary"
+          sx={{ mt: 2, fontFamily: 'monospace' }}
+          dir="ltr"
+        >
           {t('errors:referenceCode', { code: reqId })}
         </Typography>
       )}
@@ -110,7 +132,9 @@ export function NoPermission({ permission }: { permission?: string }) {
       </Typography>
       <Typography variant="body2" color="text.secondary" sx={{ mt: 1, maxWidth: 460 }}>
         {permission
-          ? t('states.noPermissionBody', { permission: t(`perm:${permission}`, { defaultValue: permission }) })
+          ? t('states.noPermissionBody', {
+              permission: t(`perm:${permission}`, { defaultValue: permission }),
+            })
           : t('states.noPermissionGeneric')}
       </Typography>
     </Stack>

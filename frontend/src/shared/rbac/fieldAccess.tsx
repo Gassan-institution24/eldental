@@ -21,7 +21,10 @@ const allWrite: FieldAccessApi = {
 
 const FieldScopeContext = createContext<FieldAccessApi>(allWrite);
 
-export function makeFieldAccess(fields: Record<string, FieldAccess> | undefined, fallback: FieldAccess = 'write'): FieldAccessApi {
+export function makeFieldAccess(
+  fields: Record<string, FieldAccess> | undefined,
+  fallback: FieldAccess = 'write',
+): FieldAccessApi {
   const access = (f: string): FieldAccess => fields?.[f] ?? fallback;
   return {
     access,

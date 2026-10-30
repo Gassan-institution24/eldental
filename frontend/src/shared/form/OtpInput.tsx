@@ -17,7 +17,15 @@ type Props = {
 const LENGTH = 6;
 
 /** 6 boxes, auto-advance, paste support, numeric keyboard, Arabic digits accepted (16 §5.3). */
-export function OtpInput({ value, onChange, onComplete, error, helperText, autoFocus, name }: Props) {
+export function OtpInput({
+  value,
+  onChange,
+  onComplete,
+  error,
+  helperText,
+  autoFocus,
+  name,
+}: Props) {
   const { t } = useTranslation();
   const refs = useRef<(HTMLInputElement | null)[]>([]);
   const chars = Array.from({ length: LENGTH }, (_, i) => value[i] ?? '');
@@ -40,7 +48,8 @@ export function OtpInput({ value, onChange, onComplete, error, helperText, autoF
 
   const fill = (digits: string, from = 0) => {
     const next = chars.slice();
-    for (let k = 0; k < digits.length && from + k < LENGTH; k += 1) next[from + k] = digits[k] ?? '';
+    for (let k = 0; k < digits.length && from + k < LENGTH; k += 1)
+      next[from + k] = digits[k] ?? '';
     const joined = next.join('');
     onChange(joined);
     refs.current[Math.min(from + digits.length, LENGTH - 1)]?.focus();
@@ -60,7 +69,13 @@ export function OtpInput({ value, onChange, onComplete, error, helperText, autoF
 
   return (
     <Box>
-      <Box role="group" aria-label={t('otp.label')} sx={{ display: 'flex', gap: 2, justifyContent: 'center' }} dir="ltr" data-field={name}>
+      <Box
+        role="group"
+        aria-label={t('otp.label')}
+        sx={{ display: 'flex', gap: 2, justifyContent: 'center' }}
+        dir="ltr"
+        data-field={name}
+      >
         {chars.map((c, i) => (
           <Box
             key={i}
@@ -91,7 +106,10 @@ export function OtpInput({ value, onChange, onComplete, error, helperText, autoF
               bgcolor: 'background.paper',
               color: 'text.primary',
               outline: 'none',
-              '&:focus': { borderColor: theme.palette.primary.main, boxShadow: `0 0 0 3px ${alpha(theme.palette.primary.main, 0.2)}` },
+              '&:focus': {
+                borderColor: theme.palette.primary.main,
+                boxShadow: `0 0 0 3px ${alpha(theme.palette.primary.main, 0.2)}`,
+              },
             })}
           />
         ))}

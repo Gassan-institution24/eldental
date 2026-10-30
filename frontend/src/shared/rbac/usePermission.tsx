@@ -1,7 +1,11 @@
 import { useCallback, useMemo, type ReactNode } from 'react';
 import { useSessionData } from '@/features/auth/api/session';
 import type { Grant } from '@/features/auth/types';
-import { RESOURCE_FIELDS, type PermissionKey, type ResourceKey } from '@/shared/generated/rbac/registry';
+import {
+  RESOURCE_FIELDS,
+  type PermissionKey,
+  type ResourceKey,
+} from '@/shared/generated/rbac/registry';
 import type { FieldAccess } from '@/shared/generated/rbac/rbac.types';
 import { makeFieldAccess, type FieldAccessApi } from './fieldAccess';
 
@@ -23,7 +27,17 @@ export function usePermission() {
   return { can, grant, session };
 }
 
-export function Can({ perm, scope, children, fallback = null }: { perm: PermissionKey | string; scope?: 'own' | 'all'; children: ReactNode; fallback?: ReactNode }) {
+export function Can({
+  perm,
+  scope,
+  children,
+  fallback = null,
+}: {
+  perm: PermissionKey | string;
+  scope?: 'own' | 'all';
+  children: ReactNode;
+  fallback?: ReactNode;
+}) {
   const { can } = usePermission();
   return <>{can(perm, scope) ? children : fallback}</>;
 }
@@ -32,10 +46,14 @@ export function Can({ perm, scope, children, fallback = null }: { perm: Permissi
  * `useFieldAccess('staff.member')` → canSee / canEdit / isMasked for that resource, merged from
  * every grant on that resource (read/update/create) — the most permissive level wins (04 §1.5).
  */
-export function useFieldAccess(resource: ResourceKey | string, mode: 'read' | 'write' = 'read'): FieldAccessApi {
+export function useFieldAccess(
+  resource: ResourceKey | string,
+  mode: 'read' | 'write' = 'read',
+): FieldAccessApi {
   const session = useSessionData();
   return useMemo(() => {
-    const registry = (RESOURCE_FIELDS as Record<string, Record<string, { default: FieldAccess }>>)[resource] ?? {};
+    const registry =
+      (RESOURCE_FIELDS as Record<string, Record<string, { default: FieldAccess }>>)[resource] ?? {};
     if (!session) return makeFieldAccess({}, 'hidden');
     if (session.isOwner || session.user.isRootSuperadmin) return makeFieldAccess({}, 'write');
     const order: Record<FieldAccess, number> = { hidden: 0, masked: 1, read: 2, write: 3 };

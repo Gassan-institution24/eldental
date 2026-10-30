@@ -1,4 +1,12 @@
-import { Button, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle, TextField } from '@mui/material';
+import {
+  Button,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogContentText,
+  DialogTitle,
+  TextField,
+} from '@mui/material';
 import { createContext, useCallback, useContext, useRef, useState, type ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
 
@@ -45,7 +53,13 @@ export function ConfirmProvider({ children }: { children: ReactNode }) {
   return (
     <ConfirmContext.Provider value={confirm}>
       {children}
-      <Dialog open={Boolean(opts)} onClose={() => close({ confirmed: false })} maxWidth="xs" fullWidth aria-labelledby="confirm-title">
+      <Dialog
+        open={Boolean(opts)}
+        onClose={() => close({ confirmed: false })}
+        maxWidth="xs"
+        fullWidth
+        aria-labelledby="confirm-title"
+      >
         <DialogTitle id="confirm-title" dir="auto">
           {opts?.title}
         </DialogTitle>

@@ -47,7 +47,9 @@ describe('<Form> validation UX (16 §5.2)', () => {
     await user.tab();
     expect(await screen.findByText('First name must be at least 2 characters')).toBeInTheDocument();
     await user.type(input, 'hmad');
-    await waitFor(() => expect(screen.queryByText(/at least 2 characters/)).not.toBeInTheDocument());
+    await waitFor(() =>
+      expect(screen.queryByText(/at least 2 characters/)).not.toBeInTheDocument(),
+    );
   });
 
   it('on submit shows a summary and focuses the first invalid field', async () => {
@@ -68,14 +70,20 @@ describe('<Form> validation UX (16 §5.2)', () => {
     await user.type(screen.getByLabelText(/First name/), '  أحمد  ');
     await user.type(screen.getByLabelText(/Mobile/), '٠٧٩١٢٣٤٥٦٧');
     await user.click(screen.getByRole('button', { name: 'Save' }));
-    await waitFor(() => expect(onSubmit).toHaveBeenCalledWith({ firstName: 'أحمد', mobile: '+962791234567' }));
+    await waitFor(() =>
+      expect(onSubmit).toHaveBeenCalledWith({ firstName: 'أحمد', mobile: '+962791234567' }),
+    );
   });
 
   it('maps server 422 errors onto the matching fields', async () => {
     const user = userEvent.setup();
-    const onSubmit = vi.fn().mockRejectedValue(
-      new ApiError(422, 'VALIDATION_ERROR', 'Validation failed', { fields: [{ path: 'mobile', code: 'duplicate' }] }),
-    );
+    const onSubmit = vi
+      .fn()
+      .mockRejectedValue(
+        new ApiError(422, 'VALIDATION_ERROR', 'Validation failed', {
+          fields: [{ path: 'mobile', code: 'duplicate' }],
+        }),
+      );
     renderForm(onSubmit);
     await user.type(screen.getByLabelText(/First name/), 'Sara');
     await user.type(screen.getByLabelText(/Mobile/), '0791234567');
@@ -85,7 +93,11 @@ describe('<Form> validation UX (16 §5.2)', () => {
 
   it('shows business errors as an alert with the reference code', async () => {
     const user = userEvent.setup();
-    const onSubmit = vi.fn().mockRejectedValue(new ApiError(409, 'APPOINTMENT_SLOT_TAKEN', 'taken', undefined, 'req-123'));
+    const onSubmit = vi
+      .fn()
+      .mockRejectedValue(
+        new ApiError(409, 'APPOINTMENT_SLOT_TAKEN', 'taken', undefined, 'req-123'),
+      );
     renderForm(onSubmit);
     await user.type(screen.getByLabelText(/First name/), 'Sara');
     await user.type(screen.getByLabelText(/Mobile/), '0791234567');

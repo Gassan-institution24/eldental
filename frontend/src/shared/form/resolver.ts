@@ -44,7 +44,10 @@ export function zodI18nResolver<T extends FieldValues>(schema: ZodTypeAny): Reso
     for (const issue of result.error.issues) {
       const f = issueToField(issue);
       const path = f.path || 'root';
-      setPath(errors, path, { type: f.code, message: encodeError({ code: f.code, ...(f.params ? { params: f.params } : {}) }) });
+      setPath(errors, path, {
+        type: f.code,
+        message: encodeError({ code: f.code, ...(f.params ? { params: f.params } : {}) }),
+      });
     }
     return { values: {}, errors: errors as FieldErrors<T> };
   };

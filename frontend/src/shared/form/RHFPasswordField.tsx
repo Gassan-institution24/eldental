@@ -1,4 +1,12 @@
-import { Box, IconButton, InputAdornment, LinearProgress, Stack, TextField, Typography } from '@mui/material';
+import {
+  Box,
+  IconButton,
+  InputAdornment,
+  LinearProgress,
+  Stack,
+  TextField,
+  Typography,
+} from '@mui/material';
 import { Check, Eye, EyeOff, X } from 'lucide-react';
 import { useState } from 'react';
 import { Controller, useFormContext } from 'react-hook-form';
@@ -6,7 +14,13 @@ import { useTranslation } from 'react-i18next';
 import { useRegisterLabel } from './fieldLabels';
 import { useErrorText } from './useFieldError';
 
-type Props = { name: string; label: string; required?: boolean; showRules?: boolean; autoComplete?: string };
+type Props = {
+  name: string;
+  label: string;
+  required?: boolean;
+  showRules?: boolean;
+  autoComplete?: string;
+};
 
 export function passwordRules(v: string) {
   return { length: v.length >= 10, letter: /\p{L}/u.test(v), digit: /\d/.test(v) };
@@ -23,7 +37,13 @@ function strength(v: string): number {
 }
 
 /** Password with show/hide, a strength meter and a rule checklist that ticks live (16 §5.3). */
-export function RHFPasswordField({ name, label, required, showRules, autoComplete = 'current-password' }: Props) {
+export function RHFPasswordField({
+  name,
+  label,
+  required,
+  showRules,
+  autoComplete = 'current-password',
+}: Props) {
   const { control } = useFormContext();
   const { t } = useTranslation();
   const errorText = useErrorText();
@@ -89,7 +109,14 @@ export function RHFPasswordField({ name, label, required, showRules, autoComplet
                       ['digit', 'ruleDigit'],
                     ] as const
                   ).map(([k, key]) => (
-                    <Stack component="li" key={k} direction="row" spacing={1} alignItems="center" sx={{ color: rules[k] ? 'success.main' : 'text.secondary' }}>
+                    <Stack
+                      component="li"
+                      key={k}
+                      direction="row"
+                      spacing={1}
+                      alignItems="center"
+                      sx={{ color: rules[k] ? 'success.main' : 'text.secondary' }}
+                    >
                       {rules[k] ? <Check size={14} aria-hidden /> : <X size={14} aria-hidden />}
                       <Typography variant="caption">{t(`password.${key}`)}</Typography>
                     </Stack>

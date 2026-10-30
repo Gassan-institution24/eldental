@@ -17,7 +17,18 @@ export type RHFTextFieldProps = Omit<TextFieldProps, 'name' | 'label' | 'error'>
 };
 
 /** Text input bound to RHF with translated errors, label registry, counter and field access. */
-export function RHFTextField({ name, label, fieldKey, required, helperText, maxLength, parse, inputProps, disabled, ...rest }: RHFTextFieldProps) {
+export function RHFTextField({
+  name,
+  label,
+  fieldKey,
+  required,
+  helperText,
+  maxLength,
+  parse,
+  inputProps,
+  disabled,
+  ...rest
+}: RHFTextFieldProps) {
   const { control } = useFormContext();
   const { t } = useTranslation();
   const errorText = useErrorText();
@@ -35,7 +46,8 @@ export function RHFTextField({ name, label, fieldKey, required, helperText, maxL
       control={control}
       render={({ field, fieldState }) => {
         const value = (field.value ?? '') as string;
-        const counter = maxLength && value.length >= maxLength * 0.8 ? `${value.length}/${maxLength}` : undefined;
+        const counter =
+          maxLength && value.length >= maxLength * 0.8 ? `${value.length}/${maxLength}` : undefined;
         const message = errorText(fieldState.error, label);
         return (
           <TextField

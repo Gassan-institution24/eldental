@@ -32,7 +32,20 @@ type Props = Omit<TextFieldProps, 'value' | 'onChange'> & {
  * Country selector + number formatted as you type; accepts Arabic-Indic digits. The form value
  * is the typed number in international form; the shared Zod rule normalises it to E.164.
  */
-export function PhoneInput({ value, onChange, defaultCountry = 'JO', label, error, helperText, onBlur, id, name, inputRef, disabled, required }: Props) {
+export function PhoneInput({
+  value,
+  onChange,
+  defaultCountry = 'JO',
+  label,
+  error,
+  helperText,
+  onBlur,
+  id,
+  name,
+  inputRef,
+  disabled,
+  required,
+}: Props) {
   const { t } = useTranslation();
   const initial = value ? parsePhoneNumberFromString(value, defaultCountry) : undefined;
   const [country, setCountry] = useState<CountryCode>(initial?.country ?? defaultCountry);
@@ -47,7 +60,9 @@ export function PhoneInput({ value, onChange, defaultCountry = 'JO', label, erro
 
   const emit = (nextLocal: string, nextCountry: CountryCode) => {
     const digits = toWesternDigits(nextLocal).replace(/[^\d+]/g, '');
-    const formatted = digits.startsWith('+') ? new AsYouType().input(digits) : new AsYouType(nextCountry).input(digits);
+    const formatted = digits.startsWith('+')
+      ? new AsYouType().input(digits)
+      : new AsYouType(nextCountry).input(digits);
     setLocal(formatted);
     if (!digits) return onChange('');
     if (digits.startsWith('+') || digits.startsWith('00')) return onChange(digits);
@@ -68,7 +83,9 @@ export function PhoneInput({ value, onChange, defaultCountry = 'JO', label, erro
         }}
         disabled={disabled}
         sx={{ width: 120, flexShrink: 0 }}
-        SelectProps={{ renderValue: (v) => `+${PHONE_COUNTRIES.find((c) => c.code === v)?.dial ?? ''}` }}
+        SelectProps={{
+          renderValue: (v) => `+${PHONE_COUNTRIES.find((c) => c.code === v)?.dial ?? ''}`,
+        }}
       >
         {PHONE_COUNTRIES.map((c) => (
           <MenuItem key={c.code} value={c.code}>
@@ -88,7 +105,12 @@ export function PhoneInput({ value, onChange, defaultCountry = 'JO', label, erro
         helperText={helperText ?? t('phone.helper')}
         disabled={disabled}
         required={false}
-        inputProps={{ inputMode: 'tel', dir: 'ltr', autoComplete: 'tel', 'aria-required': required }}
+        inputProps={{
+          inputMode: 'tel',
+          dir: 'ltr',
+          autoComplete: 'tel',
+          'aria-required': required,
+        }}
         type="tel"
       />
     </Box>

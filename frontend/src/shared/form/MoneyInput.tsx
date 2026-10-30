@@ -23,12 +23,17 @@ function groupThousands(s: string): string {
 export function MoneyInput({ value, onChange, currency, onBlur, inputProps, ...rest }: Props) {
   const { t } = useTranslation();
   const decimals = decimalsOf(currency);
-  const [text, setText] = useState(() => (typeof value === 'number' && Number.isInteger(value) ? groupThousands(toDecimalString(value, currency)) : ''));
+  const [text, setText] = useState(() =>
+    typeof value === 'number' && Number.isInteger(value)
+      ? groupThousands(toDecimalString(value, currency))
+      : '',
+  );
   const [focused, setFocused] = useState(false);
 
   useEffect(() => {
     if (focused) return;
-    if (typeof value === 'number' && Number.isInteger(value)) setText(groupThousands(toDecimalString(value, currency)));
+    if (typeof value === 'number' && Number.isInteger(value))
+      setText(groupThousands(toDecimalString(value, currency)));
     else if (value === undefined || value === null) setText('');
   }, [value, currency, focused]);
 
@@ -56,7 +61,10 @@ export function MoneyInput({ value, onChange, currency, onBlur, inputProps, ...r
         onBlur?.(e);
       }}
       inputProps={{ inputMode: 'decimal', dir: 'ltr', ...inputProps }}
-      InputProps={{ endAdornment: <InputAdornment position="end">{currency}</InputAdornment>, ...rest.InputProps }}
+      InputProps={{
+        endAdornment: <InputAdornment position="end">{currency}</InputAdornment>,
+        ...rest.InputProps,
+      }}
       helperText={rest.helperText ?? t('money.helper', { decimals })}
     />
   );

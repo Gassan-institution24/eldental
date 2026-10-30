@@ -9,15 +9,34 @@ import { OtpInput } from './OtpInput';
 import { PhoneInput } from './PhoneInput';
 import { useErrorText } from './useFieldError';
 
-type Base = { name: string; label: string; required?: boolean; fieldKey?: string; helperText?: string; disabled?: boolean };
+type Base = {
+  name: string;
+  label: string;
+  required?: boolean;
+  fieldKey?: string;
+  helperText?: string;
+  disabled?: boolean;
+};
 
 function useAccess(fieldKey?: string) {
   const scope = useFieldScope();
   if (!fieldKey) return { visible: true, readOnly: false, masked: false };
-  return { visible: scope.canSee(fieldKey), readOnly: !scope.canEdit(fieldKey), masked: scope.isMasked(fieldKey) };
+  return {
+    visible: scope.canSee(fieldKey),
+    readOnly: !scope.canEdit(fieldKey),
+    masked: scope.isMasked(fieldKey),
+  };
 }
 
-export function RHFMoney({ name, label, required, fieldKey, helperText, disabled, currency }: Base & { currency: string }) {
+export function RHFMoney({
+  name,
+  label,
+  required,
+  fieldKey,
+  helperText,
+  disabled,
+  currency,
+}: Base & { currency: string }) {
   const { control } = useFormContext();
   const errorText = useErrorText();
   const access = useAccess(fieldKey);
@@ -75,7 +94,12 @@ export function RHFPhone({ name, label, required, fieldKey, helperText, disabled
   );
 }
 
-export function RHFOtp({ name, label, onComplete, autoFocus }: Base & { onComplete?: (v: string) => void; autoFocus?: boolean }) {
+export function RHFOtp({
+  name,
+  label,
+  onComplete,
+  autoFocus,
+}: Base & { onComplete?: (v: string) => void; autoFocus?: boolean }) {
   const { control } = useFormContext();
   const errorText = useErrorText();
   useRegisterLabel(name, label);
@@ -98,7 +122,14 @@ export function RHFOtp({ name, label, onComplete, autoFocus }: Base & { onComple
   );
 }
 
-export function RHFCheckbox({ name, label, helperText, disabled, fieldKey, asSwitch }: Base & { asSwitch?: boolean }) {
+export function RHFCheckbox({
+  name,
+  label,
+  helperText,
+  disabled,
+  fieldKey,
+  asSwitch,
+}: Base & { asSwitch?: boolean }) {
   const { control } = useFormContext();
   const errorText = useErrorText();
   const access = useAccess(fieldKey);
@@ -113,11 +144,23 @@ export function RHFCheckbox({ name, label, helperText, disabled, fieldKey, asSwi
         return (
           <Box data-field={name}>
             <FormControlLabel
-              control={<Control checked={Boolean(field.value)} onChange={(e) => field.onChange(e.target.checked)} onBlur={field.onBlur} inputRef={field.ref} name={field.name} />}
+              control={
+                <Control
+                  checked={Boolean(field.value)}
+                  onChange={(e) => field.onChange(e.target.checked)}
+                  onBlur={field.onBlur}
+                  inputRef={field.ref}
+                  name={field.name}
+                />
+              }
               label={label}
               disabled={disabled || access.readOnly}
             />
-            {(fieldState.error || helperText) && <FormHelperText error={Boolean(fieldState.error)}>{errorText(fieldState.error, label) ?? helperText}</FormHelperText>}
+            {(fieldState.error || helperText) && (
+              <FormHelperText error={Boolean(fieldState.error)}>
+                {errorText(fieldState.error, label) ?? helperText}
+              </FormHelperText>
+            )}
           </Box>
         );
       }}
@@ -126,7 +169,17 @@ export function RHFCheckbox({ name, label, helperText, disabled, fieldKey, asSwi
 }
 
 /** Clinic-local calendar date; the form value is `YYYY-MM-DD`. Typing DD/MM/YYYY is allowed. */
-export function RHFDate({ name, label, required, fieldKey, helperText, disabled, disableFuture, minDate, maxDate }: Base & { disableFuture?: boolean; minDate?: string; maxDate?: string }) {
+export function RHFDate({
+  name,
+  label,
+  required,
+  fieldKey,
+  helperText,
+  disabled,
+  disableFuture,
+  minDate,
+  maxDate,
+}: Base & { disableFuture?: boolean; minDate?: string; maxDate?: string }) {
   const { control } = useFormContext();
   const errorText = useErrorText();
   const access = useAccess(fieldKey);
@@ -140,7 +193,9 @@ export function RHFDate({ name, label, required, fieldKey, helperText, disabled,
         <DatePicker
           label={required ? `${label} *` : label}
           value={field.value ? dayjs(field.value as string) : null}
-          onChange={(v) => field.onChange(v && v.isValid() ? v.format('YYYY-MM-DD') : v ? 'invalid' : '')}
+          onChange={(v) =>
+            field.onChange(v && v.isValid() ? v.format('YYYY-MM-DD') : v ? 'invalid' : '')
+          }
           format="DD/MM/YYYY"
           disableFuture={disableFuture}
           minDate={minDate ? dayjs(minDate) : undefined}

@@ -1,11 +1,27 @@
-import { Box, Breadcrumbs, IconButton, Link, Menu, MenuItem, Stack, Tooltip, Typography } from '@mui/material';
+import {
+  Box,
+  Breadcrumbs,
+  IconButton,
+  Link,
+  Menu,
+  MenuItem,
+  Stack,
+  Tooltip,
+  Typography,
+} from '@mui/material';
 import { MoreVertical } from 'lucide-react';
 import { useState, type ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link as RouterLink } from 'react-router-dom';
 
 export type Crumb = { label: string; to?: string };
-export type SecondaryAction = { label: string; onClick: () => void; icon?: ReactNode; disabled?: boolean; hidden?: boolean };
+export type SecondaryAction = {
+  label: string;
+  onClick: () => void;
+  icon?: ReactNode;
+  disabled?: boolean;
+  hidden?: boolean;
+};
 
 type Props = {
   title: ReactNode;
@@ -28,7 +44,13 @@ export function PageHeader({ title, subtitle, breadcrumbs, primary, actions, sec
         <Breadcrumbs aria-label={t('layout.breadcrumbs')} sx={{ mb: 1, fontSize: 13 }}>
           {breadcrumbs.map((c, i) =>
             c.to && i < breadcrumbs.length - 1 ? (
-              <Link key={c.label} component={RouterLink} to={c.to} underline="hover" color="text.secondary">
+              <Link
+                key={c.label}
+                component={RouterLink}
+                to={c.to}
+                underline="hover"
+                color="text.secondary"
+              >
                 {c.label}
               </Link>
             ) : (
@@ -39,7 +61,12 @@ export function PageHeader({ title, subtitle, breadcrumbs, primary, actions, sec
           )}
         </Breadcrumbs>
       )}
-      <Stack direction={{ xs: 'column', sm: 'row' }} spacing={3} alignItems={{ sm: 'center' }} justifyContent="space-between">
+      <Stack
+        direction={{ xs: 'column', sm: 'row' }}
+        spacing={3}
+        alignItems={{ sm: 'center' }}
+        justifyContent="space-between"
+      >
         <Box sx={{ minWidth: 0 }}>
           <Typography variant="h2" component="h1" dir="auto" sx={{ wordBreak: 'break-word' }}>
             {title}
@@ -55,7 +82,10 @@ export function PageHeader({ title, subtitle, breadcrumbs, primary, actions, sec
           {items.length > 0 && (
             <>
               <Tooltip title={t('actions.more')}>
-                <IconButton aria-label={t('actions.more')} onClick={(e) => setAnchor(e.currentTarget)}>
+                <IconButton
+                  aria-label={t('actions.more')}
+                  onClick={(e) => setAnchor(e.currentTarget)}
+                >
                   <MoreVertical size={20} />
                 </IconButton>
               </Tooltip>

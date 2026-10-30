@@ -19,7 +19,16 @@ type Props = {
 };
 
 /** Select; becomes a searchable Autocomplete for more than 7 options (16 §5.3). */
-export function RHFSelect({ name, label, options, required, fieldKey, helperText, disabled, clearable }: Props) {
+export function RHFSelect({
+  name,
+  label,
+  options,
+  required,
+  fieldKey,
+  helperText,
+  disabled,
+  clearable,
+}: Props) {
   const { control } = useFormContext();
   const errorText = useErrorText();
   const scope = useFieldScope();

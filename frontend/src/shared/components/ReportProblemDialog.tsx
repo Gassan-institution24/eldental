@@ -82,14 +82,21 @@ export function ReportProblemDialog() {
           multiline
           minRows={4}
           label={t('report.comment')}
-          helperText={comment.length > MAX * 0.8 ? `${comment.length}/${MAX}` : t('report.commentHelper')}
+          helperText={
+            comment.length > MAX * 0.8 ? `${comment.length}/${MAX}` : t('report.commentHelper')
+          }
           value={comment}
           onChange={(e) => setComment(e.target.value)}
           inputProps={{ dir: 'auto', maxLength: MAX }}
         />
         <FormControlLabel
           sx={{ mt: 2 }}
-          control={<Checkbox checked={withScreenshot} onChange={(e) => setWithScreenshot(e.target.checked)} />}
+          control={
+            <Checkbox
+              checked={withScreenshot}
+              onChange={(e) => setWithScreenshot(e.target.checked)}
+            />
+          }
           label={t('report.screenshot')}
         />
         <FormHelperText>{t('report.screenshotHelper')}</FormHelperText>

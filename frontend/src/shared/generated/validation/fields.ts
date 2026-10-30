@@ -278,7 +278,7 @@ export const toothNumber = () =>
 
 export const surfaces = () => z.array(z.enum(SURFACES, { message: 'invalid_surface' })).max(5);
 
-export const enumOf = <T extends [string, ...string[]]>(values: T) =>
+export const enumOf = <const T extends [string, ...string[]]>(values: T) =>
   z.enum(values, { required_error: 'required', invalid_type_error: 'invalid_option', message: 'invalid_option' });
 
 /** Cross-field: `to >= from` and at most `maxDays` long. */

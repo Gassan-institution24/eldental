@@ -17,7 +17,11 @@ function toneColors(theme: Theme, tone: StatusTone): { fg: string; bg: string; b
   };
   const base = map[tone];
   if (tone === 'redOutline') return { fg: base, bg: 'transparent', border: base };
-  return { fg: theme.palette.mode === 'dark' ? alpha(base, 0.95) : base, bg: alpha(base, 0.14), border: 'transparent' };
+  return {
+    fg: theme.palette.mode === 'dark' ? alpha(base, 0.95) : base,
+    bg: alpha(base, 0.14),
+    border: 'transparent',
+  };
 }
 
 type Props = Omit<ChipProps, 'color' | 'label'> & { status: string; label?: string };

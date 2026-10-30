@@ -1,6 +1,11 @@
 import { Alert, AlertTitle, Box, Link, List, ListItem, Typography } from '@mui/material';
 import { useEffect, useRef, useState, type ReactNode } from 'react';
-import { FormProvider, type FieldErrors, type FieldValues, type UseFormReturn } from 'react-hook-form';
+import {
+  FormProvider,
+  type FieldErrors,
+  type FieldValues,
+  type UseFormReturn,
+} from 'react-hook-form';
 import { useTranslation } from 'react-i18next';
 import { useBlocker } from 'react-router-dom';
 import { getErrorMessage, isApiError } from '@/lib/api/apiError';
@@ -43,7 +48,9 @@ const attr = (v: string) => v.replace(/["\\]/g, '\\$&');
 function elementFor(path: string): HTMLElement | null {
   return (
     document.getElementById(`field-${path.replace(/\./g, '-')}`) ??
-    document.querySelector<HTMLElement>(`[name="${attr(path)}"], [data-field="${attr(path)}"] input`)
+    document.querySelector<HTMLElement>(
+      `[name="${attr(path)}"], [data-field="${attr(path)}"] input`,
+    )
   );
 }
 
@@ -60,7 +67,9 @@ function inDomOrder(list: Flat[]): Flat[] {
 function focusField(path: string): void {
   const el =
     document.getElementById(`field-${path.replace(/\./g, '-')}`) ??
-    document.querySelector<HTMLElement>(`[name="${attr(path)}"], [data-field="${attr(path)}"] input`);
+    document.querySelector<HTMLElement>(
+      `[name="${attr(path)}"], [data-field="${attr(path)}"] input`,
+    );
   el?.focus();
   el?.scrollIntoView({ block: 'center', behavior: 'smooth' });
 }
@@ -69,7 +78,15 @@ function focusField(path: string): void {
  * Form wrapper: error summary + focus on the first invalid field on submit, server 422 mapping,
  * business-rule alert at the top, validation telemetry (field + rule, never values), unsaved guard.
  */
-export function Form<T extends FieldValues>({ form, name, onSubmit, children, requiredLegend, guardUnsaved, id }: Props<T>) {
+export function Form<T extends FieldValues>({
+  form,
+  name,
+  onSubmit,
+  children,
+  requiredLegend,
+  guardUnsaved,
+  id,
+}: Props<T>) {
   const { t } = useTranslation();
   const confirm = useConfirm();
   const [summary, setSummary] = useState<Flat[]>([]);
@@ -79,20 +96,31 @@ export function Form<T extends FieldValues>({ form, name, onSubmit, children, re
 
   const blocker = useBlocker(
     ({ currentLocation, nextLocation }) =>
-      Boolean(guardUnsaved) && form.formState.isDirty && !form.formState.isSubmitSuccessful && currentLocation.pathname !== nextLocation.pathname,
+      Boolean(guardUnsaved) &&
+      form.formState.isDirty &&
+      !form.formState.isSubmitSuccessful &&
+      currentLocation.pathname !== nextLocation.pathname,
   );
 
   useEffect(() => {
     if (blocker.state !== 'blocked') return;
-    void confirm({ title: t('states.unsavedTitle'), body: t('states.unsavedBody'), confirmLabel: t('actions.leave'), destructive: true }).then((r) =>
-      r.confirmed ? blocker.proceed() : blocker.reset(),
-    );
+    void confirm({
+      title: t('states.unsavedTitle'),
+      body: t('states.unsavedBody'),
+      confirmLabel: t('actions.leave'),
+      destructive: true,
+    }).then((r) => (r.confirmed ? blocker.proceed() : blocker.reset()));
   }, [blocker, confirm, t]);
 
   const onInvalid = (errors: FieldErrors<T>) => {
     const flat = inDomOrder(flatten(errors as FieldErrors));
     setSummary(flat);
-    reportIssue({ kind: 'validation_error', severity: 'low', message: 'client validation', validation: { form: name, fields: flat.map((f) => ({ field: f.path, rule: f.code })) } });
+    reportIssue({
+      kind: 'validation_error',
+      severity: 'low',
+      message: 'client validation',
+      validation: { form: name, fields: flat.map((f) => ({ field: f.path, rule: f.code })) },
+    });
     const first = flat[0];
     if (first) requestAnimationFrame(() => focusField(first.path));
   };
@@ -106,7 +134,12 @@ export function Form<T extends FieldValues>({ form, name, onSubmit, children, re
       const { mapped } = applyServerErrors(form, err);
       if (isApiError(err) && (err.code === 'VALIDATION_ERROR' || err.code === 'FIELD_FORBIDDEN')) {
         const flat = err.fields.map((f) => ({ path: f.path.replace(/^body\./, ''), code: f.code }));
-        reportIssue({ kind: 'validation_error', severity: 'low', message: 'server validation', validation: { form: name, fields: flat.map((f) => ({ field: f.path, rule: f.code })) } });
+        reportIssue({
+          kind: 'validation_error',
+          severity: 'low',
+          message: 'server validation',
+          validation: { form: name, fields: flat.map((f) => ({ field: f.path, rule: f.code })) },
+        });
         if (mapped.length) {
           setSummary(inDomOrder(flat.filter((f) => mapped.includes(f.path))));
           return;
@@ -121,13 +154,24 @@ export function Form<T extends FieldValues>({ form, name, onSubmit, children, re
   return (
     <FieldLabelsContext.Provider value={labels}>
       <FormProvider {...form}>
-        <Box component="form" id={id} noValidate onSubmit={submit} aria-describedby={summary.length ? `${name}-summary` : undefined}>
+        <Box
+          component="form"
+          id={id}
+          noValidate
+          onSubmit={submit}
+          aria-describedby={summary.length ? `${name}-summary` : undefined}
+        >
           <Box ref={summaryRef} tabIndex={-1} sx={{ outline: 'none' }}>
             {businessError !== null && (
               <Alert severity="error" sx={{ mb: 4 }} role="alert">
                 {getErrorMessage(businessError, t)}
                 {isApiError(businessError) && businessError.requestId && (
-                  <Typography variant="caption" display="block" sx={{ mt: 1, fontFamily: 'monospace' }} dir="ltr">
+                  <Typography
+                    variant="caption"
+                    display="block"
+                    sx={{ mt: 1, fontFamily: 'monospace' }}
+                    dir="ltr"
+                  >
                     {t('errors:referenceCode', { code: businessError.requestId })}
                   </Typography>
                 )}
@@ -139,7 +183,12 @@ export function Form<T extends FieldValues>({ form, name, onSubmit, children, re
                 <List dense disablePadding>
                   {summary.map((s) => (
                     <ListItem key={s.path} disableGutters sx={{ py: 0 }}>
-                      <Link component="button" type="button" onClick={() => focusField(s.path)} underline="hover">
+                      <Link
+                        component="button"
+                        type="button"
+                        onClick={() => focusField(s.path)}
+                        underline="hover"
+                      >
                         {labels.get(s.path) ?? s.path}
                       </Link>
                     </ListItem>

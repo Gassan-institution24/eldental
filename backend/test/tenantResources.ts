@@ -1,5 +1,6 @@
 import { runInTenant } from '@/core/tenancy/tenantPlugin';
 import { RoleModel } from '@/modules/roles/role.model';
+import { ChairModel, ClinicProcedureModel } from '@/modules/clinic/clinic.models';
 import { StaffModel } from '@/modules/staff/staff.model';
 import type { Session } from './helpers';
 
@@ -30,6 +31,22 @@ export const TENANT_RESOURCES: TenantResource[] = [
     listPath: '/roles',
     createIn: async (clinicId) => runInTenant(clinicId, async () => String((await RoleModel.findOne({ key: 'dentist' }).lean())?._id)),
     update: { version: 0, name: 'Hacked' },
+    canDelete: true,
+  },
+  {
+    name: 'chairs',
+    basePath: '/chairs',
+    listPath: '/chairs?includeInactive=true',
+    createIn: async (clinicId) => runInTenant(clinicId, async () => String((await ChairModel.create({ name: 'B chair', color: '#000000' }))._id)),
+    update: { version: 0, name: 'Hacked' },
+    canDelete: true,
+  },
+  {
+    name: 'procedures',
+    basePath: '/procedures',
+    listPath: '/procedures?limit=100',
+    createIn: async (clinicId) => runInTenant(clinicId, async () => String((await ClinicProcedureModel.create({ code: 'B1', name: 'B proc', category: 'other', price: 1000 }))._id)),
+    update: { version: 0, price: 1 },
     canDelete: true,
   },
 ];
