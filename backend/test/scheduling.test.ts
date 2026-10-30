@@ -117,6 +117,8 @@ describe('reschedule and cancel', () => {
   });
 
   it('cancel releases the locks and flags late cancels', async () => {
+    // Tomorrow 10:00 is always within a 72 h window, whatever the time of day the test runs.
+    await runWithoutTenant(() => ClinicModel.updateOne({ _id: c.clinicId }, { $set: { 'settings.cancellationWindowHours': 72 } }));
     const a = (await api(reception).post('/appointments').send(bookBody())).body.data;
     const res = await api(reception).post(`/appointments/${a.id}/cancel`).send({ reason: 'patient_request' });
     expect(res.status).toBe(200);

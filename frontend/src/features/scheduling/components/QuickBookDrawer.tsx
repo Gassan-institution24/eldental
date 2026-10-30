@@ -80,7 +80,7 @@ export function QuickBookDrawer() {
       patient: null,
       dentistId: preset.dentistId ?? '',
       appointmentTypeId: preset.appointmentTypeId ?? '',
-      durationMin: 30,
+      durationMin: preset.durationMin ?? 30,
       date: start ? formatDate(start, 'en', 'YYYY-MM-DD') : todayLocal(),
       time: start ? formatTime(start, 'en') : '',
       chairId: preset.chairId ?? '',
@@ -150,6 +150,9 @@ export function QuickBookDrawer() {
       source: preset.source ?? 'staff',
       ...(preset.recallId ? { recallId: preset.recallId } : {}),
       ...(preset.waitlistId ? { waitlistId: preset.waitlistId } : {}),
+      ...(preset.plannedItemIds?.length
+        ? { plannedItems: preset.plannedItemIds.map((id) => ({ treatmentPlanItemId: id })) }
+        : {}),
     });
     notify.success(t('book.booked', { number: created.number }));
     close();

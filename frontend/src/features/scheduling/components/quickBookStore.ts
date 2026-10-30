@@ -9,6 +9,8 @@ export type QuickBookPreset = {
   source?: 'staff' | 'walk_in' | 'recall';
   recallId?: string;
   waitlistId?: string;
+  plannedItemIds?: string[];
+  durationMin?: number;
 };
 
 type State = {

@@ -103,7 +103,10 @@
     "medical": "التاريخ الطبي",
     "insurance": "التأمين",
     "billing": "الفوترة",
-    "history": "السجل"
+    "history": "السجل",
+    "prescriptions": "الوصفات",
+    "lab": "المختبر",
+    "consents": "الموافقات"
   },
   "overview": {
     "contact": "التواصل",

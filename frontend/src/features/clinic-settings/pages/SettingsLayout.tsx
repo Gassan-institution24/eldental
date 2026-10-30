@@ -21,6 +21,8 @@ import {
   Receipt,
   ScrollText,
   Stethoscope,
+  FileSignature,
+  NotebookPen,
 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom';
@@ -50,6 +52,18 @@ const TABS = [
     to: 'integrations',
     icon: <Plug size={18} />,
     perm: 'clinic.settings.update',
+  },
+  {
+    key: 'noteTemplates',
+    to: 'note-templates',
+    icon: <NotebookPen size={18} />,
+    perm: 'clinical.note.sign',
+  },
+  {
+    key: 'consents',
+    to: 'consents',
+    icon: <FileSignature size={18} />,
+    perm: 'clinical.consent.manage',
   },
   { key: 'roles', to: 'roles', icon: <KeyRound size={18} />, perm: 'staff.role.manage' },
   { key: 'logs', to: 'logs', icon: <ScrollText size={18} />, perm: 'logs.activity.read' },

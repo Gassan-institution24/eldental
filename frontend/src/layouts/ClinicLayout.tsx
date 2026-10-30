@@ -27,6 +27,7 @@ import {
   CalendarPlus,
   Plane,
   Clock3,
+  FlaskConical,
 } from 'lucide-react';
 import { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -98,6 +99,12 @@ export const CLINIC_NAV: GroupDef[] = [
         to: '/clinic/patients',
         icon: <Users size={I} />,
         perm: 'patients.patient.read',
+      },
+      {
+        key: 'labOrders',
+        to: '/clinic/lab-orders',
+        icon: <FlaskConical size={I} />,
+        perm: 'clinical.labOrder.read',
       },
     ],
   },

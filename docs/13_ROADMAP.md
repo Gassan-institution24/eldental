@@ -86,11 +86,12 @@
 **Accept:** a concurrency test (20 parallel bookings → 1 success); the calendar updates live in two browsers.
 
 ## Phase 5 — Clinical
-- [ ] Tooth chart + chart entries + chartEffect mapping
-- [ ] Treatment plans (phases, alternatives, estimates, present PDF, accept with signature)
-- [ ] Performed procedures (events → recalls; billing hook stubbed until Phase 6)
-- [ ] Clinical notes (templates, sign, amend), perio chart, prescriptions (PDF), lab orders, imaging viewer, consents
-- [ ] Frontend: `<ToothChart>`, plan builder, perio grid, notes editor, Rx, lab orders, imaging gallery, consent signing
+- [x] Tooth chart + chart entries + chartEffect mapping
+- [x] Treatment plans (phases, alternatives, estimates, present PDF, accept with signature)
+- [x] Performed procedures (events → recalls; billing hook stubbed until Phase 6)
+- [x] Clinical notes (templates, sign, amend), perio chart, prescriptions (PDF), lab orders, imaging viewer, consents
+- [ ] Lab cost → supplier bill draft (needs Phase 6 suppliers/bills)
+- [x] Frontend: `<ToothChart>`, plan builder, perio grid, notes editor, Rx, lab orders, imaging gallery, consent signing
 
 **Accept:** an end-to-end flow: chart finding → plan → accept → book → perform → chart shows completed.
 

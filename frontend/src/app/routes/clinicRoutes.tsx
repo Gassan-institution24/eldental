@@ -20,6 +20,16 @@ import { PatientListPage } from '@/features/patients/pages/PatientListPage';
 import { PatientCreatePage, PatientEditPage } from '@/features/patients/pages/PatientFormPage';
 import { PatientWorkspace } from '@/features/patients/pages/PatientWorkspace';
 import { PATIENT_EXTRA_ROUTES } from './patientExtraRoutes';
+import { ChartTab } from '@/features/clinical/pages/ChartTab';
+import { NotesTab, PerioTab } from '@/features/clinical/pages/NotesPerioTabs';
+import { PlansTab } from '@/features/clinical/pages/PlansTab';
+import {
+  ConsentsTab,
+  LabOrdersPage,
+  LabTab,
+  PrescriptionsTab,
+} from '@/features/clinical/pages/RecordsTabs';
+import { ConsentTemplatesPage, NoteTemplatesPage } from '@/features/clinical/pages/TemplatePages';
 import { PatientAppointmentsTab } from '@/features/scheduling/components/PatientAppointmentsTab';
 import { CalendarPage } from '@/features/scheduling/pages/CalendarPage';
 import { SchedulesPage } from '@/features/scheduling/pages/SchedulesPage';
@@ -62,6 +72,7 @@ export const clinicRoutes: RouteObject[] = [
   },
   placeholder('billing/*', 'nav:invoices', 'billing.invoice.read'),
   placeholder('accounting/*', 'nav:accounts', 'accounting.account.read'),
+  page(<LabOrdersPage />, { perm: 'clinical.labOrder.read', title: 'nav:labOrders' }, 'lab-orders'),
   page(<StaffListPage />, { perm: 'staff.member.read' }, 'hr/staff'),
   page(<StaffProfilePage />, { perm: 'staff.member.read' }, 'hr/staff/:id'),
   placeholder('hr/*', 'nav:shifts', 'hr.shift.manage'),
@@ -85,6 +96,8 @@ export const clinicRoutes: RouteObject[] = [
       page(<ProceduresPage />, { perm: 'clinic.procedure.manage' }, 'procedures'),
       page(<TaxRatesPage />, { perm: 'accounting.account.read' }, 'taxes'),
       page(<IntegrationsPage />, { perm: 'clinic.settings.update' }, 'integrations'),
+      page(<NoteTemplatesPage />, { perm: 'clinical.note.sign' }, 'note-templates'),
+      page(<ConsentTemplatesPage />, { perm: 'clinical.consent.manage' }, 'consents'),
       page(<RolesPage />, { perm: 'staff.role.manage' }, 'roles'),
       placeholder('logs', 'settings:tabs.logs', 'logs.activity.read'),
     ],
@@ -97,6 +110,14 @@ function patientTabRoutes(): RouteObject[] {
   return [
     { index: true, element: <OverviewTab /> },
     page(<PatientAppointmentsTab />, { perm: 'scheduling.appointment.read' }, 'appointments'),
+    page(<ChartTab />, { perm: 'clinical.chart.read' }, 'chart'),
+    page(<PlansTab />, { perm: 'clinical.treatmentPlan.read' }, 'plans'),
+    page(<NotesTab />, { perm: 'clinical.note.read' }, 'notes'),
+    page(<PerioTab />, { perm: 'clinical.perio.read' }, 'perio'),
+    page(<DocumentsTab imagingOnly />, { perm: 'clinical.imaging.read' }, 'imaging'),
+    page(<PrescriptionsTab />, { perm: 'clinical.prescription.read' }, 'prescriptions'),
+    page(<LabTab />, { perm: 'clinical.labOrder.read' }, 'lab'),
+    page(<ConsentsTab />, { perm: 'clinical.chart.read' }, 'consents'),
     page(<MedicalTab />, { perm: 'patients.medicalHistory.read' }, 'medical'),
     page(<InsuranceTab />, {}, 'insurance'),
     page(<DocumentsTab />, { perm: 'patients.document.read' }, 'documents'),

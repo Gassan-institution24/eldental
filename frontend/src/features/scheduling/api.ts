@@ -247,6 +247,7 @@ export type BookPayload = {
   allowOverlap?: boolean;
   recallId?: string;
   waitlistId?: string;
+  plannedItems?: { treatmentPlanItemId: string }[];
 };
 
 export function useBook() {

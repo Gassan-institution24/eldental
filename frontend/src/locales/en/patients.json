@@ -99,7 +99,10 @@
     "medical": "Medical history",
     "insurance": "Insurance",
     "billing": "Billing",
-    "history": "History"
+    "history": "History",
+    "prescriptions": "Prescriptions",
+    "lab": "Lab",
+    "consents": "Consents"
   },
   "overview": {
     "contact": "Contact",

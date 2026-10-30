@@ -38,6 +38,8 @@
 - RTL-safe: chart orientation follows dental convention (patient's right on the viewer's left), **not** text direction.
 - Printable chart (PDF).
 
+> **PDF output:** plans, prescriptions and consents are rendered as print-ready A4 pages in the browser ("Print / Save as PDF"). This keeps Arabic shaping and RTL correct without a server-side font pipeline; server-side PDF (for e-mail attachments) can be added later.
+
 ## 3. Treatment Plans
 
 **Lifecycle:** `draft → presented → accepted | partially_accepted | rejected → in_progress → completed`; can be `cancelled` from any non-completed state.
