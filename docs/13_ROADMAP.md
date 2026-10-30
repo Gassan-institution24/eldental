@@ -33,17 +33,17 @@
 **Accept:** `GET /health` → 200; frontend dev server renders; CI green.
 
 ## Phase 1 — Core Platform: Auth, Tenancy, RBAC, Audit
-- [ ] Base Mongoose plugins: timestamps, auditFields, softDelete, tenantPlugin (AsyncLocalStorage), sequence/counters service, `withTransaction`
-- [ ] Models: users, clinics (minimal), staff, roles, refreshTokens, otpCodes, auditLogs
-- [ ] Permission registry **+ field registry** + role templates with field maps (exactly per `04_ROLES_AND_PERMISSIONS.md`) + `authorize()` + scope rules + `fieldPolicy` (projection, masking, write rejection `FIELD_FORBIDDEN`, no sort/search on hidden fields) + per-staff overrides + permission cache (Redis, `pv`)
-- [ ] Root superadmin (`isRootSuperadmin`, MFA required) + platform permission registry + escalation rule (`04` §8)
-- [ ] Logging streams: `auditLogs`, `activityLogs`, `clientIssues`, `systemErrors`, `requestLogs` + telemetry endpoints + TTL retention (`15_LOGGING_AND_MONITORING.md`)
-- [ ] Auth endpoints: login, select-clinic, refresh (rotation + reuse detection), logout, logout-all, me, forgot/reset (OTP), change password, invitation accept
-- [ ] Email service (nodemailer → Mailpit in dev) with ar/en templates
-- [ ] Audit service + middleware hooks
-- [ ] Route-meta test (every route has authorize/public) + tenant isolation test harness
-- [ ] `npm run seed`: root superadmin from env, a demo clinic "Smile Clinic" with an owner, a dentist, a receptionist, an accountant and HR (password `Password123!`), and role templates
-- [ ] Frontend: login, select clinic, forgot/reset, auth store + refresh interceptor + BroadcastChannel, `/auth/me` bootstrap, guards, `usePermission`/`<Can>`, ClinicLayout nav filtered by permission
+- [x] Base Mongoose plugins: timestamps, auditFields, softDelete, tenantPlugin (AsyncLocalStorage), sequence/counters service, `withTransaction`
+- [x] Models: users, clinics (minimal), staff, roles, refreshTokens, otpCodes, auditLogs
+- [x] Permission registry **+ field registry** + role templates with field maps (exactly per `04_ROLES_AND_PERMISSIONS.md`) + `authorize()` + scope rules + `fieldPolicy` (projection, masking, write rejection `FIELD_FORBIDDEN`, no sort/search on hidden fields) + per-staff overrides + permission cache (Redis, `pv`)
+- [x] Root superadmin (`isRootSuperadmin`, MFA required) + platform permission registry + escalation rule (`04` §8)
+- [x] Logging streams: `auditLogs`, `activityLogs`, `clientIssues`, `systemErrors`, `requestLogs` + telemetry endpoints + TTL retention (`15_LOGGING_AND_MONITORING.md`)
+- [x] Auth endpoints: login, select-clinic, refresh (rotation + reuse detection), logout, logout-all, me, forgot/reset (OTP), change password, invitation accept
+- [x] Email service (nodemailer → Mailpit in dev) with ar/en templates
+- [x] Audit service + middleware hooks
+- [x] Route-meta test (every route has authorize/public) + tenant isolation test harness
+- [x] `npm run seed`: root superadmin from env, a demo clinic "Smile Clinic" with an owner, a dentist, a receptionist, an accountant and HR (password `Password123!`), and role templates
+- [x] Frontend: login, select clinic, forgot/reset, auth store + refresh interceptor + BroadcastChannel, `/auth/me` bootstrap, guards, `usePermission`/`<Can>`, ClinicLayout nav filtered by permission
 
 **Accept:** each seeded user logs in and sees only permitted menu items; refresh rotation works; reuse detection test passes; field tests pass (hidden/masked/write-forbidden); a 500 appears in `systemErrors` and a frontend crash appears in `clientIssues`.
 

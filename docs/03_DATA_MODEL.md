@@ -120,8 +120,8 @@ One document per (user, clinic).
 
 Indexes: `{clinicId, userId}` unique; `{clinicId, staffType, status}`.
 
-### `roles` (T, plus G templates)
-`clinicId` (null = system template), `key` (e.g. `dentist`, unique per clinic), `name` string, `description`, `permissions: Grant[]`, `isSystem` (templates cannot be edited; clinics clone them), `status`.
+### `roles` (T) and `roleTemplates` (G)
+Global templates live in their own `roleTemplates` collection (same shape, no `clinicId`) so every document in `roles` is tenant-scoped by the `tenantPlugin`. Clinic roles: `clinicId`, `key` (e.g. `dentist`, unique per clinic), `name` string, `description`, `permissions: Grant[]`, `isSystem` (templates cannot be edited; clinics clone them), `status`.
 
 ```ts
 type Grant = {

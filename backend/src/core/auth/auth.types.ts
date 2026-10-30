@@ -11,6 +11,7 @@ export type AuthContext = {
   tokenId: string;
   clinicId?: string;
   staffId?: string;
+  patientId?: string;
   isOwner: boolean;
   isRoot: boolean;
   permVersion: number;

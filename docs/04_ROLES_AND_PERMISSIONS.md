@@ -53,7 +53,8 @@ Labels are i18n keys (`ar`/`en` in the locale files). There are no bilingual fie
 | | `staff.member.export` | all | Export staff list |
 | | `staff.role.manage` | all | Create/edit roles, assign roles, per-staff overrides |
 | **patients** | `patients.patient.read` | own, all | own = patients with an appointment or treatment by me |
-| | `patients.patient.create` / `.update` | all | |
+| | `patients.patient.update` | own, all | own = patients I treat (dentist template) |
+| | `patients.patient.create` | all | |
 | | `patients.patient.delete` | all | Soft delete / merge |
 | | `patients.medicalHistory.read` / `.update` | own, all | |
 | | `patients.document.read` / `.upload` / `.delete` | own, all | |

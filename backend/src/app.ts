@@ -16,6 +16,8 @@ import { requestLogger } from '@/core/logging/requestLogger';
 import { buildOpenApiDocument } from '@/core/openapi/registry';
 import { systemRouter } from '@/modules/system/system.routes';
 import { buildApiRouter } from './routes';
+import '@/jobs';
+import '@/modules/seeders';
 
 /** Express app factory (02_ARCHITECTURE.md §4). Used by the server and by API tests. */
 export function createApp(): Express {
@@ -28,6 +30,8 @@ export function createApp(): Express {
   app.use(requestId);
   app.use(requestLogger);
   app.use(globalRateLimit);
+  // Telemetry may carry a user-confirmed screenshot; everything else is capped at 1 MB (11 §4).
+  app.use(`${env.API_PREFIX}/telemetry`, express.json({ limit: '2mb' }));
   app.use(express.json({ limit: '1mb' }));
   // sendBeacon posts text/plain; telemetry parses it as JSON.
   app.use(`${env.API_PREFIX}/telemetry`, express.text({ type: 'text/plain', limit: '2mb' }));

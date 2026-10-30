@@ -11,3 +11,8 @@ process.env.FIELD_ENCRYPTION_KEY = '0'.repeat(63) + '1';
 process.env.BCRYPT_COST = '4';
 process.env.SEED_SUPERADMIN_EMAIL = 'root@test.local';
 process.env.SEED_SUPERADMIN_PASSWORD = 'RootPassword123';
+
+// Vitest re-imports app modules per file but `mongoose` stays cached in the worker: drop the
+// models so each file compiles fresh ones bound to its own plugin/context instances.
+import mongoose from 'mongoose';
+for (const name of mongoose.modelNames()) mongoose.deleteModel(name);
