@@ -117,7 +117,7 @@
 **Accept:** a payroll for the seeded staff produces a balanced journal; approved leave blocks the dentist's availability.
 
 ## Phase 8 — Notifications & WhatsApp
-- [ ] In-app notifications + preferences + socket `notification:new`
+- [x] In-app notifications + preferences + socket `notification:new`
 - [ ] WhatsApp via Mazbot (port `utils/mazbot.js` logic from Hakeemna into a typed client with throttling + phone normalisation), credentials + templates entered by the superadmin in Admin → Settings → Integrations (encrypted in `platformSettings`, never in `.env`), with a "Send test message" button
 - [ ] messageLogs + admin view; retries; respect consent
 - [ ] Wire appointment booked/reminder/cancel/reschedule, recall, OTP, invoice/receipt sending
@@ -129,9 +129,10 @@
 - [ ] PWA manifest + mobile polish
 
 ## Phase 10 — Dashboards, Reports & Inventory
-- [ ] Clinic dashboard KPIs (today, production, collections, new patients, no-show rate, plan conversion), per-role variants
-- [ ] Operational reports + XLSX/PDF export jobs
-- [ ] Inventory (items, movements, low-stock alerts, link to supplier bills)
+- [x] Clinic dashboard KPIs (today, production, collections, new patients, no-show rate, plan conversion), per-role variants
+- [x] Operational reports (print/PDF in the browser)
+- [ ] XLSX/PDF export jobs for large ranges
+- [x] Inventory (items, movements, low-stock alerts, link to supplier bills)
 - [ ] Superadmin stats
 
 ## Phase 11 — Hardening & Deploy

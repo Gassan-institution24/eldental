@@ -23,7 +23,11 @@ export function useNotifications() {
     queryKey: notificationKeys.all,
     enabled: Boolean(token),
     refetchInterval: 120_000,
-    queryFn: () => getData<{ items: AppNotification[]; unread: number }>('/notifications', { params: { limit: 20 }, silent: true }),
+    queryFn: () =>
+      getData<{ items: AppNotification[]; unread: number }>('/notifications', {
+        params: { limit: 20 },
+        silent: true,
+      }),
   });
 }
 

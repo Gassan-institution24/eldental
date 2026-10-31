@@ -57,4 +57,9 @@ export function useRealtime(): void {
     void qc.invalidateQueries({ queryKey: ['availability'] });
   }, [qc]);
   useSocketEvent('appointment:changed', onAppointment);
+  const onNotification = useCallback(
+    () => void qc.invalidateQueries({ queryKey: ['notifications'] }),
+    [qc],
+  );
+  useSocketEvent('notification:new', onNotification);
 }

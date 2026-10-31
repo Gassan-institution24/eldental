@@ -1,0 +1,83 @@
+{
+  "ops": {
+    "title": "Operational report",
+    "subtitle": "Appointments, no-shows and new patients for a period.",
+    "from": "From",
+    "to": "To",
+    "print": "Print",
+    "appointments": "Appointments",
+    "completed": "Completed",
+    "noShowRate": "No-show rate",
+    "newPatients": "New patients",
+    "byStatus": "By status and source",
+    "byDentist": "By dentist",
+    "dentist": "Dentist",
+    "noShow": "No-show",
+    "cancelled": "Cancelled",
+    "bookedHours": "Booked hours",
+    "empty": "No appointments in this period",
+    "financialHint": "Money reports (P&L, aging, production) are in",
+    "financialLink": "Financial reports"
+  },
+  "inventory": {
+    "title": "Inventory",
+    "subtitle": "Dental supplies, stock on hand and low-stock alerts.",
+    "add": "Add item",
+    "edit": "Edit item",
+    "name": "Item",
+    "sku": "SKU",
+    "unit": "Unit",
+    "category": "Category",
+    "onHand": "On hand",
+    "reorder": "Reorder level",
+    "avgCost": "Average cost",
+    "active": "Active",
+    "saved": "Item saved",
+    "empty": "No items yet",
+    "lowOnly": "Low stock only",
+    "move": "Stock in / out",
+    "moveTitle": "Stock movement · {{name}}",
+    "type": "Type",
+    "quantity": "Quantity",
+    "adjustHint": "Use a negative number to reduce stock",
+    "unitCost": "Unit cost",
+    "paidFrom": "Paid from",
+    "note": "Note",
+    "moved": "Stock updated",
+    "types": {
+      "consumption": "Used in treatment",
+      "purchase": "Purchase",
+      "adjustment": "Count adjustment",
+      "return": "Returned to stock"
+    }
+  },
+  "logs": {
+    "title": "Logs",
+    "subtitle": "Who changed what, user activity and app problems for this clinic.",
+    "kinds": {
+      "audit": "Audit trail",
+      "activity": "Activity",
+      "issues": "Problems"
+    },
+    "empty": "Nothing logged yet",
+    "when": "When",
+    "who": "Who",
+    "what": "What",
+    "detail": "Details",
+    "actions": {
+      "create": "Created",
+      "update": "Updated",
+      "delete": "Deleted",
+      "restore": "Restored",
+      "status_change": "Status changed",
+      "post": "Posted",
+      "reverse": "Reversed",
+      "approve": "Approved",
+      "export": "Exported",
+      "print": "Printed",
+      "login": "Signed in",
+      "logout": "Signed out",
+      "permission_change": "Permissions changed"
+    }
+  }
+}

@@ -35,5 +35,34 @@
   "comingSoon": {
     "title": "This module is on its way",
     "body": "We're building this part of ElDental right now. It will appear here automatically as soon as it's ready."
+  },
+  "kpis": {
+    "today": "Appointments today",
+    "todayHint": "{{waiting}} waiting · {{inChair}} in chair · {{done}} done",
+    "production": "Production today",
+    "thisMonth": "This month",
+    "collections": "Collected today",
+    "receivables": "Owed by patients",
+    "insurance": "Insurance",
+    "newPatients": "New patients",
+    "thisMonthShort": "this month",
+    "noShow": "No-show rate",
+    "last30": "last 30 days",
+    "conversion": "Plan acceptance",
+    "last90": "last 90 days",
+    "recalls": "Recalls due",
+    "next14": "next 14 days"
+  },
+  "todo": {
+    "unsignedNotes_one": "{{count}} unsigned note",
+    "unsignedNotes_other": "{{count}} unsigned notes",
+    "pendingLeave_one": "{{count}} leave request to approve",
+    "pendingLeave_other": "{{count}} leave requests to approve",
+    "labDueSoon_one": "{{count}} lab case due",
+    "labDueSoon_other": "{{count}} lab cases due",
+    "lowStock_one": "{{count}} item low on stock",
+    "lowStock_other": "{{count}} items low on stock",
+    "draftInvoices_one": "{{count}} draft invoice",
+    "draftInvoices_other": "{{count}} draft invoices"
   }
 }

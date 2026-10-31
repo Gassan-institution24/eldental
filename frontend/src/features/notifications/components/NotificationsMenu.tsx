@@ -1,4 +1,13 @@
-import { Box, Button, Divider, List, ListItemButton, ListItemText, Popover, Typography } from '@mui/material';
+import {
+  Box,
+  Button,
+  Divider,
+  List,
+  ListItemButton,
+  ListItemText,
+  Popover,
+  Typography,
+} from '@mui/material';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
@@ -28,7 +37,15 @@ export function NotificationsMenu() {
         transformOrigin={{ vertical: 'top', horizontal: 'right' }}
         slotProps={{ paper: { sx: { width: 360, maxWidth: '95vw' } } }}
       >
-        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', px: 4, py: 3 }}>
+        <Box
+          sx={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            px: 4,
+            py: 3,
+          }}
+        >
           <Typography fontWeight={700}>{t('layout.notifications')}</Typography>
           {unread > 0 && (
             <Button size="small" onClick={() => markAll.mutate()}>
@@ -54,11 +71,20 @@ export function NotificationsMenu() {
                 }}
               >
                 <ListItemText
-                  primary={<span dir="auto">{n.titleKey ? t(n.titleKey, n.params ?? {}) : n.title}</span>}
+                  primary={
+                    <span dir="auto">{n.titleKey ? t(n.titleKey, n.params ?? {}) : n.title}</span>
+                  }
                   secondary={
                     <>
-                      {(n.bodyKey ? t(n.bodyKey, n.params ?? {}) : n.body) && <span dir="auto">{n.bodyKey ? t(n.bodyKey, n.params ?? {}) : n.body}</span>}
-                      <Typography component="span" variant="caption" display="block" color="text.secondary">
+                      {(n.bodyKey ? t(n.bodyKey, n.params ?? {}) : n.body) && (
+                        <span dir="auto">{n.bodyKey ? t(n.bodyKey, n.params ?? {}) : n.body}</span>
+                      )}
+                      <Typography
+                        component="span"
+                        variant="caption"
+                        display="block"
+                        color="text.secondary"
+                      >
                         {formatDateTime(n.createdAt, i18n.resolvedLanguage ?? 'ar')}
                       </Typography>
                     </>

@@ -46,6 +46,7 @@ import {
   PayrollRunPage,
   ShiftsPage,
 } from '@/features/hr/pages/HrPages';
+import { InventoryPage, LogsPage, OperationalReportPage } from '@/features/insights/InsightsPages';
 import { ChartTab } from '@/features/clinical/pages/ChartTab';
 import { NotesTab, PerioTab } from '@/features/clinical/pages/NotesPerioTabs';
 import { PlansTab } from '@/features/clinical/pages/PlansTab';
@@ -68,7 +69,7 @@ import {
   MedicalTab,
   OverviewTab,
 } from '@/features/patients/pages/PatientTabs';
-import { page, placeholder } from '../routeHelpers';
+import { page } from '../routeHelpers';
 
 /** Clinic route tree (10_FRONTEND.md §3). Modules replace placeholders as they land. */
 export const clinicRoutes: RouteObject[] = [
@@ -173,8 +174,16 @@ export const clinicRoutes: RouteObject[] = [
   page(<PayrollPage />, { perm: 'hr.payroll.run', title: 'nav:payroll' }, 'hr/payroll'),
   page(<PayrollRunPage />, { perm: 'hr.payroll.run', title: 'nav:payroll' }, 'hr/payroll/:id'),
   page(<MyPayslipsPage />, { perm: 'hr.payroll.read', title: 'nav:myPayslips' }, 'hr/my-payslips'),
-  placeholder('inventory', 'nav:inventoryItems', 'inventory.item.read'),
-  placeholder('reports', 'nav:reportsOperational', 'reports.operational.read'),
+  page(
+    <InventoryPage />,
+    { perm: 'inventory.item.read', title: 'nav:inventoryItems' },
+    'inventory',
+  ),
+  page(
+    <OperationalReportPage />,
+    { perm: 'reports.operational.read', title: 'nav:reportsOperational' },
+    'reports',
+  ),
   {
     path: 'settings',
     element: <SettingsLayout />,
@@ -196,7 +205,7 @@ export const clinicRoutes: RouteObject[] = [
       page(<NoteTemplatesPage />, { perm: 'clinical.note.sign' }, 'note-templates'),
       page(<ConsentTemplatesPage />, { perm: 'clinical.consent.manage' }, 'consents'),
       page(<RolesPage />, { perm: 'staff.role.manage' }, 'roles'),
-      placeholder('logs', 'settings:tabs.logs', 'logs.activity.read'),
+      page(<LogsPage />, { perm: 'logs.activity.read' }, 'logs'),
     ],
   },
   page(<MyProfileRedirect />, {}, 'me'),

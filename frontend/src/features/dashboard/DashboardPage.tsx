@@ -1,19 +1,12 @@
 import { Box, Button, Card, Grid, LinearProgress, Stack, Typography } from '@mui/material';
 import { alpha } from '@mui/material/styles';
 import { useQuery } from '@tanstack/react-query';
-import {
-  CalendarPlus,
-  CheckCircle2,
-  Circle,
-  CreditCard,
-  Settings2,
-  UserPlus,
-  Users,
-} from 'lucide-react';
+import { CalendarPlus, CheckCircle2, Circle, CreditCard, Settings2, UserPlus } from 'lucide-react';
 import type { ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link as RouterLink } from 'react-router-dom';
 import { useSessionData } from '@/features/auth/api/session';
+import { DashboardKpis } from '@/features/insights/InsightsPages';
 import { AttendanceWidget } from '@/features/hr/pages/HrPages';
 import { useQuickBook } from '@/features/scheduling/components/quickBookStore';
 import { getPaged } from '@/lib/api/axios';
@@ -21,52 +14,6 @@ import { inClinicTz } from '@/lib/dates';
 import { ForwardArrow } from '@/features/site/components/Sections';
 import { usePermission } from '@/shared/rbac/usePermission';
 import { brand } from '@/theme/tokens';
-
-function Kpi({
-  icon,
-  label,
-  value,
-  loading,
-}: {
-  icon: ReactNode;
-  label: string;
-  value: string;
-  loading?: boolean;
-}) {
-  return (
-    <Card sx={{ p: 5, height: '100%' }}>
-      <Stack direction="row" spacing={3} alignItems="center">
-        <Box
-          sx={(theme) => ({
-            width: 44,
-            height: 44,
-            borderRadius: '12px',
-            display: 'grid',
-            placeItems: 'center',
-            color: 'primary.main',
-            bgcolor: alpha(theme.palette.primary.main, 0.1),
-          })}
-        >
-          {icon}
-        </Box>
-        <Box sx={{ minWidth: 0 }}>
-          <Typography variant="body2" color="text.secondary" noWrap>
-            {label}
-          </Typography>
-          <Typography
-            fontSize={26}
-            fontWeight={800}
-            lineHeight={1.2}
-            dir="ltr"
-            sx={{ textAlign: 'start' }}
-          >
-            {loading ? '—' : value}
-          </Typography>
-        </Box>
-      </Stack>
-    </Card>
-  );
-}
 
 function QuickAction({
   icon,
@@ -221,29 +168,9 @@ export function DashboardPage() {
       <Box sx={{ mb: 6 }}>
         <AttendanceWidget />
       </Box>
-      <Grid container spacing={5} sx={{ mb: 8 }}>
-        <Grid item xs={6} lg={3}>
-          <Kpi icon={<CalendarPlus size={20} />} label={t('kpi.appointments')} value="0" />
-        </Grid>
-        <Grid item xs={6} lg={3}>
-          <Kpi icon={<Users size={20} />} label={t('kpi.patients')} value="0" />
-        </Grid>
-        <Grid item xs={6} lg={3}>
-          <Kpi
-            icon={<CreditCard size={20} />}
-            label={t('kpi.collected')}
-            value={`0.000 ${session?.clinic?.currency ?? 'JOD'}`}
-          />
-        </Grid>
-        <Grid item xs={6} lg={3}>
-          <Kpi
-            icon={<Users size={20} />}
-            label={t('kpi.team')}
-            value={String(staff.data?.meta.total ?? '—')}
-            loading={staff.isLoading && staff.fetchStatus !== 'idle'}
-          />
-        </Grid>
-      </Grid>
+      <Box sx={{ mb: 8 }}>
+        <DashboardKpis />
+      </Box>
 
       <Grid container spacing={8}>
         <Grid item xs={12} lg={7}>

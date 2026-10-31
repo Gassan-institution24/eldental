@@ -92,12 +92,22 @@ function headers(): Record<string, string> {
 
 async function post(path: string, body: unknown, useBeacon: boolean): Promise<boolean> {
   const url = `${env.apiUrl}/telemetry/${path}`;
-  const payload = JSON.stringify({ sessionId: getSessionId(), appVersion: env.appVersion, ...(body as object) });
+  const payload = JSON.stringify({
+    sessionId: getSessionId(),
+    appVersion: env.appVersion,
+    ...(body as object),
+  });
   if (useBeacon && typeof navigator !== 'undefined' && 'sendBeacon' in navigator) {
     return navigator.sendBeacon(url, new Blob([payload], { type: 'text/plain' }));
   }
   try {
-    const res = await fetch(url, { method: 'POST', headers: headers(), body: payload, credentials: 'include', keepalive: true });
+    const res = await fetch(url, {
+      method: 'POST',
+      headers: headers(),
+      body: payload,
+      credentials: 'include',
+      keepalive: true,
+    });
     return res.ok;
   } catch {
     return false;
@@ -128,7 +138,11 @@ function schedule(): void {
 }
 
 export function trackActivity(e: Omit<ActivityEvent, 'at' | 'route'> & { route?: string }): void {
-  const event: ActivityEvent = { ...e, route: e.route ?? currentRoute, at: new Date().toISOString() };
+  const event: ActivityEvent = {
+    ...e,
+    route: e.route ?? currentRoute,
+    at: new Date().toISOString(),
+  };
   recentActivity.push(event);
   if (recentActivity.length > 20) recentActivity.shift();
   if (!enabled) return;
@@ -168,12 +182,20 @@ export function installTelemetry(): void {
       kind: 'js_error',
       severity: 'high',
       message: String(ev.message).slice(0, 500),
-      ...(ev.error instanceof Error && ev.error.stack ? { stack: ev.error.stack.slice(0, 4000) } : {}),
+      ...(ev.error instanceof Error && ev.error.stack
+        ? { stack: ev.error.stack.slice(0, 4000) }
+        : {}),
     });
   });
   window.addEventListener('unhandledrejection', (ev) => {
     const reason = ev.reason as unknown;
-    if (reason && typeof reason === 'object' && 'name' in reason && (reason as { name: string }).name === 'ApiError') return;
+    if (
+      reason &&
+      typeof reason === 'object' &&
+      'name' in reason &&
+      (reason as { name: string }).name === 'ApiError'
+    )
+      return;
     reportIssue({
       kind: 'js_error',
       severity: 'medium',
@@ -181,7 +203,9 @@ export function installTelemetry(): void {
       ...(reason instanceof Error && reason.stack ? { stack: reason.stack.slice(0, 4000) } : {}),
     });
   });
-  window.addEventListener('offline', () => reportIssue({ kind: 'offline', severity: 'low', message: 'offline' }));
+  window.addEventListener('offline', () =>
+    reportIssue({ kind: 'offline', severity: 'low', message: 'offline' }),
+  );
   window.addEventListener('online', () => void flush());
   window.addEventListener('pagehide', () => void flush(true));
   document.addEventListener('visibilitychange', () => {
@@ -192,6 +216,13 @@ export function installTelemetry(): void {
 /** Reports a navigation that took longer than 3 s to render. */
 export function reportSlowPage(route: string, durationMs: number): void {
   if (durationMs > 3000) {
-    reportIssue({ kind: 'slow_page', severity: 'low', message: 'slow page', route, api: undefined, code: String(Math.round(durationMs)) });
+    reportIssue({
+      kind: 'slow_page',
+      severity: 'low',
+      message: 'slow page',
+      route,
+      api: undefined,
+      code: String(Math.round(durationMs)),
+    });
   }
 }

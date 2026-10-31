@@ -15,7 +15,10 @@ import { MfaStep } from '../components/MfaStep';
 import { loginSchema, type LoginForm } from '../schemas';
 import type { LoginResponse } from '../types';
 
-export function landingPathFor(res: Pick<LoginResponse, 'user' | 'clinics' | 'clinicId'>, next?: string | null): string {
+export function landingPathFor(
+  res: Pick<LoginResponse, 'user' | 'clinics' | 'clinicId'>,
+  next?: string | null,
+): string {
   const safeNext = next && next.startsWith('/') && !next.startsWith('//') ? next : null;
   const kind = res.user?.kind;
   if (kind === 'platform') return safeNext?.startsWith('/admin') ? safeNext : '/admin';
@@ -43,9 +46,13 @@ export function LoginPage() {
   const [mfa, setMfa] = useState<{ token: string; setup: boolean } | null>(null);
   const [lockSeconds, setLockSeconds] = useState<number | null>(null);
   const left = useCountdown(lockSeconds);
-  const form = useAppForm<LoginForm>({ schema: loginSchema, defaultValues: { identifier: '', password: '', remember: true } });
+  const form = useAppForm<LoginForm>({
+    schema: loginSchema,
+    defaultValues: { identifier: '', password: '', remember: true },
+  });
 
-  const finish = (res: LoginResponse) => navigate(landingPathFor(res, params.get('next')), { replace: true });
+  const finish = (res: LoginResponse) =>
+    navigate(landingPathFor(res, params.get('next')), { replace: true });
 
   const onSubmit = async (values: LoginForm) => {
     track('auth.login.submit');
@@ -65,7 +72,10 @@ export function LoginPage() {
     }
   };
 
-  if (mfa) return <MfaStep mfaToken={mfa.token} setup={mfa.setup} onDone={finish} onBack={() => setMfa(null)} />;
+  if (mfa)
+    return (
+      <MfaStep mfaToken={mfa.token} setup={mfa.setup} onDone={finish} onBack={() => setMfa(null)} />
+    );
 
   const mm = String(Math.floor(left / 60)).padStart(2, '0');
   const ss = String(left % 60).padStart(2, '0');
@@ -85,7 +95,15 @@ export function LoginPage() {
       )}
       <Form form={form} name="auth.login" onSubmit={onSubmit}>
         <Stack spacing={4}>
-          <RHFTextField name="identifier" label={t('login.identifier')} helperText={t('login.identifierHelper')} autoComplete="username" autoFocus required inputProps={{ dir: 'ltr', inputMode: 'email' }} />
+          <RHFTextField
+            name="identifier"
+            label={t('login.identifier')}
+            helperText={t('login.identifierHelper')}
+            autoComplete="username"
+            autoFocus
+            required
+            inputProps={{ dir: 'ltr', inputMode: 'email' }}
+          />
           <RHFPasswordField name="password" label={t('login.password')} required />
           <Stack direction="row" justifyContent="space-between" alignItems="center">
             <RHFCheckbox name="remember" label={t('login.remember')} />
@@ -93,13 +111,27 @@ export function LoginPage() {
               {t('login.forgot')}
             </Link>
           </Stack>
-          <Button type="submit" variant="contained" size="large" disabled={form.formState.isSubmitting || left > 0}>
+          <Button
+            type="submit"
+            variant="contained"
+            size="large"
+            disabled={form.formState.isSubmitting || left > 0}
+          >
             {form.formState.isSubmitting ? t('common:states.loading') : t('login.submit')}
           </Button>
         </Stack>
       </Form>
       {env.isDev && (
-        <Box sx={{ mt: 6, p: 4, borderRadius: 3, border: 1, borderStyle: 'dashed', borderColor: 'divider' }}>
+        <Box
+          sx={{
+            mt: 6,
+            p: 4,
+            borderRadius: 3,
+            border: 1,
+            borderStyle: 'dashed',
+            borderColor: 'divider',
+          }}
+        >
           <Typography variant="body2" fontWeight={700}>
             {t('demo.title')}
           </Typography>

@@ -1,4 +1,13 @@
-import { Avatar, Box, Chip, List, ListItemAvatar, ListItemButton, ListItemText, Typography } from '@mui/material';
+import {
+  Avatar,
+  Box,
+  Chip,
+  List,
+  ListItemAvatar,
+  ListItemButton,
+  ListItemText,
+  Typography,
+} from '@mui/material';
 import { Building2 } from 'lucide-react';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -39,7 +48,13 @@ export function SelectClinicPage() {
       </Typography>
       <List>
         {data.clinics.map((c) => (
-          <ListItemButton key={c.id} onClick={() => void open(c.id)} disabled={busy !== null} selected={data.clinic?.id === c.id} sx={{ borderRadius: 2, mb: 2, border: 1, borderColor: 'divider' }}>
+          <ListItemButton
+            key={c.id}
+            onClick={() => void open(c.id)}
+            disabled={busy !== null}
+            selected={data.clinic?.id === c.id}
+            sx={{ borderRadius: 2, mb: 2, border: 1, borderColor: 'divider' }}
+          >
             <ListItemAvatar>
               <Avatar sx={{ bgcolor: 'primary.main' }}>
                 <Building2 size={18} />

@@ -231,6 +231,11 @@ export async function requestLeave(auth: AuthContext, b: { staffId?: string; lea
     return r!;
   });
   await recordAudit({ action: 'create', entity: 'leaveRequest', entityId: doc._id, after: { days, from: b.startDate, to: b.endDate } });
+  const { notify, usersOf } = await import('@/modules/notifications/notifications');
+  const clinicId = String(currentClinicId());
+  const requester = await StaffModel.findById(staffId).select('name').lean();
+  const approvers = (await usersOf(clinicId, { owners: true, staffTypes: ['hr', 'manager'] })).filter((u) => u !== auth.userId);
+  await notify(clinicId, approvers, { type: 'leave_requested', titleKey: 'notifications:types.leave_requested', bodyKey: 'notifications:msg.leaveRequested', params: { staff: requester?.name ?? '', from: b.startDate, to: b.endDate }, link: '/clinic/hr/leave' });
   return leaveDto(doc.toObject() as never);
 }
 

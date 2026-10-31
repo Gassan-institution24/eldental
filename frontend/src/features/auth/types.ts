@@ -27,7 +27,13 @@ export type SessionClinic = {
   onboardingCompleted: boolean;
 };
 
-export type SessionStaff = { id: string; name: string; staffType: string; isOwner: boolean; color?: string };
+export type SessionStaff = {
+  id: string;
+  name: string;
+  staffType: string;
+  isOwner: boolean;
+  color?: string;
+};
 
 export type ClinicChoice = { id: string; name: string; slug: string; isOwner: boolean };
 

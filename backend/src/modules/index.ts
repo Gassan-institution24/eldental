@@ -6,6 +6,8 @@ import { clinicRouter } from './clinic/clinic.routes';
 import { patientRouter } from './patients/patient.routes';
 import { accountingRouter } from './accounting/accounting.routes';
 import { billingRouter } from './billing/billing.routes';
+import { insightsRouter } from './insights/insights.routes';
+import { notificationsRouter } from './notifications/notifications';
 import { hrRouter } from './hr/hr.routes';
 import { clinicalRouter } from './clinical/clinical.routes';
 import { schedulingRouter } from './scheduling/scheduling.routes';
@@ -14,4 +16,4 @@ import { staffRouter } from './staff/staff.routes';
 import { telemetryRouter } from './telemetry/telemetry.routes';
 
 /** Every feature module's router. Each router declares its own full paths (e.g. `/patients`). */
-export const moduleRouters: Router[] = [authRouter, patientAuthRouter, telemetryRouter, staffRouter, rolesRouter, contactRouter, clinicRouter, patientRouter, schedulingRouter, clinicalRouter, billingRouter, accountingRouter, hrRouter];
+export const moduleRouters: Router[] = [authRouter, patientAuthRouter, telemetryRouter, staffRouter, rolesRouter, contactRouter, clinicRouter, patientRouter, schedulingRouter, clinicalRouter, billingRouter, accountingRouter, hrRouter, notificationsRouter, insightsRouter];

@@ -9,7 +9,12 @@ import { loginMfa, storeToken } from '../api/authApi';
 import { mfaSchema } from '../schemas';
 import type { LoginResponse } from '../types';
 
-type Props = { mfaToken: string; setup: boolean; onDone: (res: LoginResponse) => void; onBack: () => void };
+type Props = {
+  mfaToken: string;
+  setup: boolean;
+  onDone: (res: LoginResponse) => void;
+  onBack: () => void;
+};
 
 /** TOTP step after password; for superadmins without MFA it first shows the setup QR (11 §1). */
 export function MfaStep({ mfaToken, setup, onDone, onBack }: Props) {
@@ -21,13 +26,21 @@ export function MfaStep({ mfaToken, setup, onDone, onBack }: Props) {
   useEffect(() => {
     if (!setup) return;
     void api
-      .post<{ data: { qrDataUrl: string; secret: string } }>('/auth/mfa/setup', { mfaToken }, { skipAuthRefresh: true })
+      .post<{ data: { qrDataUrl: string; secret: string } }>(
+        '/auth/mfa/setup',
+        { mfaToken },
+        { skipAuthRefresh: true },
+      )
       .then((r) => setQr(r.data.data));
   }, [setup, mfaToken]);
 
   const onSubmit = async ({ code }: { code: string }) => {
     if (setup) {
-      const r = await api.post<{ data: LoginResponse & { recoveryCodes: string[] } }>('/auth/mfa/enable', { mfaToken, code }, { skipAuthRefresh: true });
+      const r = await api.post<{ data: LoginResponse & { recoveryCodes: string[] } }>(
+        '/auth/mfa/enable',
+        { mfaToken, code },
+        { skipAuthRefresh: true },
+      );
       const data = r.data.data;
       if (data.accessToken) storeToken(data.accessToken);
       setRecovery({ codes: data.recoveryCodes, res: data });
@@ -45,7 +58,19 @@ export function MfaStep({ mfaToken, setup, onDone, onBack }: Props) {
         <Typography color="text.secondary" sx={{ mt: 1, mb: 4 }}>
           {t('mfa.recoveryBody')}
         </Typography>
-        <Box component="ul" dir="ltr" sx={{ fontFamily: 'monospace', columns: 2, p: 4, bgcolor: 'action.hover', borderRadius: 2, listStyle: 'none', m: 0 }}>
+        <Box
+          component="ul"
+          dir="ltr"
+          sx={{
+            fontFamily: 'monospace',
+            columns: 2,
+            p: 4,
+            bgcolor: 'action.hover',
+            borderRadius: 2,
+            listStyle: 'none',
+            m: 0,
+          }}
+        >
           {recovery.codes.map((c) => (
             <li key={c}>{c}</li>
           ))}
@@ -79,8 +104,18 @@ export function MfaStep({ mfaToken, setup, onDone, onBack }: Props) {
       {!mfaToken && <Alert severity="error">{t('errors:MFA_INVALID')}</Alert>}
       <Form form={form} name="auth.mfa" onSubmit={onSubmit}>
         <Stack spacing={4}>
-          <RHFOtp name="code" label={t('mfa.code')} autoFocus onComplete={() => void form.handleSubmit(onSubmit)()} />
-          <Button type="submit" variant="contained" size="large" disabled={form.formState.isSubmitting}>
+          <RHFOtp
+            name="code"
+            label={t('mfa.code')}
+            autoFocus
+            onComplete={() => void form.handleSubmit(onSubmit)()}
+          />
+          <Button
+            type="submit"
+            variant="contained"
+            size="large"
+            disabled={form.formState.isSubmitting}
+          >
             {setup ? t('mfa.enable') : t('mfa.submit')}
           </Button>
           <Button onClick={onBack}>{t('mfa.back')}</Button>

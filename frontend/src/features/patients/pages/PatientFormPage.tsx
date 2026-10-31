@@ -192,7 +192,10 @@ function PatientForm({ patient }: { patient?: Patient }) {
   const dobRaw: unknown = useWatch({ control: form.control, name: 'dateOfBirth' });
   const phoneRaw: unknown = useWatch({ control: form.control, name: 'phone' });
   const dob = typeof dobRaw === 'string' ? dobRaw : '';
-  const duplicates = useDuplicateCheck(typeof phoneRaw === 'string' ? phoneRaw : undefined, patient?.id);
+  const duplicates = useDuplicateCheck(
+    typeof phoneRaw === 'string' ? phoneRaw : undefined,
+    patient?.id,
+  );
   const isMinor = useMemo(
     () => (dob && /^\d{4}-\d{2}-\d{2}$/.test(dob) ? ageOn(dob) < 18 : false),
     [dob],

@@ -13,7 +13,12 @@ export const api = axios.create({
   timeout: 30000,
 });
 
-type RetryConfig = InternalAxiosRequestConfig & { _retried?: boolean; _startedAt?: number; skipAuthRefresh?: boolean; silent?: boolean };
+type RetryConfig = InternalAxiosRequestConfig & {
+  _retried?: boolean;
+  _startedAt?: number;
+  skipAuthRefresh?: boolean;
+  silent?: boolean;
+};
 
 api.interceptors.request.use((config: RetryConfig) => {
   config.headers.set('X-Requested-With', 'XMLHttpRequest');
@@ -21,7 +26,8 @@ api.interceptors.request.use((config: RetryConfig) => {
   config.headers.set('X-App-Version', env.appVersion);
   config.headers.set('Accept-Language', i18n.resolvedLanguage ?? env.defaultLang);
   const token = getAccessToken();
-  if (token && !config.headers.has('Authorization')) config.headers.set('Authorization', `Bearer ${token}`);
+  if (token && !config.headers.has('Authorization'))
+    config.headers.set('Authorization', `Bearer ${token}`);
   config._startedAt = Date.now();
   return config;
 });
@@ -49,9 +55,22 @@ export function refreshOnce(): Promise<string | null> {
 
 function toApiError(error: AxiosError): ApiError {
   if (!error.response) {
-    return new ApiError(0, error.code === 'ECONNABORTED' ? 'TIMEOUT' : 'NETWORK_ERROR', error.message);
+    return new ApiError(
+      0,
+      error.code === 'ECONNABORTED' ? 'TIMEOUT' : 'NETWORK_ERROR',
+      error.message,
+    );
   }
-  const body = error.response.data as { error?: { code?: string; message?: string; details?: Record<string, unknown>; requestId?: string } } | undefined;
+  const body = error.response.data as
+    | {
+        error?: {
+          code?: string;
+          message?: string;
+          details?: Record<string, unknown>;
+          requestId?: string;
+        };
+      }
+    | undefined;
   const e = body?.error;
   return new ApiError(
     error.response.status,
@@ -68,7 +87,12 @@ api.interceptors.response.use(
     const config = (error.config ?? {}) as RetryConfig;
     const apiErr = toApiError(error);
 
-    if (apiErr.status === 401 && apiErr.code === 'TOKEN_EXPIRED' && !config._retried && !config.skipAuthRefresh) {
+    if (
+      apiErr.status === 401 &&
+      apiErr.code === 'TOKEN_EXPIRED' &&
+      !config._retried &&
+      !config.skipAuthRefresh
+    ) {
       config._retried = true;
       const token = await refreshOnce();
       if (token) {
@@ -101,7 +125,10 @@ api.interceptors.response.use(
 );
 
 export type ApiEnvelope<T> = { data: T; meta?: Record<string, unknown> };
-export type Paged<T> = { data: T[]; meta: { page: number; limit: number; total: number; pages: number } };
+export type Paged<T> = {
+  data: T[];
+  meta: { page: number; limit: number; total: number; pages: number };
+};
 
 export async function getData<T>(url: string, config?: AxiosRequestConfig): Promise<T> {
   const res = await api.get<ApiEnvelope<T>>(url, config);
@@ -113,17 +140,29 @@ export async function getPaged<T>(url: string, params?: object): Promise<Paged<T
   return res.data;
 }
 
-export async function postData<T>(url: string, body?: unknown, config?: AxiosRequestConfig): Promise<T> {
+export async function postData<T>(
+  url: string,
+  body?: unknown,
+  config?: AxiosRequestConfig,
+): Promise<T> {
   const res = await api.post<ApiEnvelope<T>>(url, body, config);
   return res.data?.data;
 }
 
-export async function patchData<T>(url: string, body?: unknown, config?: AxiosRequestConfig): Promise<T> {
+export async function patchData<T>(
+  url: string,
+  body?: unknown,
+  config?: AxiosRequestConfig,
+): Promise<T> {
   const res = await api.patch<ApiEnvelope<T>>(url, body, config);
   return res.data?.data;
 }
 
-export async function putData<T>(url: string, body?: unknown, config?: AxiosRequestConfig): Promise<T> {
+export async function putData<T>(
+  url: string,
+  body?: unknown,
+  config?: AxiosRequestConfig,
+): Promise<T> {
   const res = await api.put<ApiEnvelope<T>>(url, body, config);
   return res.data?.data;
 }

@@ -10,7 +10,13 @@ export const identifier = () =>
       .string({ required_error: 'required' })
       .min(1, { message: 'required' })
       .max(254, { message: 'too_long' })
-      .refine((v) => (v.includes('@') ? /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(v) : /^\+?[\d\s\-()]{7,20}$/.test(v)), { message: 'invalid_format' }),
+      .refine(
+        (v) =>
+          v.includes('@')
+            ? /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(v)
+            : /^\+?[\d\s\-()]{7,20}$/.test(v),
+        { message: 'invalid_format' },
+      ),
   );
 
 export const loginSchema = z.object({
@@ -25,13 +31,30 @@ export const mfaSchema = z.object({ code: otpCode() });
 export const forgotSchema = z.object({ target: identifier() });
 
 export const resetSchema = z
-  .object({ code: otpCode(), newPassword: password(), confirmPassword: z.string().min(1, { message: 'required' }) })
-  .refine((v) => v.newPassword === v.confirmPassword, { path: ['confirmPassword'], message: 'password_mismatch' });
+  .object({
+    code: otpCode(),
+    newPassword: password(),
+    confirmPassword: z.string().min(1, { message: 'required' }),
+  })
+  .refine((v) => v.newPassword === v.confirmPassword, {
+    path: ['confirmPassword'],
+    message: 'password_mismatch',
+  });
 
 export const changePasswordSchema = z
-  .object({ currentPassword: z.string().min(1, { message: 'required' }), newPassword: password(), confirmPassword: z.string().min(1, { message: 'required' }) })
-  .refine((v) => v.newPassword === v.confirmPassword, { path: ['confirmPassword'], message: 'password_mismatch' });
+  .object({
+    currentPassword: z.string().min(1, { message: 'required' }),
+    newPassword: password(),
+    confirmPassword: z.string().min(1, { message: 'required' }),
+  })
+  .refine((v) => v.newPassword === v.confirmPassword, {
+    path: ['confirmPassword'],
+    message: 'password_mismatch',
+  });
 
 export const acceptInvitationSchema = z
   .object({ password: password(), confirmPassword: z.string().min(1, { message: 'required' }) })
-  .refine((v) => v.password === v.confirmPassword, { path: ['confirmPassword'], message: 'password_mismatch' });
+  .refine((v) => v.password === v.confirmPassword, {
+    path: ['confirmPassword'],
+    message: 'password_mismatch',
+  });
