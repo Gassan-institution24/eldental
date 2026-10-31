@@ -14,6 +14,7 @@ import type { ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link as RouterLink } from 'react-router-dom';
 import { useSessionData } from '@/features/auth/api/session';
+import { AttendanceWidget } from '@/features/hr/pages/HrPages';
 import { useQuickBook } from '@/features/scheduling/components/quickBookStore';
 import { getPaged } from '@/lib/api/axios';
 import { inClinicTz } from '@/lib/dates';
@@ -217,6 +218,9 @@ export function DashboardPage() {
         </Box>
       </Box>
 
+      <Box sx={{ mb: 6 }}>
+        <AttendanceWidget />
+      </Box>
       <Grid container spacing={5} sx={{ mb: 8 }}>
         <Grid item xs={6} lg={3}>
           <Kpi icon={<CalendarPlus size={20} />} label={t('kpi.appointments')} value="0" />

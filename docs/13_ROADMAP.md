@@ -108,11 +108,11 @@
 **Accept:** the ledger scenario test passes; the trial balance balances after the seeded demo activity; the PDFs render in Arabic.
 
 ## Phase 7 — HR & Payroll
-- [ ] Shifts, attendance (check-in/out, QR, nightly absence job, adjustments)
-- [ ] Leave types, balances (yearly/monthly jobs), requests + approval → schedule exceptions
-- [ ] Salary components, compensation, commission (production/collection)
-- [ ] Payroll run (calculate pure fn + tests, approve → journal, mark paid → journal), payslip PDF, acknowledgement
-- [ ] Frontend: attendance widget + sheets, leave request/approval, payroll wizard, my payslips
+- [x] Shifts, attendance (check-in/out, QR, nightly absence job, adjustments)
+- [x] Leave types, balances (yearly/monthly jobs), requests + approval → schedule exceptions
+- [x] Salary components, compensation, commission (production/collection)
+- [x] Payroll run (calculate pure fn + tests, approve → journal, mark paid → journal), payslip PDF, acknowledgement
+- [x] Frontend: attendance widget + sheets, leave request/approval, payroll wizard, my payslips
 
 **Accept:** a payroll for the seeded staff produces a balanced journal; approved leave blocks the dentist's availability.
 

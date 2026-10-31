@@ -38,6 +38,14 @@ import {
   PaymentsPage,
 } from '@/features/billing/pages/BillingPages';
 import { InvoiceDetailPage, InvoicesPage } from '@/features/billing/pages/InvoicePages';
+import {
+  AttendancePage,
+  LeavePage,
+  MyPayslipsPage,
+  PayrollPage,
+  PayrollRunPage,
+  ShiftsPage,
+} from '@/features/hr/pages/HrPages';
 import { ChartTab } from '@/features/clinical/pages/ChartTab';
 import { NotesTab, PerioTab } from '@/features/clinical/pages/NotesPerioTabs';
 import { PlansTab } from '@/features/clinical/pages/PlansTab';
@@ -155,7 +163,16 @@ export const clinicRoutes: RouteObject[] = [
   page(<LabOrdersPage />, { perm: 'clinical.labOrder.read', title: 'nav:labOrders' }, 'lab-orders'),
   page(<StaffListPage />, { perm: 'staff.member.read' }, 'hr/staff'),
   page(<StaffProfilePage />, { perm: 'staff.member.read' }, 'hr/staff/:id'),
-  placeholder('hr/*', 'nav:shifts', 'hr.shift.manage'),
+  page(<ShiftsPage />, { perm: 'hr.shift.manage', title: 'nav:shifts' }, 'hr/shifts'),
+  page(
+    <AttendancePage />,
+    { perm: 'hr.attendance.read', title: 'nav:attendance' },
+    'hr/attendance',
+  ),
+  page(<LeavePage />, { perm: 'hr.leave.read', title: 'nav:leave' }, 'hr/leave'),
+  page(<PayrollPage />, { perm: 'hr.payroll.run', title: 'nav:payroll' }, 'hr/payroll'),
+  page(<PayrollRunPage />, { perm: 'hr.payroll.run', title: 'nav:payroll' }, 'hr/payroll/:id'),
+  page(<MyPayslipsPage />, { perm: 'hr.payroll.read', title: 'nav:myPayslips' }, 'hr/my-payslips'),
   placeholder('inventory', 'nav:inventoryItems', 'inventory.item.read'),
   placeholder('reports', 'nav:reportsOperational', 'reports.operational.read'),
   {

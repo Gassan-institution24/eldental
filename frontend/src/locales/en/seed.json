@@ -218,5 +218,12 @@
     "BAD_DEBT": "Bad debts",
     "CASH_OVER_SHORT": "Cash over / short",
     "6990": "Miscellaneous"
+  },
+  "leaveType": {
+    "annual": "Annual leave",
+    "sick": "Sick leave",
+    "maternity": "Maternity leave",
+    "hajj": "Hajj leave",
+    "unpaid": "Unpaid leave"
   }
 }
