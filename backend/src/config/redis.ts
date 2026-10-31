@@ -37,7 +37,17 @@ export function getRedis(): Redis | null {
   if (!available) return null;
   if (!client) {
     client = new Redis(env.REDIS_URL, { maxRetriesPerRequest: null });
-    client.on('error', (err) => logger.error({ err }, 'redis error'));
+    // If Redis drops after boot: warn once, use the in-memory fallbacks, recover when it's back.
+    client.on('error', (err) => {
+      if (available === false) return;
+      available = false;
+      if (isProd) logger.error({ err }, 'redis error');
+      else logger.warn(`Redis connection lost (${env.REDIS_URL}) — using in-memory fallbacks until it comes back`);
+    });
+    client.on('ready', () => {
+      if (available === false) logger.info('Redis connection restored');
+      available = true;
+    });
   }
   return client;
 }
