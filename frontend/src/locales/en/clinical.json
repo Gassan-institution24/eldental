@@ -4,6 +4,9 @@
   "surfaces": { "M": "Mesial", "D": "Distal", "O": "Occlusal", "I": "Incisal", "B": "Buccal", "F": "Facial", "L": "Lingual", "P": "Palatal" },
   "toothStatus": { "present": "Present", "missing": "Missing", "implant": "Implant", "unerupted": "Unerupted" },
   "chart": {
+    "upperJaw": "Upper jaw",
+    "lowerJaw": "Lower jaw",
+    "view": {"title": "View", "occlusal": "Occlusal", "occlusalHint": "Show premolars and molars from the biting surface", "wisdom": "Wisdom teeth", "wisdomHint": "Show or hide the third molars", "bone": "Bone & gum", "boneHint": "Draw the bone and gum around each tooth", "pulp": "Pulp", "pulpHint": "Show the pulp inside each tooth"},
     "title": "Tooth chart",
     "toothLabel": "Tooth {{n}}",
     "pickTooth": "Pick a tooth",

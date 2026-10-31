@@ -41,9 +41,10 @@ import {
   type EntryKind,
 } from '../api';
 import { useConditionColors, useProcedureLookup } from '../components/shared';
-import { isAnterior, ToothChart } from '../components/ToothChart';
+import { DEFAULT_VIEW, isAnterior, ToothChart, type ViewOptions } from '../components/ToothChart';
 
 const LAYERS: EntryKind[] = ['existing', 'finding', 'planned', 'completed'];
+const VIEW_KEYS = ['occlusal', 'wisdom', 'bone', 'pulp'] as const;
 
 /** Patient workspace → Chart (07 §2). */
 export function ChartTab() {
@@ -53,6 +54,7 @@ export function ChartTab() {
   const { colors, list: conditionDefs, name: conditionName } = useConditionColors();
   const muts = useChartMutations(patient.id);
   const [layers, setLayers] = useState<Set<EntryKind>>(new Set(LAYERS));
+  const [view, setView] = useState<ViewOptions>(DEFAULT_VIEW);
   const [tooth, setTooth] = useState<number | null>(null);
   const [surfaces, setSurfaces] = useState<string[]>([]);
   const { can } = usePermission();
@@ -117,7 +119,38 @@ export function ChartTab() {
               ))}
             </ToggleButtonGroup>
           </Stack>
+          <Stack
+            direction="row"
+            spacing={2}
+            alignItems="center"
+            flexWrap="wrap"
+            useFlexGap
+            sx={{ mb: 2 }}
+          >
+            <Typography variant="caption" color="text.secondary" fontWeight={700}>
+              {t('chart.view.title')}
+            </Typography>
+            <ToggleButtonGroup
+              size="small"
+              value={VIEW_KEYS.filter((k) => view[k])}
+              onChange={(_e, on: string[]) =>
+                setView(
+                  Object.fromEntries(VIEW_KEYS.map((k) => [k, on.includes(k)])) as ViewOptions,
+                )
+              }
+              aria-label={t('chart.view.title')}
+            >
+              {VIEW_KEYS.map((k) => (
+                <Tooltip key={k} title={t(`chart.view.${k}Hint`)}>
+                  <ToggleButton value={k} sx={{ px: 1.5, py: 0.25, fontSize: '0.75rem' }}>
+                    {t(`chart.view.${k}`)}
+                  </ToggleButton>
+                </Tooltip>
+              ))}
+            </ToggleButtonGroup>
+          </Stack>
           <ToothChart
+            view={view}
             teeth={data.teeth}
             colors={colors}
             layers={layers}

@@ -31,7 +31,9 @@
 - Mapping lives in `procedureCatalog.chartEffect`: `{ setStatus?, addCondition?, removeConditions? }`.
 
 **UI component `<ToothChart>`** (frontend `features/clinical/chart`):
-- SVG with 32 + 20 teeth. Each tooth has 5 clickable surfaces plus a whole-tooth click.
+- 32 + 20 teeth, each drawn as an anatomical tooth with a 5-zone surface wheel. Clicking a wheel zone selects that surface; clicking the tooth selects the whole tooth.
+- The tooth drawings come from the MIT-licensed [React-Odontogram-Modul](https://github.com/ZoliQua/React-Odontogram-Modul) artwork, by way of Hakeemna (`components/odontogram/NOTICE.md`). Condition codes map to artwork layers in `odontogram/layers.ts`, for example caries and fillings per surface, crown, RCT/post, implant, bridge, veneer, fracture and impacted. Codes the artwork cannot draw (mobility, abscess, custom codes) show as coloured badges. Planned work shows as markers, never as finished work. The artwork is loaded as its own chunk the first time a chart opens.
+- View toggles, display only and never saved: occlusal view (premolars/molars), wisdom teeth, bone & gum, pulp.
 - Layers can be toggled: existing / findings / planned / completed, with colours from `toothConditionsCatalog`.
 - Mode switch: permanent / primary / mixed.
 - Clicking a tooth opens a side panel with history for that tooth and quick actions: add finding, add to plan, record procedure.

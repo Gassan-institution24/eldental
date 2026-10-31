@@ -3,3 +3,4 @@ node_modules
 coverage
 package-lock.json
 src/shared/generated
+src/features/clinical/components/odontogram/artwork.ts

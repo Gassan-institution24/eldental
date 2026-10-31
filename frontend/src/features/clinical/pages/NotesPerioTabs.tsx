@@ -44,7 +44,7 @@ import {
   type PerioExam,
   type PerioTooth,
 } from '../api';
-import { LOWER_PERMANENT, UPPER_PERMANENT } from '../components/ToothChart';
+import { LOWER_PERMANENT, UPPER_PERMANENT } from '../components/odontogram/teeth';
 
 /* ---------------- notes (07 §5) ---------------- */
 
