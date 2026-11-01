@@ -51,7 +51,7 @@
   "summaryHidden": "Cannot see: {{fields}}.",
   "summaryMasked": "Masked: {{fields}}.",
   "summaryEdits": "Can edit: {{fields}}.",
-  "ownerRole": "The Owner role always has every permission.",
+  "ownerRole": "The Full access role always has every permission. It does not make someone the clinic owner; ownership is transferred from the owner's profile.",
   "selectRole": "Select a role to edit its permissions",
   "masked": "Masked",
   "sampleValue": "Sample"

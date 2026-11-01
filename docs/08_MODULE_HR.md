@@ -57,7 +57,7 @@
 ## 5. Compensation
 - Kept on `staff.compensation` and guarded by `hr.compensation.*`.
 - **Salary components** (`salaryComponents`): each is an earning or deduction, `fixed` / `percent_of_basic` / `per_hour`, taxable, subject to social security, and mapped to a GL account.
-- **Dentist commission:** basis `production` (performed procedures in the period) or `collection` (payments allocated to their invoices in the period), with a percentage per procedure category and an optional lab-cost deduction (`netOfLabCost: true`).
+- **Dentist commission:** basis `production` (performed procedures in the period) or `collection` (their attributed share of money applied to invoices in the period, net of refunds — 09 §8.1), with a percentage per procedure category and an optional lab-cost deduction (`netOfLabCost: true`).
 - **Social security (Jordan SSC):** employee and employer rates are configured per clinic (defaults are seeded, editable). Applied to the components marked `subjectToSocialSecurity`.
 - **Income tax:** pluggable `IncomeTaxCalculator` interface. The default implementation has a configurable bracket table per clinic. Ships with a "none" option so the clinic chooses.
 

@@ -1,6 +1,7 @@
 import { z } from 'zod';
 import { dateOnly, enumOf, freeText, instant, objectId, optional, timeOfDay, toothNumber, surfaces } from '@/shared/validation/fields';
 import { minutesOf } from '@/shared/dates';
+import { DENTAL_SPECIALTIES } from '@/shared/dental/specialties';
 import { APPOINTMENT_STATUSES } from './scheduling.models';
 
 export const idParams = z.object({ id: objectId() }).strict();
@@ -25,6 +26,8 @@ export const availabilityQuery = z
     chairId: optional(objectId()),
     appointmentTypeId: optional(objectId()),
     durationMin: duration.optional(),
+    // Guides patients to the right doctor; it never limits who may treat (07 §13).
+    specialty: enumOf([...DENTAL_SPECIALTIES]).optional(),
   })
   .strict()
   .superRefine(maxRange(42));

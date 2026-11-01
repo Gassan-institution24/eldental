@@ -19,6 +19,7 @@ export const SHARED_FILES = [
   ['core/rbac/rbac.types.ts', 'rbac/rbac.types.ts'],
   ['shared/errorCodes.ts', 'errorCodes.ts'],
   ['shared/dental/teeth.ts', 'dental/teeth.ts'],
+  ['shared/dental/specialties.ts', 'dental/specialties.ts'],
 ];
 
 if (!existsSync(backendSrc)) {

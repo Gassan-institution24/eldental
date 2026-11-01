@@ -37,6 +37,9 @@ staffRouter.get(
   }),
 );
 
+/** The clinic's specialties, derived from its active dentists and hygienists (no separate catalog, 07 §13). */
+staffRouter.get('/staff/specialties', authorize('staff.member.read', 'scheduling.schedule.read', 'scheduling.appointment.book'), asyncHandler(async (_req, res) => ok(res, await svc.clinicSpecialties())));
+
 staffRouter.get('/staff/:id', authorize('staff.member.read'), validate({ params: s.idParams }), asyncHandler(async (req, res) => ok(res, await svc.getStaff(req.auth!, params(req, s.idParams).id))));
 
 staffRouter.post(
@@ -67,11 +70,20 @@ staffRouter.post(
 
 staffRouter.post('/staff/:id/reactivate', authorize('staff.member.delete'), validate({ params: s.idParams }), asyncHandler(async (req, res) => ok(res, await svc.reactivateStaff(req.auth!, params(req, s.idParams).id))));
 
+// HR (staff.member.update) changes job roles too; the access boundary limits what anyone may grant (04 §9.2).
 staffRouter.put(
   '/staff/:id/roles',
-  authorize('staff.role.manage'),
+  authorize('staff.role.manage', 'staff.member.update'),
   validate({ params: s.idParams, body: s.staffRolesBody }),
   asyncHandler(async (req, res) => ok(res, await svc.setStaffRoles(req.auth!, params(req, s.idParams).id, body(req, s.staffRolesBody)))),
+);
+
+// The service also requires the caller to be the clinic owner; the permission alone is not enough.
+staffRouter.post(
+  '/staff/:id/transfer-ownership',
+  authorize('staff.role.manage'),
+  validate({ params: s.idParams, body: s.transferOwnershipBody }),
+  asyncHandler(async (req, res) => ok(res, await svc.transferOwnership(req.auth!, params(req, s.idParams).id, body(req, s.transferOwnershipBody).password))),
 );
 
 staffRouter.get('/staff/:id/permission-overrides', authorize('staff.role.manage'), validate({ params: s.idParams }), asyncHandler(async (req, res) => ok(res, await svc.getOverrides(params(req, s.idParams).id))));
@@ -86,8 +98,10 @@ staffRouter.put(
 staffRouter.get('/staff/:id/effective-permissions', authorize('staff.role.manage'), validate({ params: s.idParams }), asyncHandler(async (req, res) => ok(res, await svc.effectivePermissions(req.auth!, params(req, s.idParams).id))));
 
 registerPath({ method: 'get', path: '/staff', tags: ['staff'], summary: 'List staff (fields filtered by field rules)', query: s.staffListQuery });
+registerPath({ method: 'get', path: '/staff/specialties', tags: ['staff'], summary: 'Specialties offered by the clinic (derived from its doctors)' });
 registerPath({ method: 'get', path: '/staff/:id', tags: ['staff'], summary: 'Get staff member', params: s.idParams });
 registerPath({ method: 'post', path: '/staff', tags: ['staff'], summary: 'Invite staff', body: s.staffInviteBody });
 registerPath({ method: 'patch', path: '/staff/:id', tags: ['staff'], summary: 'Update staff (403 FIELD_FORBIDDEN on non-writable fields)', params: s.idParams, body: s.staffUpdateBody });
 registerPath({ method: 'put', path: '/staff/:id/roles', tags: ['staff'], summary: 'Assign roles', params: s.idParams, body: s.staffRolesBody });
+registerPath({ method: 'post', path: '/staff/:id/transfer-ownership', tags: ['staff'], summary: 'Transfer clinic ownership (current owner only, password required)', params: s.idParams, body: s.transferOwnershipBody });
 registerPath({ method: 'put', path: '/staff/:id/permission-overrides', tags: ['staff'], summary: 'Per-staff overrides', params: s.idParams, body: s.overridesBody });

@@ -13,8 +13,8 @@ import { toSearchName } from '@/shared/validation/normalize';
 export const DEMO_PASSWORD = 'Password123!';
 
 export const DEMO_STAFF = [
-  { email: 'dentist@smile.local', name: 'د. سارة الخطيب', staffType: 'dentist', role: 'dentist', color: '#5B6CFF', specialty: 'endodontics', bookableOnline: true, salary: 1_500_000 },
-  { email: 'dentist2@smile.local', name: 'Dr. Omar Haddad', staffType: 'dentist', role: 'dentist', color: '#E67E22', specialty: 'orthodontics', bookableOnline: true, salary: 1_400_000 },
+  { email: 'dentist@smile.local', name: 'د. سارة الخطيب', staffType: 'dentist', role: 'dentist', color: '#5B6CFF', specialties: ['endodontics', 'general'], primarySpecialty: 'endodontics', bookableOnline: true, salary: 1_500_000 },
+  { email: 'dentist2@smile.local', name: 'Dr. Omar Haddad', staffType: 'dentist', role: 'dentist', color: '#E67E22', specialties: ['orthodontics'], primarySpecialty: 'orthodontics', bookableOnline: true, salary: 1_400_000 },
   { email: 'reception@smile.local', name: 'ليلى منصور', staffType: 'receptionist', role: 'receptionist', color: '#0288D1', salary: 550_000 },
   { email: 'accountant@smile.local', name: 'Khaled Nasser', staffType: 'accountant', role: 'accountant', color: '#2E7D32', salary: 800_000 },
   { email: 'hr@smile.local', name: 'رنا العلي', staffType: 'hr', role: 'hr_manager', color: '#8E44AD', salary: 750_000 },
@@ -94,7 +94,7 @@ export async function seedDemoClinic(): Promise<string> {
         jobTitle: '',
         roleIds: role ? [role._id] : [],
         color: s.color,
-        ...('specialty' in s ? { specialty: s.specialty } : {}),
+        ...('specialties' in s ? { specialties: s.specialties, primarySpecialty: s.primarySpecialty } : {}),
         bookableOnline: 'bookableOnline' in s ? s.bookableOnline : false,
         licenseNumber: s.staffType === 'dentist' ? `JDA-${1000 + count}` : undefined,
         compensation: { basicSalary: s.salary, currency: 'JOD', payFrequency: 'monthly' },

@@ -6,6 +6,7 @@ import {
   CardContent,
   Chip,
   Grid,
+  MenuItem,
   Stack,
   Tab,
   Table,
@@ -14,6 +15,7 @@ import {
   TableHead,
   TableRow,
   Tabs,
+  TextField,
   Typography,
 } from '@mui/material';
 import { Ban, CreditCard, FileMinus, FileText, Pencil, Printer, Send, Trash2 } from 'lucide-react';
@@ -29,7 +31,14 @@ import { EmptyState, ErrorState, PageSkeleton } from '@/shared/components/States
 import { StatusChip } from '@/shared/components/StatusChip';
 import { useNotify } from '@/shared/hooks/useNotify';
 import { usePermission } from '@/shared/rbac/usePermission';
-import { useInvoice, useInvoiceMutations, useInvoices, type Invoice } from '../api';
+import {
+  useBillingDentists,
+  useInvoice,
+  useInvoiceMutations,
+  useInvoices,
+  type Invoice,
+} from '../api';
+import { InvoiceDoctorCell, useOwnInvoiceScope } from '../components/InvoiceDoctors';
 import { InvoiceEditor } from '../components/InvoiceEditor';
 import { PaymentDialog } from '../components/PaymentDialog';
 import { InvoicePrintDialog } from '../components/PrintDialogs';
@@ -58,6 +67,16 @@ export function useInvoiceColumns(withPatient = true): Column<Invoice>[] {
           } as Column<Invoice>,
         ]
       : []),
+    {
+      field: 'dentist',
+      headerName: t('invoices.doctor'),
+      flex: 1.2,
+      minWidth: 200,
+      sortable: false,
+      valueGetter: (_v, row) => row.dentist?.name ?? '',
+      renderCell: ({ row }) => <InvoiceDoctorCell invoice={row} />,
+      fieldKey: 'dentist',
+    },
     {
       field: 'issueDate',
       headerName: t('invoices.issueDate'),
@@ -110,8 +129,13 @@ export function InvoicesPage() {
   const lp = useListParams();
   const { can } = usePermission();
   const tab = (lp.filter('tab') || 'all') as (typeof TABS)[number];
+  // Own-scope doctors only ever see their own invoices, so the doctor filter is hidden for them.
+  const ownOnly = useOwnInvoiceScope();
+  const dentists = useBillingDentists(!ownOnly);
+  const dentistId = ownOnly ? '' : lp.filter('dentistId');
   const list = useInvoices({
     ...lp.params,
+    ...(dentistId ? { dentistId } : {}),
     ...(tab === 'credit_note'
       ? { type: 'credit_note' }
       : tab !== 'all'
@@ -155,7 +179,32 @@ export function InvoicesPage() {
         onRetry={() => void list.refetch()}
         onRowClick={(r) => navigate(`/clinic/billing/invoices/${r.id}`)}
         columns={columns}
-        empty={<EmptyState title={t('invoices.empty')} description={t('invoices.emptyHint')} />}
+        toolbar={
+          !ownOnly && (
+            <TextField
+              select
+              size="small"
+              label={t('invoices.doctor')}
+              value={dentists.data?.some((d) => d.id === dentistId) ? dentistId : ''}
+              onChange={(e) => lp.set({ dentistId: e.target.value || undefined, page: 1 })}
+              sx={{ minWidth: 200 }}
+              inputProps={{ 'data-testid': 'doctor-filter' }}
+            >
+              <MenuItem value="">{t('invoices.allDoctors')}</MenuItem>
+              {(dentists.data ?? []).map((d) => (
+                <MenuItem key={d.id} value={d.id}>
+                  {d.name}
+                </MenuItem>
+              ))}
+            </TextField>
+          )
+        }
+        empty={
+          <EmptyState
+            title={t('invoices.empty')}
+            description={dentistId ? t('invoices.emptyDoctorHint') : t('invoices.emptyHint')}
+          />
+        }
       />
       {creating && <InvoiceEditor onClose={() => setCreating(false)} />}
     </Box>
@@ -324,6 +373,16 @@ export function InvoiceDetailPage() {
           {t('invoices.draftNote')}
         </Alert>
       )}
+      {isDraft && !inv.dentistId && (
+        <Alert severity="warning" sx={{ mb: 4 }}>
+          {t('invoices.doctorMissingNote')}
+        </Alert>
+      )}
+      {inv.multipleDoctors && (
+        <Alert severity="info" variant="outlined" sx={{ mb: 4 }} data-testid="shared-invoice">
+          {t('invoices.sharedNote', { names: (inv.doctors ?? []).map((d) => d.name).join(' · ') })}
+        </Alert>
+      )}
       <Grid container spacing={4}>
         <Grid item xs={12} lg={8}>
           <Card variant="outlined">
@@ -332,6 +391,7 @@ export function InvoiceDetailPage() {
                 <TableHead>
                   <TableRow>
                     <TableCell>{t('invoices.description')}</TableCell>
+                    <TableCell>{t('invoices.lineDoctor')}</TableCell>
                     <TableCell align="right">{t('invoices.qty')}</TableCell>
                     <TableCell align="right">{t('invoices.unitPrice')}</TableCell>
                     <TableCell align="right">{t('invoices.discount')}</TableCell>
@@ -355,6 +415,9 @@ export function InvoiceDetailPage() {
                             sx={{ mx: 1 }}
                           />
                         ) : null}
+                      </TableCell>
+                      <TableCell dir="auto">
+                        {l.dentistName ?? (l.dentistId ? '' : (inv.dentist?.name ?? '—'))}
                       </TableCell>
                       <TableCell align="right">{l.quantity}</TableCell>
                       <TableCell align="right">
@@ -390,6 +453,18 @@ export function InvoiceDetailPage() {
           <Card variant="outlined">
             <CardContent>
               <Stack spacing={1.5}>
+                <Stack
+                  direction="row"
+                  justifyContent="space-between"
+                  sx={{ pb: 1.5, borderBottom: 1, borderColor: 'divider' }}
+                >
+                  <Typography variant="body2" color="text.secondary">
+                    {t('invoices.responsibleDoctor')}
+                  </Typography>
+                  <Typography variant="body2" fontWeight={700} dir="auto">
+                    {inv.dentist?.name ?? t('invoices.noDoctor')}
+                  </Typography>
+                </Stack>
                 {(
                   [
                     ['subtotal', inv.subtotal],

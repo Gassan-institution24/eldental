@@ -993,12 +993,14 @@ export function PatientBillingTab() {
   return (
     <Stack spacing={4}>
       <Grid container spacing={3}>
-        {(
-          [
-            ['balance', summary.data?.balance ?? 0],
-            ['receivable', summary.data?.receivable ?? 0],
-            ['credit', summary.data?.credit ?? 0],
-          ] as [string, number][]
+        {(summary.data?.scope === 'own'
+          ? // A doctor's own view: only their share of invoices that include their work (09 §8.1).
+            ([['myShare', summary.data.balance]] as [string, number][])
+          : ([
+              ['balance', summary.data?.balance ?? 0],
+              ['receivable', summary.data?.receivable ?? 0],
+              ['credit', summary.data?.credit ?? 0],
+            ] as [string, number][])
         ).map(([k, v]) => (
           <Grid item xs={12} sm={4} key={k}>
             <Card variant="outlined">

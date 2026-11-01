@@ -101,7 +101,7 @@ GET /patients?page=1&limit=25&sort=-createdAt,lastName&q=ahmad&status=active&cre
 | `/tax-rates` CRUD | accounting.account.manage |
 
 ### Staff & roles
-`/staff` (list/get/invite/update/deactivate; `/staff/:id/roles` PUT; `/staff/:id/permission-overrides` GET/PUT; `/staff/:id/effective-permissions` GET) · `/staff/me` · `/roles` CRUD (`/roles/templates`, `/roles/:id/clone`, `POST /roles/:id/preview-diff`) · `/permissions` (registry **including field registry** for the role editor UI).
+`/staff` (list/get/invite/update/deactivate; `?specialty=` filter; `GET /staff/specialties` = the clinic's specialties derived from its doctors; `POST /staff/:id/transfer-ownership` owner only, with password; `/staff/:id/roles` PUT (roles only, never ownership); `/staff/:id/permission-overrides` GET/PUT; `/staff/:id/effective-permissions` GET) · `/staff/me` · `/roles` CRUD (`/roles/templates`, `/roles/:id/clone`, `POST /roles/:id/preview-diff`) · `/permissions` (registry **including field registry** for the role editor UI).
 
 Responses of every resource are filtered by the caller's field rules (hidden fields absent, masked fields masked). Writing a non-writable field returns `403 FIELD_FORBIDDEN { fields }`.
 
@@ -131,7 +131,8 @@ Responses of every resource are filtered by the caller's field rules (hidden fie
 ### Billing
 | Path | Notes |
 |---|---|
-| `/invoices` CRUD (draft) | |
+| `/invoices` CRUD (draft) | list filter `dentistId` (header or any line doctor); DTO has `dentist`, `doctors`, `multipleDoctors`, `lines[].dentistName/dentistLocked` |
+| `GET /billing/dentists` | active dentists/hygienists, id + name only (invoice doctor picker) |
 | `POST /invoices/from-appointment/:appointmentId` | build a draft from performed procedures |
 | `POST /invoices/:id/issue` | assigns the number, posts the journal, queues the e-invoice (idempotent) |
 | `POST /invoices/:id/void` · `POST /invoices/:id/credit-note` | |

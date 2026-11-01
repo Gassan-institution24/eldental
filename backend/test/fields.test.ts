@@ -127,9 +127,9 @@ describe('field-level permissions (04 §4)', () => {
     expect(res.body.error).toMatchObject({ code: 'FORBIDDEN', details: { permission: 'staff.role.manage' } });
   });
 
-  it('a clinic must keep at least one owner', async () => {
+  it('the owner cannot be deactivated (ownership must be transferred first)', async () => {
     const owner = await login(c.ownerEmail);
     const res = await api(owner).post(`/staff/${c.staff.owner!.staffId}/deactivate`).send({ status: 'inactive' });
-    expect(res.body.error.code).toBe('LAST_OWNER');
+    expect(res.body.error.code).toBe('OWNER_PROTECTED');
   });
 });

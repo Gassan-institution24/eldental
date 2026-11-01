@@ -28,7 +28,9 @@ import { useNotify } from '@/shared/hooks/useNotify';
 import { useSeedName } from '@/shared/hooks/useSeedName';
 import { FieldScope } from '@/shared/rbac/fieldAccess';
 import { Can, useFieldAccess } from '@/shared/rbac/usePermission';
-import { staffApi, useInviteStaff, useRoles, type StaffMember } from '../api';
+import { useSessionData } from '@/features/auth/api/session';
+import { grantsAccessControl, staffApi, useInviteStaff, useRoles, type StaffMember } from '../api';
+import { OwnerBadge } from '../components/OwnerBadge';
 
 export const STAFF_TYPES = [
   'dentist',
@@ -71,6 +73,9 @@ function InviteDrawer({ open, onClose }: { open: boolean; onClose: () => void })
   const typeName = useSeedName('staffType');
   const roleName = useSeedName('roles');
   const roles = useRoles();
+  const session = useSessionData();
+  // Full access and the right to manage access are owner-controlled (04 §9.2); hide them for others.
+  const assignable = (roles.data ?? []).filter((r) => session?.isOwner || !grantsAccessControl(r));
   const invite = useInviteStaff();
   const notify = useNotify();
   const navigate = useNavigate();
@@ -92,7 +97,7 @@ function InviteDrawer({ open, onClose }: { open: boolean; onClose: () => void })
 
   const onSubmit = async (v: Invite) => {
     const role =
-      v.roleId || roles.data?.find((r) => r.key === DEFAULT_ROLE[String(v.staffType)])?.id;
+      v.roleId || assignable.find((r) => r.key === DEFAULT_ROLE[String(v.staffType)])?.id;
     const created = await invite.mutateAsync({
       name: v.name,
       email: v.email || undefined,
@@ -153,8 +158,12 @@ function InviteDrawer({ open, onClose }: { open: boolean; onClose: () => void })
               name="roleId"
               label={t('fields.roles')}
               clearable
-              helperText={roleName({ systemKey: DEFAULT_ROLE[String(staffType)] ?? '' })}
-              options={(roles.data ?? []).map((r) => ({
+              helperText={
+                assignable.some((r) => r.key === DEFAULT_ROLE[String(staffType)])
+                  ? roleName({ systemKey: DEFAULT_ROLE[String(staffType)] ?? '' })
+                  : t('noDefaultRole')
+              }
+              options={assignable.map((r) => ({
                 value: r.id,
                 label: roleName({ name: r.name, systemKey: r.systemKey }),
               }))}
@@ -299,7 +308,7 @@ export function StaffListPage() {
                     </Typography>
                   )}
                 </Stack>
-                {p.row.isOwner && <Chip size="small" color="primary" label={t('owner')} />}
+                {p.row.isOwner && <OwnerBadge />}
                 {p.row.hasCustomPermissions && (
                   <Chip
                     size="small"

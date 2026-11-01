@@ -7,12 +7,12 @@ import { ApiError } from '@/core/http/ApiError';
 import { fieldPolicyOf, scopeFor } from '@/core/rbac/authorize';
 import { applyFieldPolicy } from '@/core/rbac/fieldPolicy';
 import { currentClinicId, runWithoutTenant } from '@/core/tenancy/tenantPlugin';
-import { InvoiceModel, PaymentModel } from '@/modules/billing/billing.models';
+import { attributedMovements } from '@/modules/billing/attribution';
 import { LabOrderModel, PerformedProcedureModel } from '@/modules/clinical/clinical.models';
 import { ClinicModel } from '@/modules/platform/clinic.model';
 import { StaffModel } from '@/modules/staff/staff.model';
 import { AccountModel } from '@/modules/accounting/accounting.models';
-import { clinicToday, loadAccountMap, postEntry } from '@/modules/accounting/journal.service';
+import { clinicTimezone, clinicToday, loadAccountMap, postEntry } from '@/modules/accounting/journal.service';
 import { payrollApproved, payrollPaid } from '@/modules/accounting/posting/postingRules';
 import { daysInMonth } from '@/shared/dates';
 import { sum } from '@/shared/money';
@@ -67,11 +67,16 @@ async function commissionBase(staffId: Types.ObjectId, c: { basis?: string | nul
   let base = 0;
   const sourceIds: Types.ObjectId[] = [];
   if (c.basis === 'collection') {
-    const invs = await InvoiceModel.find({ dentistId: staffId, type: 'invoice' }).select('_id').lean();
-    const set = new Set(invs.map((i) => String(i._id)));
-    const pays = await PaymentModel.find({ date: { $gte: from, $lte: to }, status: { $ne: 'void' }, 'allocations.invoiceId': { $in: invs.map((i) => i._id) } }).lean();
-    for (const p of pays) for (const a of p.allocations ?? []) if (set.has(String(a.invoiceId))) base += a.amount ?? 0;
-    sourceIds.push(...pays.map((p) => p._id));
+    // The doctor's proportional share of money applied to invoices (09 §8.1), net of refunds.
+    const me = String(staffId);
+    const payIds = new Set<string>();
+    for (const m of await attributedMovements(from, to, await clinicTimezone())) {
+      const part = m.parts.get(me) ?? 0;
+      if (!part) continue;
+      base += part;
+      payIds.add(m.paymentId);
+    }
+    sourceIds.push(...[...payIds].map((x) => new Types.ObjectId(x)));
   } else {
     const procs = await PerformedProcedureModel.find({ dentistId: staffId, status: 'completed', performedAt: range, ...(c.appliesTo?.length ? { category: { $in: c.appliesTo } } : {}) }).lean();
     base = sum(procs.map((p) => (p.unitPrice ?? 0) * (p.quantity ?? 1) - (p.discount ?? 0)));

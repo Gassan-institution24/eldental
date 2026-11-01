@@ -32,7 +32,7 @@ export async function loadClinic() {
 }
 type ClinicLean = Awaited<ReturnType<typeof loadClinic>>;
 
-type EngineQuery = { from: string; to: string; dentistId?: string; chairId?: string; appointmentTypeId?: string; durationMin?: number; online?: boolean; excludeAppointmentId?: string };
+type EngineQuery = { from: string; to: string; dentistId?: string; specialty?: string; chairId?: string; appointmentTypeId?: string; durationMin?: number; online?: boolean; excludeAppointmentId?: string };
 
 /** Collects schedules, exceptions and busy time for the engine (06 §2). */
 export async function engineInput(clinic: ClinicLean, q: EngineQuery): Promise<EngineInput> {
@@ -43,7 +43,7 @@ export async function engineInput(clinic: ClinicLean, q: EngineQuery): Promise<E
   const rangeStart = startOfLocalDay(q.from, tz);
   const rangeEnd = startOfLocalDay(addDays(q.to, 1), tz);
 
-  const dentists = await StaffModel.find({ status: 'active', staffType: { $in: BOOKABLE_TYPES }, ...(q.dentistId ? { _id: q.dentistId } : {}) })
+  const dentists = await StaffModel.find({ status: 'active', staffType: { $in: BOOKABLE_TYPES }, ...(q.dentistId ? { _id: q.dentistId } : {}), ...(q.specialty ? { specialties: q.specialty } : {}) })
     .select('bookableOnline')
     .lean();
   const ids = dentists.map((d) => d._id);

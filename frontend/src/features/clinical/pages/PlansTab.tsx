@@ -63,6 +63,7 @@ import { useNotify } from '@/shared/hooks/useNotify';
 import { usePermission } from '@/shared/rbac/usePermission';
 import { usePlanMutations, usePlans, useProcedureMutations, type TreatmentPlan } from '../api';
 import { PrintArea, SignaturePad, toothList, useProcedureLookup } from '../components/shared';
+import { useSpecialtyName } from '@/features/staff/components/SpecialtyFields';
 
 const PHASES = ['urgent', 'phase1', 'phase2', 'maintenance'];
 
@@ -499,6 +500,7 @@ function PrintPlanDialog({ plan, onClose }: { plan: TreatmentPlan; onClose: () =
   const { patient } = usePatientContext();
   const procs = useProcedureLookup();
   const sched = useSchedulingLookups();
+  const specialtyName = useSpecialtyName();
   const fmt = useFormatMoney();
   return (
     <Dialog open onClose={onClose} fullWidth maxWidth="md">
@@ -511,6 +513,9 @@ function PrintPlanDialog({ plan, onClose }: { plan: TreatmentPlan; onClose: () =
           </Typography>
           <Typography variant="body2">
             {t('plans.dentist')}: {sched.dentistById.get(plan.dentistId)?.name ?? ''}
+            {sched.dentistById.get(plan.dentistId)?.primarySpecialty
+              ? ` · ${specialtyName(sched.dentistById.get(plan.dentistId)!.primarySpecialty!)}`
+              : ''}
           </Typography>
           <Divider sx={{ my: 3 }} />
           <Table size="small">

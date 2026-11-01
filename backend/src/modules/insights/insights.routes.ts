@@ -17,6 +17,7 @@ import { body, query, validate } from '@/core/validation/validate';
 import { AccountModel } from '@/modules/accounting/accounting.models';
 import { clinicToday, loadAccountMap, postEntry } from '@/modules/accounting/journal.service';
 import { InvoiceModel, PaymentModel } from '@/modules/billing/billing.models';
+import { doctorInvoiceFilter, ownDoctorOf, shareOf } from '@/modules/billing/attribution';
 import { dues } from '@/modules/billing/invoice.service';
 import { ClinicalNoteModel, LabOrderModel, PerformedProcedureModel, TreatmentPlanModel } from '@/modules/clinical/clinical.models';
 import { LeaveRequestModel } from '@/modules/hr/hr.models';
@@ -58,7 +59,8 @@ async function dashboard(auth: AuthContext) {
   }
   if (can('reports.production.read') || can('accounting.report.read') || auth.isOwner) {
     const range = { $gte: startOfLocalDay(monthStart, tz), $lt: dayEnd };
-    const procs = await PerformedProcedureModel.find({ status: 'completed', performedAt: range, ...ownDentist }).select('unitPrice quantity discount performedAt').lean();
+    const meProd = ownDoctorOf(auth, 'reports.production.read', 'accounting.report.read');
+    const procs = await PerformedProcedureModel.find({ status: 'completed', performedAt: range, ...(meProd ? { dentistId: new Types.ObjectId(meProd) } : {}) }).select('unitPrice quantity discount performedAt').lean();
     const value = (p: (typeof procs)[number]) => (p.unitPrice ?? 0) * (p.quantity ?? 1) - (p.discount ?? 0);
     out.production = { today: sum(procs.filter((p) => p.performedAt >= dayStart).map(value)), month: sum(procs.map(value)) };
   }
@@ -67,9 +69,13 @@ async function dashboard(auth: AuthContext) {
     const net = (p: (typeof pays)[number]) => p.amount - (p.refunded ?? 0);
     out.collections = { today: sum(pays.filter((p) => p.date === today).map(net)), month: sum(pays.map(net)) };
   }
+  // Own scope (G3): only invoices with my work, and only my share of what is owed (09 §8.1).
+  const meInv = ownDoctorOf(auth, 'billing.invoice.read', 'accounting.report.read');
+  const invScope = meInv ? doctorInvoiceFilter(meInv) : {};
   if (can('billing.invoice.read')) {
-    const open = await InvoiceModel.find({ type: 'invoice', status: { $in: ['issued', 'partially_paid'] } }).lean();
-    out.receivables = { patients: sum(open.map((i) => dues(i).patientDue)), insurance: sum(open.map((i) => dues(i).insuranceDue)), overdue: sum(open.filter((i) => (i.dueDate ?? today) < today).map((i) => dues(i).patientDue)) };
+    const open = await InvoiceModel.find({ type: 'invoice', status: { $in: ['issued', 'partially_paid'] }, ...invScope }).lean();
+    const part = (i: (typeof open)[number], amount: number) => (meInv ? shareOf(amount, i, meInv) : amount);
+    out.receivables = { patients: sum(open.map((i) => part(i, dues(i).patientDue))), insurance: sum(open.map((i) => part(i, dues(i).insuranceDue))), overdue: sum(open.filter((i) => (i.dueDate ?? today) < today).map((i) => part(i, dues(i).patientDue))), scope: meInv ? 'own' : 'all' };
   }
   if (can('patients.patient.read')) {
     out.newPatients = { month: await PatientModel.countDocuments({ createdAt: { $gte: startOfLocalDay(monthStart, tz) } }) };
@@ -87,7 +93,7 @@ async function dashboard(auth: AuthContext) {
   if (can('hr.leave.approve')) todo.pendingLeave = await LeaveRequestModel.countDocuments({ status: 'pending' });
   if (can('clinical.labOrder.read')) todo.labDueSoon = await LabOrderModel.countDocuments({ status: { $in: ['sent', 'in_progress', 'remake'] }, dueDate: { $lte: addDays(today, 2) }, ...ownDentist });
   if (can('inventory.item.read')) todo.lowStock = await InventoryItemModel.countDocuments({ isActive: true, $expr: { $lte: ['$quantityOnHand', '$reorderLevel'] } });
-  if (can('billing.invoice.read')) todo.draftInvoices = await InvoiceModel.countDocuments({ status: 'draft' });
+  if (can('billing.invoice.read')) todo.draftInvoices = await InvoiceModel.countDocuments({ status: 'draft', ...invScope });
   out.todo = todo;
   return out;
 }

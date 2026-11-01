@@ -42,7 +42,7 @@ export async function listSchedules(auth: AuthContext) {
   const today = localDate(new Date(), clinic.timezone ?? 'Asia/Amman');
   const own = scopeFor(auth, 'scheduling.schedule.read') === 'own';
   const dentists = await StaffModel.find({ status: 'active', staffType: { $in: BOOKABLE_TYPES }, ...(own ? { _id: auth.staffId } : {}) })
-    .select('name color staffType bookableOnline defaultChairId')
+    .select('name color staffType bookableOnline defaultChairId specialties primarySpecialty')
     .sort({ name: 1 })
     .lean();
   const schedules = await DentistScheduleModel.find({ staffId: { $in: dentists.map((d) => d._id) } }).sort({ effectiveFrom: 1 }).lean();
@@ -50,7 +50,7 @@ export async function listSchedules(auth: AuthContext) {
     const mine = schedules.filter((s) => String(s.staffId) === String(d._id)).map((s) => scheduleDto(s as never));
     const current = [...mine].reverse().find((s) => s.effectiveFrom <= today && (!s.effectiveTo || s.effectiveTo >= today));
     return {
-      staff: { id: String(d._id), name: d.name, color: d.color, staffType: d.staffType, bookableOnline: Boolean(d.bookableOnline), defaultChairId: d.defaultChairId ? String(d.defaultChairId) : undefined },
+      staff: { id: String(d._id), name: d.name, color: d.color, staffType: d.staffType, bookableOnline: Boolean(d.bookableOnline), defaultChairId: d.defaultChairId ? String(d.defaultChairId) : undefined, specialties: d.specialties ?? [], primarySpecialty: d.primarySpecialty ?? undefined },
       current: current ?? null,
       versions: mine,
     };

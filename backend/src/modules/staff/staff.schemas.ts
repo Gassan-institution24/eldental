@@ -17,6 +17,7 @@ import {
   phone,
   basisPoints,
 } from '@/shared/validation/fields';
+import { DENTAL_SPECIALTIES } from '@/shared/dental/specialties';
 
 export const STAFF_TYPES = ['dentist', 'hygienist', 'assistant', 'receptionist', 'accountant', 'hr', 'manager', 'other'] as const;
 
@@ -46,7 +47,8 @@ const staffWritable = {
   nationality: z.string().length(2).toUpperCase(),
   jobTitle: freeText(80),
   staffType: enumOf([...STAFF_TYPES]),
-  specialty: freeText(80),
+  specialties: z.array(enumOf([...DENTAL_SPECIALTIES])).max(DENTAL_SPECIALTIES.length).refine((v) => new Set(v).size === v.length, { message: 'duplicate' }),
+  primarySpecialty: enumOf([...DENTAL_SPECIALTIES]),
   licenseNumber: freeText(40),
   licenseExpiry: dateOnly(),
   color: color(),
@@ -73,7 +75,8 @@ export const staffUpdateBody = z
     nationality: optional(staffWritable.nationality),
     jobTitle: optional(staffWritable.jobTitle),
     staffType: staffWritable.staffType.optional(),
-    specialty: optional(staffWritable.specialty),
+    specialties: staffWritable.specialties.optional(),
+    primarySpecialty: nullable(staffWritable.primarySpecialty),
     licenseNumber: optional(staffWritable.licenseNumber),
     licenseExpiry: nullable(staffWritable.licenseExpiry),
     color: staffWritable.color.optional(),
@@ -96,7 +99,8 @@ export const staffInviteBody = z
     jobTitle: optional(staffWritable.jobTitle),
     roleIds: z.array(objectId()).max(10).optional(),
     color: optional(staffWritable.color),
-    specialty: optional(staffWritable.specialty),
+    specialties: staffWritable.specialties.optional(),
+    primarySpecialty: optional(staffWritable.primarySpecialty),
     licenseNumber: optional(staffWritable.licenseNumber),
     licenseExpiry: optional(staffWritable.licenseExpiry),
     bookableOnline: z.boolean().optional(),
@@ -114,13 +118,17 @@ export const staffListQuery = z
     staffType: z.enum(STAFF_TYPES).optional(),
     status: z.enum(['active', 'inactive', 'terminated']).optional(),
     bookable: z.enum(['true', 'false']).optional(),
+    specialty: enumOf([...DENTAL_SPECIALTIES]).optional(),
   })
   .strict();
 export type StaffListQuery = z.infer<typeof staffListQuery>;
 
 export const idParams = z.object({ id: objectId() });
 
-export const staffRolesBody = z.object({ roleIds: z.array(objectId()).max(10), isOwner: z.boolean().optional() }).strict();
+/** Ownership is not a role: it changes only through POST /staff/:id/transfer-ownership (04 §9). */
+export const staffRolesBody = z.object({ roleIds: z.array(objectId()).max(10) }).strict();
+
+export const transferOwnershipBody = z.object({ password: z.string().min(1).max(200) }).strict();
 
 const grantInput = z.object({
   permission: z.string().max(80),

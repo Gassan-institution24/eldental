@@ -65,6 +65,7 @@ import {
   type LabStatus,
 } from '../api';
 import { PrintArea, SignaturePad, toothList } from '../components/shared';
+import { useSpecialtyName } from '@/features/staff/components/SpecialtyFields';
 
 /* ---------------- prescriptions (07 §7) ---------------- */
 
@@ -315,6 +316,7 @@ function SignatureImg({ fileId, alt }: { fileId?: string; alt: string }) {
 function RxPrintDialog({ id, onClose }: { id: string; onClose: () => void }) {
   const { t, i18n } = useTranslation('clinical');
   const { t: tc } = useTranslation();
+  const specialtyName = useSpecialtyName();
   const q = useQuery({ queryKey: ['rx-print', id], queryFn: () => fetchRxPrint(id) });
   const d = q.data;
   return (
@@ -389,6 +391,11 @@ function RxPrintDialog({ id, onClose }: { id: string; onClose: () => void }) {
                 <Typography variant="body2">
                   <b>{d.dentist?.name}</b>
                 </Typography>
+                {d.dentist?.primarySpecialty && (
+                  <Typography variant="caption" display="block">
+                    {specialtyName(d.dentist.primarySpecialty)}
+                  </Typography>
+                )}
                 {d.dentist?.licenseNumber && (
                   <Typography variant="caption">
                     {t('rx.license', { number: d.dentist.licenseNumber })}

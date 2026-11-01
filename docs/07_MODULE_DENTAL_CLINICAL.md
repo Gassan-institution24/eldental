@@ -139,3 +139,11 @@ Seed a starter global catalog of about 80 common procedures and categories. Seed
 | D9972 | cosmetic | External bleaching per arch | — |
 
 > Codes are "CDT-like" for internal standardisation. The clinic can rename them and set its own codes. Check licensing before shipping the official CDT descriptors; ship our own wording.
+
+## 13. Dental Specialties
+- **Fixed catalog** in `backend/src/shared/dental/specialties.ts` (synced to the frontend): `general`, `orthodontics`, `oral_surgery`, `endodontics`, `periodontics`, `prosthodontics`, `pediatric`, `implantology`, `cosmetic`, `oral_medicine`. Codes are stable and stored; names come from i18n (`staff:specialties.<code>`, ar + en), never from the database. Clinics can't add their own (for now).
+- **On staff:** `specialties[]` + `primarySpecialty`, dentists and hygienists only (`422 not_allowed_for_staff_type`). When any are set, exactly one is primary and it is in the list (`required` / `primary_not_in_list`). Changing the staff type to a non-clinical one clears them. Field access key: `staff.member.specialties`.
+- **Clinic specialties** are derived from its active doctors (`GET /staff/specialties`); there is no separate clinic catalog.
+- **Used for:** doctor search (`GET /staff?specialty=`), availability (`GET /availability?specialty=`, ready for online booking), the doctor label in the booking drawer, prescriptions and treatment-plan prints (primary specialty), and future reports by specialty.
+- **Never** for permissions, and never to block a procedure: specialties guide, they don't restrict.
+- **Migration from the old free-text field:** `npm run migrate:specialties` (dry run: reports what maps and what doesn't), `-- --apply` (maps recognised English/Arabic wording, keeps the old text in `specialtyLegacy`, leaves unmapped values untouched for review), `-- --rollback` (restores the old text and removes the structured fields of migrated records; specialty edits made after the migration are lost).

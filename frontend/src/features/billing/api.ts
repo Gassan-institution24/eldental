@@ -19,7 +19,11 @@ export type InvoiceLine = {
   insuranceShare: number;
   patientShare: number;
   dentistId?: string;
+  dentistName?: string;
+  /** From a recorded procedure: the doctor who performed it, never changed on the invoice. */
+  dentistLocked?: boolean;
 };
+export type DoctorRef = { id: string; name: string };
 export type Invoice = Entity & {
   number?: string;
   type: 'invoice' | 'credit_note';
@@ -29,7 +33,11 @@ export type Invoice = Entity & {
   insurancePolicyId?: string;
   insuranceCompanyId?: string;
   appointmentId?: string;
+  /** Responsible (header) doctor; each line also carries its own doctor (09 §3.1). */
   dentistId?: string;
+  dentist?: DoctorRef;
+  doctors?: DoctorRef[];
+  multipleDoctors?: boolean;
   lines: InvoiceLine[];
   invoiceDiscount: number;
   discountReason: string;
@@ -112,9 +120,11 @@ export type Payment = {
 };
 
 export type BillingSummary = {
-  receivable: number;
-  credit: number;
+  receivable?: number;
+  credit?: number;
   balance: number;
+  /** `own`: a doctor's view — only invoices with their work, `myShare` of each open balance. */
+  scope?: 'own';
   openInvoices: {
     id: string;
     number: string;
@@ -124,6 +134,7 @@ export type BillingSummary = {
     balanceDue: number;
     patientDue: number;
     insuranceDue: number;
+    myShare?: number;
   }[];
   credits: { paymentId: string; number: string; amount: number; date: string }[];
 };
@@ -203,6 +214,15 @@ export const useInvoices = (p: ListParams) =>
     queryKey: [...billingKeys.invoices, 'list', p],
     queryFn: () => getPaged<Invoice>('/invoices', clean(p)),
   });
+/** Doctors for the invoice doctor picker: id + name only (GET /billing/dentists). */
+export const useBillingDentists = (enabled = true) =>
+  useQuery({
+    queryKey: [...billingKeys.invoices, 'dentists'],
+    queryFn: () => getData<DoctorRef[]>('/billing/dentists'),
+    enabled,
+    staleTime: 5 * 60_000,
+  });
+
 export const useInvoice = (id?: string) =>
   useQuery({
     queryKey: [...billingKeys.invoices, 'one', id],

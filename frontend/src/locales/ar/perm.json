@@ -47,7 +47,7 @@
   "fields": {
     "name": "الاسم", "jobTitle": "المسمى الوظيفي", "staffType": "نوع الموظف", "photo": "الصورة", "color": "لون التقويم", "status": "الحالة", "fileNumber": "رقم الملف",
     "phone": "الهاتف", "altPhone": "هاتف بديل", "email": "البريد الإلكتروني", "address": "العنوان", "nationalId": "الرقم الوطني / جواز السفر", "dateOfBirth": "تاريخ الميلاد",
-    "gender": "الجنس", "nationality": "الجنسية", "specialty": "التخصص", "licenseNumber": "رقم الترخيص", "licenseExpiry": "انتهاء الترخيص",
+    "gender": "الجنس", "nationality": "الجنسية", "specialties": "التخصصات", "licenseNumber": "رقم الترخيص", "licenseExpiry": "انتهاء الترخيص",
     "bookableOnline": "متاح للحجز الإلكتروني", "employment": "تفاصيل التوظيف", "shift": "الوردية", "basicSalary": "الراتب الأساسي", "allowances": "العلاوات والاقتطاعات",
     "commission": "العمولة", "bank": "الحساب البنكي", "roles": "الأدوار", "tags": "الوسوم", "preferredDentist": "الطبيب المفضل", "preferredLanguage": "اللغة المفضلة",
     "communicationPrefs": "تفضيلات التواصل", "guardian": "ولي الأمر", "emergencyContact": "جهة اتصال الطوارئ", "referralSource": "مصدر الإحالة",

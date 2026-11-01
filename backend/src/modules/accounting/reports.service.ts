@@ -1,5 +1,6 @@
 import { Types } from 'mongoose';
 import { currentClinicId } from '@/core/tenancy/tenantPlugin';
+import { collectionMovements, collectionsByDoctor, doctorInvoiceFilter, shareOf, UNASSIGNED } from '@/modules/billing/attribution';
 import { InvoiceModel, PaymentModel, CashSessionModel } from '@/modules/billing/billing.models';
 import { PerformedProcedureModel } from '@/modules/clinical/clinical.models';
 import { PatientModel } from '@/modules/patients/patient.models';
@@ -132,18 +133,20 @@ export async function generalLedger(accountId: string, from: string, to: string)
 const bucketOf = (days: number) => (days <= 0 ? 'current' : days <= 30 ? 'd30' : days <= 60 ? 'd60' : days <= 90 ? 'd90' : 'over90');
 
 /** AR aging by due date (installments respected), for patients or insurers. */
-export async function arAging(asOf: string, payer: 'patient' | 'insurance') {
-  const invs = await InvoiceModel.find({ type: 'invoice', status: { $in: ['issued', 'partially_paid'] }, issueDate: { $lte: asOf } }).lean();
+/** `dentistId` = own scope: only invoices with that doctor's work, and only their share of what is owed (09 §8.1). */
+export async function arAging(asOf: string, payer: 'patient' | 'insurance', opts: { dentistId?: string } = {}) {
+  const invs = await InvoiceModel.find({ type: 'invoice', status: { $in: ['issued', 'partially_paid'] }, issueDate: { $lte: asOf }, ...(opts.dentistId ? doctorInvoiceFilter(opts.dentistId) : {}) }).lean();
   const { dues } = await import('@/modules/billing/invoice.service');
   const groups = new Map<string, { key: string; current: number; d30: number; d60: number; d90: number; over90: number; total: number }>();
   for (const inv of invs) {
     const d = dues(inv);
-    const owed = payer === 'insurance' ? d.insuranceDue : d.patientDue;
+    const due = payer === 'insurance' ? d.insuranceDue : d.patientDue;
+    const owed = opts.dentistId ? shareOf(due, inv, opts.dentistId) : due;
     if (owed <= 0) continue;
     const key = payer === 'insurance' ? String(inv.insuranceCompanyId ?? '') : String(inv.patientId);
     const g = groups.get(key) ?? { key, current: 0, d30: 0, d60: 0, d90: 0, over90: 0, total: 0 };
     const plan = (inv.installmentPlan ?? []).filter((p) => (p.amount ?? 0) > (p.paidAmount ?? 0));
-    const parts = payer === 'patient' && plan.length ? plan.map((p) => ({ due: p.dueDate ?? inv.dueDate ?? asOf, amount: Math.min(owed, (p.amount ?? 0) - (p.paidAmount ?? 0)) })) : [{ due: inv.dueDate ?? inv.issueDate ?? asOf, amount: owed }];
+    const parts = payer === 'patient' && plan.length ? plan.map((p) => ({ due: p.dueDate ?? inv.dueDate ?? asOf, amount: Math.min(owed, opts.dentistId ? shareOf((p.amount ?? 0) - (p.paidAmount ?? 0), inv, opts.dentistId) : (p.amount ?? 0) - (p.paidAmount ?? 0)) })) : [{ due: inv.dueDate ?? inv.issueDate ?? asOf, amount: owed }];
     for (const part of parts) {
       const b = bucketOf(daysBetween(part.due, asOf));
       g[b] += part.amount;
@@ -206,7 +209,8 @@ export async function dailyCash(date: string) {
 }
 
 /** Patient statement: opening balance, documents, closing (09 §8). */
-export async function patientStatement(patientId: string, from: string, to: string) {
+export async function patientStatement(patientId: string, from: string, to: string, opts: { dentistId?: string; tz?: string } = {}) {
+  if (opts.dentistId) return doctorPatientStatement(patientId, from, to, opts.dentistId, opts.tz ?? 'Asia/Amman');
   const accts = await AccountModel.find({ systemKey: { $in: ['AR_PATIENTS', 'PATIENT_CREDIT'] } }).lean();
   const ids = accts.map((a) => a._id);
   const pid = new Types.ObjectId(patientId);
@@ -235,21 +239,67 @@ export async function patientStatement(patientId: string, from: string, to: stri
   return { patient: patient ? { fullName: patient.fullName, fileNumber: patient.fileNumber, phone: patient.phone?.e164 } : null, from, to, opening, closing: running, lines };
 }
 
-/** Production (performed procedures) and collection (allocated payments) per dentist. */
-export async function dentistProduction(from: string, to: string) {
+/** Insurance write-offs per doctor, straight from the ledger (claim journals' doctor-split DISCOUNTS debits, 09 §8.1). */
+async function writeOffsByDoctor(from: string, to: string): Promise<Map<string, number>> {
+  const acct = await AccountModel.findOne({ systemKey: 'DISCOUNTS' }).select('_id').lean();
+  if (!acct) return new Map();
+  const rows = await JournalEntryModel.aggregate<{ _id: Types.ObjectId | null; amount: number }>([
+    { $match: { clinicId: new Types.ObjectId(currentClinicId()), status: LIVE, source: 'claim', date: { $gte: from, $lte: to } } },
+    { $unwind: '$lines' },
+    { $match: { 'lines.accountId': acct._id } },
+    { $group: { _id: '$lines.dentistId', amount: { $sum: { $subtract: ['$lines.debit', '$lines.credit'] } } } },
+  ]);
+  return new Map(rows.map((r) => [r._id ? String(r._id) : UNASSIGNED, r.amount]));
+}
+
+/**
+ * Own-scope statement (04 §3): built from the invoices that include this doctor's work only, never
+ * from the patient's whole ledger. Those invoices are shown in full (shared invoices are visible in
+ * full), with their credit notes and the money applied to them.
+ */
+async function doctorPatientStatement(patientId: string, from: string, to: string, dentistId: string, tz: string) {
+  const invs = await InvoiceModel.find({ patientId: new Types.ObjectId(patientId), type: 'invoice', status: { $in: ['issued', 'partially_paid', 'paid'] }, issueDate: { $lte: to }, ...doctorInvoiceFilter(dentistId) }).select('number issueDate total').lean();
+  const ids = new Set(invs.map((i) => String(i._id)));
+  const credits = await InvoiceModel.find({ type: 'credit_note', originalInvoiceId: { $in: invs.map((i) => i._id) }, issueDate: { $lte: to } }).select('number issueDate total').lean();
+  const moves = (await collectionMovements('0000-01-01', to, tz, { patientId })).filter((m) => ids.has(m.invoiceId));
+  const events = [
+    ...invs.map((i) => ({ date: i.issueDate ?? '', number: i.number, source: 'invoice', delta: i.total ?? 0 })),
+    ...credits.map((c) => ({ date: c.issueDate ?? '', number: c.number, source: 'credit_note', delta: -(c.total ?? 0) })),
+    ...moves.map((m) => ({ date: m.date, number: null, source: m.amount >= 0 ? 'payment' : 'refund', delta: -m.amount })),
+  ].sort((a, b) => a.date.localeCompare(b.date));
+  let opening = 0;
+  let running = 0;
+  const lines: { date: string; number?: string | null; source: string; memo: string; charge: number; credit: number; balance: number }[] = [];
+  for (const e of events) {
+    if (!e.delta) continue;
+    if (e.date < from) {
+      opening += e.delta;
+      running = opening;
+      continue;
+    }
+    running += e.delta;
+    lines.push({ date: e.date, number: e.number, source: e.source, memo: '', charge: Math.max(0, e.delta), credit: Math.max(0, -e.delta), balance: running });
+  }
+  if (!lines.length) running = opening;
+  const patient = await PatientModel.findById(patientId).select('fullName fileNumber').lean();
+  return { patient: patient ? { fullName: patient.fullName, fileNumber: patient.fileNumber } : null, from, to, opening, closing: running, lines, scope: 'own' as const };
+}
+
+/**
+ * Production (performed procedures, by performer) and collection (money applied to invoices, split
+ * by each invoice's doctor weights, net of refunds) per doctor (09 §8.1). `dentistId` = own scope.
+ */
+export async function dentistProduction(from: string, to: string, opts: { dentistId?: string; tz?: string } = {}) {
   const prod = await PerformedProcedureModel.aggregate<{ _id: Types.ObjectId; production: number; count: number }>([
-    { $match: { clinicId: new Types.ObjectId(currentClinicId()), status: 'completed', performedAt: { $gte: new Date(`${from}T00:00:00Z`), $lte: new Date(`${to}T23:59:59Z`) } } },
+    { $match: { clinicId: new Types.ObjectId(currentClinicId()), status: 'completed', performedAt: { $gte: new Date(`${from}T00:00:00Z`), $lte: new Date(`${to}T23:59:59Z`) }, ...(opts.dentistId ? { dentistId: new Types.ObjectId(opts.dentistId) } : {}) } },
     { $group: { _id: '$dentistId', production: { $sum: { $subtract: [{ $multiply: ['$unitPrice', '$quantity'] }, '$discount'] } }, count: { $sum: 1 } } },
   ]);
-  const pays = await PaymentModel.find({ date: { $gte: from, $lte: to }, status: { $ne: 'void' } }).select('allocations').lean();
-  const invIds = pays.flatMap((p) => (p.allocations ?? []).map((a) => a.invoiceId));
-  const invs = new Map((await InvoiceModel.find({ _id: { $in: invIds } }).select('dentistId').lean()).map((i) => [String(i._id), i.dentistId ? String(i.dentistId) : '']));
-  const coll = new Map<string, number>();
-  for (const p of pays) for (const a of p.allocations ?? []) {
-    const d = invs.get(String(a.invoiceId)) ?? '';
-    coll.set(d, (coll.get(d) ?? 0) + (a.amount ?? 0));
-  }
-  const staff = new Map((await StaffModel.find({ staffType: { $in: ['dentist', 'hygienist'] } }).select('name').lean()).map((s) => [String(s._id), s.name]));
-  const keys = new Set([...prod.map((p) => String(p._id)), ...[...coll.keys()].filter(Boolean)]);
-  return { from, to, rows: [...keys].map((k) => ({ dentistId: k, name: staff.get(k) ?? '', procedures: prod.find((p) => String(p._id) === k)?.count ?? 0, production: prod.find((p) => String(p._id) === k)?.production ?? 0, collection: coll.get(k) ?? 0 })) };
+  const coll = await collectionsByDoctor(from, to, opts.tz ?? 'Asia/Amman');
+  const writtenOff = await writeOffsByDoctor(from, to);
+  const keys = new Set([...prod.map((p) => String(p._id)), ...[...coll.entries(), ...writtenOff.entries()].filter(([, v]) => v !== 0).map(([k]) => k)]);
+  // Own scope: never return another doctor's row, not even a zero one.
+  const visible = opts.dentistId ? [opts.dentistId] : [...keys];
+  const staff = new Map((await StaffModel.find({ _id: { $in: visible.filter((k) => k !== UNASSIGNED) } }).select('name').lean()).map((s) => [String(s._id), s.name]));
+  const rows = visible.map((k) => ({ dentistId: k, name: staff.get(k) ?? '', procedures: prod.find((p) => String(p._id) === k)?.count ?? 0, production: prod.find((p) => String(p._id) === k)?.production ?? 0, collection: coll.get(k) ?? 0, writtenOff: writtenOff.get(k) ?? 0 }));
+  return { from, to, rows, scope: opts.dentistId ? ('own' as const) : ('all' as const) };
 }

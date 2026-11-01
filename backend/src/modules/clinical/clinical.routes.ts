@@ -434,7 +434,7 @@ clinicalRouter.get(
     if (!rx) throw ApiError.notFound();
     const patient = await patientOf(req, String(rx.patientId));
     const [dentist, clinic] = await Promise.all([
-      StaffModel.findById(rx.dentistId).select('name licenseNumber specialty signatureFileId stampFileId').lean(),
+      StaffModel.findById(rx.dentistId).select('name licenseNumber specialties primarySpecialty signatureFileId stampFileId').lean(),
       runWithoutTenant(() => ClinicModel.findById(currentClinicId()).select('name phone email address addressLine1 logoFileId settings.printLanguage').lean()),
     ]);
     rx.printedAt = new Date();
@@ -443,7 +443,7 @@ clinicalRouter.get(
     ok(res, {
       prescription: rxDto(rx.toObject() as never),
       patient: { fullName: patient.fullName, fileNumber: patient.fileNumber, dateOfBirth: patient.dateOfBirth, gender: patient.gender, medicalAlerts: patient.medicalAlerts },
-      dentist: dentist ? { name: dentist.name, licenseNumber: dentist.licenseNumber, specialty: dentist.specialty, signatureFileId: id(dentist.signatureFileId), stampFileId: id(dentist.stampFileId) } : null,
+      dentist: dentist ? { name: dentist.name, licenseNumber: dentist.licenseNumber, primarySpecialty: dentist.primarySpecialty ?? undefined, specialties: dentist.specialties ?? [], signatureFileId: id(dentist.signatureFileId), stampFileId: id(dentist.stampFileId) } : null,
       clinic,
     });
   }),

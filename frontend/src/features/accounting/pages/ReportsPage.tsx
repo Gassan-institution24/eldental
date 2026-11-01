@@ -662,6 +662,7 @@ function Production() {
       procedures: number;
       production: number;
       collection: number;
+      writtenOff?: number;
     }[];
   }>('production', { from, to });
   return (
@@ -682,6 +683,7 @@ function Production() {
               <TableCell align="right">{t('reports.procedures')}</TableCell>
               <TableCell align="right">{t('reports.production')}</TableCell>
               <TableCell align="right">{t('reports.collection')}</TableCell>
+              <TableCell align="right">{t('reports.writtenOff')}</TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
@@ -691,6 +693,7 @@ function Production() {
                 <TableCell align="right">{r.procedures}</TableCell>
                 <Num v={r.production} />
                 <Num v={r.collection} />
+                <Num v={r.writtenOff ?? 0} />
               </TableRow>
             ))}
           </TableBody>

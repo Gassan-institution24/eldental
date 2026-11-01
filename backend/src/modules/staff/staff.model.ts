@@ -2,6 +2,7 @@ import { Schema, model, type InferSchemaType, type HydratedDocument } from 'mong
 import { applyBase } from '@/core/db/plugins';
 import { tenantField } from '@/core/tenancy/tenantPlugin';
 import { phoneSchema } from '@/modules/users/user.model';
+import { DENTAL_SPECIALTIES } from '@/shared/dental/specialties';
 
 const grantSchema = new Schema(
   {
@@ -43,7 +44,11 @@ const staffSchema = new Schema(
     isOwner: { type: Boolean, default: false },
     roleIds: [{ type: Schema.Types.ObjectId, ref: 'Role' }],
     permissionOverrides: { type: [grantSchema], default: [] },
-    specialty: String,
+    // Dental specialties (07 §13): stable codes, one of them primary. Dentists and hygienists only.
+    specialties: { type: [{ type: String, enum: DENTAL_SPECIALTIES }], default: undefined },
+    primarySpecialty: { type: String, enum: DENTAL_SPECIALTIES },
+    // The old free-text value, kept by the specialties migration for recovery (scripts/migrateSpecialties.ts).
+    specialtyLegacy: { type: String, select: false },
     licenseNumber: String,
     licenseExpiry: String,
     signatureFileId: { type: Schema.Types.ObjectId, ref: 'FileAsset' },

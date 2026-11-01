@@ -3,9 +3,7 @@ import {
   Avatar,
   Box,
   Button,
-  Checkbox,
   Chip,
-  FormControlLabel,
   Grid,
   Stack,
   Tab,
@@ -13,6 +11,7 @@ import {
   Typography,
 } from '@mui/material';
 import { Mail, Power, ShieldCheck } from 'lucide-react';
+import { useWatch } from 'react-hook-form';
 import { useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Navigate, useParams, useSearchParams } from 'react-router-dom';
@@ -34,6 +33,7 @@ import {
   personName,
   phone,
 } from '@/shared/generated/validation/fields';
+import { DENTAL_SPECIALTIES, SPECIALTY_STAFF_TYPES } from '@/shared/generated/dental/specialties';
 import { useConfirm } from '@/shared/components/ConfirmDialog';
 import { MoneyText, useCurrency } from '@/shared/components/MoneyText';
 import { PageHeader } from '@/shared/components/PageHeader';
@@ -51,11 +51,15 @@ import { useSeedName } from '@/shared/hooks/useSeedName';
 import { FieldScope } from '@/shared/rbac/fieldAccess';
 import { useFieldAccess, usePermission } from '@/shared/rbac/usePermission';
 import { PermissionEditor } from '../components/PermissionEditor';
+import { OwnerBadge } from '../components/OwnerBadge';
+import { SpecialtyChips, SpecialtyFields } from '../components/SpecialtyFields';
+import { TransferOwnershipCard } from '../components/TransferOwnership';
 import {
   staffApi,
   useEffectivePermissions,
   usePermissionRegistry,
   useRoles,
+  grantsAccessControl,
   useSaveOverrides,
   useSetRoles,
   useStaffAction,
@@ -65,22 +69,34 @@ import {
 } from '../api';
 import { STAFF_TYPES } from './StaffListPage';
 
-const profileSchema = z.object({
-  name: personName({ max: 120 }),
-  email: nullable(email()),
-  phone: nullable(phone()),
-  staffType: enumOf([...STAFF_TYPES]),
-  jobTitle: optional(freeText(80)),
-  gender: optional(enumOf(['male', 'female'])),
-  dateOfBirth: nullable(dateOfBirth()),
-  nationalId: nullable(nationalId()),
-  address: optional(freeText(300)),
-  specialty: optional(freeText(80)),
-  licenseNumber: optional(freeText(40)),
-  licenseExpiry: nullable(dateOnly()),
-  color: color(),
-  bookableOnline: z.boolean(),
-});
+const isClinical = (type?: string) =>
+  (SPECIALTY_STAFF_TYPES as readonly string[]).includes(type ?? '');
+
+// Same rules as the server (07 §13): one primary, chosen from the selected specialties.
+const profileSchema = z
+  .object({
+    name: personName({ max: 120 }),
+    email: nullable(email()),
+    phone: nullable(phone()),
+    staffType: enumOf([...STAFF_TYPES]),
+    jobTitle: optional(freeText(80)),
+    gender: optional(enumOf(['male', 'female'])),
+    dateOfBirth: nullable(dateOfBirth()),
+    nationalId: nullable(nationalId()),
+    address: optional(freeText(300)),
+    specialties: z.array(enumOf([...DENTAL_SPECIALTIES])).max(DENTAL_SPECIALTIES.length),
+    primarySpecialty: optional(enumOf([...DENTAL_SPECIALTIES])),
+    licenseNumber: optional(freeText(40)),
+    licenseExpiry: nullable(dateOnly()),
+    color: color(),
+    bookableOnline: z.boolean(),
+  })
+  .superRefine((v, ctx) => {
+    if (v.specialties.length && !v.primarySpecialty)
+      ctx.addIssue({ code: 'custom', path: ['primarySpecialty'], message: 'required' });
+    else if (v.primarySpecialty && !v.specialties.includes(v.primarySpecialty))
+      ctx.addIssue({ code: 'custom', path: ['primarySpecialty'], message: 'primary_not_in_list' });
+  });
 type Profile = z.input<typeof profileSchema>;
 
 /** Only send fields the user changed (others may be hidden/read-only → FIELD_FORBIDDEN). */
@@ -99,7 +115,9 @@ function ProfileTab({ staff }: { staff: StaffMember }) {
   const notify = useNotify();
   const update = staffApi.useUpdate();
   const { can } = usePermission();
-  const canEdit = can('staff.member.update');
+  const session = useSessionData();
+  // The owner's record is protected: only the owner edits it (04 §9).
+  const canEdit = can('staff.member.update') && (!staff.isOwner || Boolean(session?.isOwner));
   const form = useAppForm<Profile>({
     schema: profileSchema,
     values: {
@@ -112,19 +130,32 @@ function ProfileTab({ staff }: { staff: StaffMember }) {
       dateOfBirth: staff.dateOfBirth ?? '',
       nationalId: staff.nationalId && !staff.nationalId.includes('•') ? staff.nationalId : '',
       address: staff.address ?? '',
-      specialty: staff.specialty ?? '',
+      specialties: (staff.specialties ?? []) as Profile['specialties'],
+      primarySpecialty: (staff.primarySpecialty ?? '') as Profile['primarySpecialty'],
       licenseNumber: staff.licenseNumber ?? '',
       licenseExpiry: staff.licenseExpiry ?? '',
       color: staff.color ?? '#4F46E5',
       bookableOnline: Boolean(staff.bookableOnline),
     },
-    defaultValues: { name: '', color: '#4F46E5', bookableOnline: false, staffType: 'other' },
+    defaultValues: {
+      name: '',
+      color: '#4F46E5',
+      bookableOnline: false,
+      staffType: 'other',
+      specialties: [],
+    },
   });
+  const typeNow = useWatch({ control: form.control, name: 'staffType' });
   const onSubmit = async (v: Profile) => {
     const changes = dirtyOnly(
       v as Record<string, unknown>,
       form.formState.dirtyFields as Record<string, unknown>,
     );
+    // Specialties travel together; an empty primary is sent as null.
+    if ('specialties' in changes || 'primarySpecialty' in changes) {
+      changes.specialties = v.specialties;
+      changes.primarySpecialty = (v.primarySpecialty || null) as never;
+    }
     await update.mutateAsync({
       id: staff.id,
       version: staff.version,
@@ -132,7 +163,7 @@ function ProfileTab({ staff }: { staff: StaffMember }) {
     });
     notify.success(t('saved'));
   };
-  const clinical = staff.staffType === 'dentist' || staff.staffType === 'hygienist';
+  const clinical = isClinical(typeNow);
   return (
     <Form form={form} name="staff.profile" onSubmit={onSubmit} guardUnsaved>
       <fieldset disabled={!canEdit} style={{ border: 0, padding: 0, margin: 0, minWidth: 0 }}>
@@ -233,14 +264,6 @@ function ProfileTab({ staff }: { staff: StaffMember }) {
                 maxLength={80}
               />
             </Grid>
-            <Grid item xs={12} md={4}>
-              <RHFTextField
-                name="specialty"
-                label={t('fields.specialty')}
-                fieldKey="specialty"
-                maxLength={80}
-              />
-            </Grid>
             <Grid item xs={12} md={6}>
               <RHFTextField
                 name="licenseNumber"
@@ -256,6 +279,7 @@ function ProfileTab({ staff }: { staff: StaffMember }) {
                 fieldKey="licenseExpiry"
               />
             </Grid>
+            {clinical && <SpecialtyFields />}
             {clinical && (
               <>
                 <Grid item xs={12}>
@@ -455,13 +479,15 @@ function PermissionsTab({ staff }: { staff: StaffMember }) {
   const roleName = useSeedName('roles');
   const roles = useRoles();
   const registry = usePermissionRegistry();
-  const eff = useEffectivePermissions(staff.id);
+  const { can } = usePermission();
+  // HR (staff.member.update without staff.role.manage) changes built-in job roles only; no overrides.
+  const manageAccess = can('staff.role.manage');
+  const eff = useEffectivePermissions(manageAccess ? staff.id : undefined);
   const setRoles = useSetRoles();
   const saveOverrides = useSaveOverrides();
   const notify = useNotify();
   const session = useSessionData();
   const [roleIds, setRoleIds] = useState<string[]>(staff.roleIds ?? []);
-  const [isOwner, setIsOwner] = useState(Boolean(staff.isOwner));
   const [grants, setGrants] = useState<Grant[]>([]);
   const [revoked, setRevoked] = useState<Set<string>>(new Set());
   const [editing, setEditing] = useState(false);
@@ -473,13 +499,12 @@ function PermissionsTab({ staff }: { staff: StaffMember }) {
   }, [eff.data]);
 
   const rolesDirty = useMemo(
-    () =>
-      JSON.stringify([...roleIds].sort()) !== JSON.stringify([...(staff.roleIds ?? [])].sort()) ||
-      isOwner !== Boolean(staff.isOwner),
-    [roleIds, isOwner, staff],
+    () => JSON.stringify([...roleIds].sort()) !== JSON.stringify([...(staff.roleIds ?? [])].sort()),
+    [roleIds, staff],
   );
 
-  if (roles.isLoading || registry.isLoading || eff.isLoading) return <PageSkeleton rows={4} />;
+  if (roles.isLoading || registry.isLoading || (manageAccess && eff.isLoading))
+    return <PageSkeleton rows={4} />;
   if (!registry.data) return <ErrorState error={registry.error} />;
 
   const saveRoles = async () => {
@@ -487,7 +512,6 @@ function PermissionsTab({ staff }: { staff: StaffMember }) {
       await setRoles.mutateAsync({
         id: staff.id,
         roleIds,
-        ...(session?.isOwner ? { isOwner } : {}),
       });
       notify.success(t('rolesSaved'));
       void eff.refetch();
@@ -510,13 +534,22 @@ function PermissionsTab({ staff }: { staff: StaffMember }) {
     }
   };
 
+  // Server rules mirrored for clarity (04 §9): the owner's access and your own are read-only here.
+  const locked = !session?.isOwner && (Boolean(staff.isOwner) || staff.id === session?.staff?.id);
+
   return (
     <>
+      {locked && (
+        <Alert severity="info" sx={{ mb: 4 }} data-testid="access-locked">
+          {staff.isOwner ? t('ownerProtected') : t('selfAccessLocked')}
+        </Alert>
+      )}
       <SectionCard
         title={t('rolesTitle')}
         subtitle={t('rolesHint')}
         footer={
-          rolesDirty && (
+          rolesDirty &&
+          !locked && (
             <Button
               variant="contained"
               onClick={() => void saveRoles()}
@@ -527,32 +560,33 @@ function PermissionsTab({ staff }: { staff: StaffMember }) {
           )
         }
       >
-        {session?.isOwner && (
-          <FormControlLabel
-            control={<Checkbox checked={isOwner} onChange={(e) => setIsOwner(e.target.checked)} />}
-            label={t('makeOwner')}
-            sx={{ mb: 2 }}
-          />
-        )}
         <Stack direction="row" sx={{ flexWrap: 'wrap', gap: 2 }}>
-          {(roles.data ?? []).map((r) => {
-            const on = roleIds.includes(r.id);
-            return (
-              <Chip
-                key={r.id}
-                label={roleName({ name: r.name, systemKey: r.systemKey })}
-                color={on ? 'primary' : 'default'}
-                variant={on ? 'filled' : 'outlined'}
-                onClick={() =>
-                  setRoleIds((ids) => (on ? ids.filter((x) => x !== r.id) : [...ids, r.id]))
-                }
-                aria-pressed={on}
-              />
-            );
-          })}
+          {(roles.data ?? [])
+            .filter((r) => manageAccess || r.isSystem)
+            .map((r) => {
+              const on = roleIds.includes(r.id);
+              const ownerControlled = !session?.isOwner && grantsAccessControl(r);
+              return (
+                <Chip
+                  key={r.id}
+                  label={roleName({ name: r.name, systemKey: r.systemKey })}
+                  color={on ? 'primary' : 'default'}
+                  variant={on ? 'filled' : 'outlined'}
+                  onClick={
+                    locked || ownerControlled
+                      ? undefined
+                      : () =>
+                          setRoleIds((ids) => (on ? ids.filter((x) => x !== r.id) : [...ids, r.id]))
+                  }
+                  disabled={locked || ownerControlled}
+                  title={ownerControlled ? t('ownerControlledRole') : undefined}
+                  aria-pressed={on}
+                />
+              );
+            })}
         </Stack>
       </SectionCard>
-      {eff.data?.isOwner ? (
+      {!manageAccess ? null : eff.data?.isOwner ? (
         <Alert icon={<ShieldCheck size={20} />} severity="success">
           {t('ownerHasAll')}
         </Alert>
@@ -727,8 +761,9 @@ export function StaffProfilePage() {
                   variant="outlined"
                   label={typeName({ systemKey: s.staffType })}
                 />
-                {s.isOwner && <Chip size="small" color="primary" label={t('owner')} />}
+                {s.isOwner && <OwnerBadge />}
                 {s.id === session?.staff?.id && <Chip size="small" label={t('you')} />}
+                <SpecialtyChips specialties={s.specialties} primary={s.primarySpecialty} />
                 {s.fileNumber && (
                   <Typography variant="caption" color="text.secondary" dir="ltr">
                     {s.fileNumber}
@@ -752,7 +787,11 @@ export function StaffProfilePage() {
           {
             label: s.status === 'active' ? t('deactivate') : t('reactivate'),
             icon: <Power size={16} />,
-            hidden: !can('staff.member.delete') || s.id === session?.staff?.id,
+            hidden:
+              !can('staff.member.delete') ||
+              s.id === session?.staff?.id ||
+              (Boolean(s.isOwner) && !session?.isOwner) ||
+              (Boolean(s.isOwner) && s.status === 'active'),
             onClick: () => void toggleActive(),
           },
         ]}
@@ -764,11 +803,18 @@ export function StaffProfilePage() {
       >
         <Tab value="profile" label={t('tabs.profile')} />
         {showEmployment && <Tab value="employment" label={t('tabs.employment')} />}
-        {can('staff.role.manage') && <Tab value="permissions" label={t('tabs.permissions')} />}
+        {(can('staff.role.manage') || can('staff.member.update')) && (
+          <Tab value="permissions" label={t('tabs.permissions')} />
+        )}
       </Tabs>
       {tab === 'profile' && <ProfileTab staff={s} />}
       {tab === 'employment' && showEmployment && <EmploymentTab staff={s} />}
-      {tab === 'permissions' && can('staff.role.manage') && <PermissionsTab staff={s} />}
+      {tab === 'permissions' && (can('staff.role.manage') || can('staff.member.update')) && (
+        <PermissionsTab staff={s} />
+      )}
+      {tab === 'permissions' && session?.isOwner && !s.isOwner && s.status === 'active' && (
+        <TransferOwnershipCard staff={s} />
+      )}
       {!showEmployment && tab === 'employment' && (
         <NoPermission permission="hr.compensation.read" />
       )}

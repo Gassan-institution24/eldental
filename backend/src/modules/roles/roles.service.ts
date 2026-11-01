@@ -6,7 +6,8 @@ import { ApiError } from '@/core/http/ApiError';
 import { bumpPermVersion } from '@/core/rbac/permission.service';
 import { FIELD_GROUP_ORDER, MODULES, PERMISSIONS, RESOURCE_FIELDS } from '@/core/rbac/registry';
 import { PLATFORM_PERMISSIONS } from '@/core/rbac/platformRegistry';
-import { escalationViolations, resolveFields } from '@/core/rbac/resolve';
+import { assertRoleDefinitionAllowed, FULL_ACCESS_ROLE_KEY } from '@/core/rbac/accessBoundary';
+import { resolveFields } from '@/core/rbac/resolve';
 import { ROLE_TEMPLATES } from '@/core/rbac/roleTemplates';
 import { FIELD_ACCESS_ORDER, type FieldAccess, type Grant } from '@/core/rbac/rbac.types';
 import { runWithoutTenant } from '@/core/tenancy/tenantPlugin';
@@ -92,10 +93,9 @@ export async function getRole(id: string) {
   return toDto(r);
 }
 
-function assertNoEscalation(auth: AuthContext, grants: Grant[]) {
-  if (auth.isOwner) return;
-  const bad = escalationViolations(auth.grants, grants);
-  if (bad.length) throw ApiError.forbidden('ESCALATION_FORBIDDEN', 'Cannot grant beyond your own permissions', { permissions: bad });
+/** Escalation rule + owner-only access control (04 §9.2). */
+function assertNoEscalation(auth: AuthContext, grants: Grant[], role: { key?: string | null } | null = null) {
+  assertRoleDefinitionAllowed(auth, role, grants);
 }
 
 export async function createRole(auth: AuthContext, body: RoleBody) {
@@ -111,10 +111,12 @@ export async function updateRole(auth: AuthContext, id: string, body: z.infer<ty
   const r = await RoleModel.findById(id);
   if (!r) throw ApiError.notFound();
   if ((r.__v ?? 0) !== body.version) throw ApiError.conflict('VERSION_CONFLICT', 'The role was changed by someone else.');
+  // The Full access role is owner-controlled, even for a rename.
+  if (!auth.isOwner && r.key === FULL_ACCESS_ROLE_KEY) assertNoEscalation(auth, [], r);
   const before = toDto(r.toObject());
   if (body.permissions) {
     const permissions = normaliseGrants(body.permissions as Grant[]);
-    assertNoEscalation(auth, permissions);
+    assertNoEscalation(auth, permissions, r);
     r.permissions = permissions as never;
   }
   if (body.name !== undefined) r.name = body.name;

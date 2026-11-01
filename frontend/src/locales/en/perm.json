@@ -47,7 +47,7 @@
   "fields": {
     "name": "Name", "jobTitle": "Job title", "staffType": "Staff type", "photo": "Photo", "color": "Calendar colour", "status": "Status", "fileNumber": "File number",
     "phone": "Phone", "altPhone": "Alternative phone", "email": "Email", "address": "Address", "nationalId": "National ID / passport", "dateOfBirth": "Date of birth",
-    "gender": "Gender", "nationality": "Nationality", "specialty": "Specialty", "licenseNumber": "Licence number", "licenseExpiry": "Licence expiry",
+    "gender": "Gender", "nationality": "Nationality", "specialties": "Specialties", "licenseNumber": "Licence number", "licenseExpiry": "Licence expiry",
     "bookableOnline": "Bookable online", "employment": "Employment details", "shift": "Shift", "basicSalary": "Basic salary", "allowances": "Allowances & deductions",
     "commission": "Commission", "bank": "Bank account", "roles": "Roles", "tags": "Tags", "preferredDentist": "Preferred dentist", "preferredLanguage": "Preferred language",
     "communicationPrefs": "Communication preferences", "guardian": "Guardian", "emergencyContact": "Emergency contact", "referralSource": "Referral source",

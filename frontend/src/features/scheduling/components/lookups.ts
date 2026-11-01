@@ -4,7 +4,14 @@ import { dayjs, getClinicTimezone, inClinicTz } from '@/lib/dates';
 import { useSeedName } from '@/shared/hooks/useSeedName';
 import { useSchedules } from '../api';
 
-export type Dentist = { id: string; name: string; color: string; defaultChairId?: string };
+export type Dentist = {
+  id: string;
+  name: string;
+  color: string;
+  defaultChairId?: string;
+  specialties: string[];
+  primarySpecialty?: string;
+};
 
 /** Dentists (with schedules), chairs and appointment types used across scheduling screens. */
 export function useSchedulingLookups() {
@@ -20,6 +27,8 @@ export function useSchedulingLookups() {
         name: s.staff.name,
         color: s.staff.color ?? '#4F46E5',
         defaultChairId: s.staff.defaultChairId,
+        specialties: s.staff.specialties ?? [],
+        primarySpecialty: s.staff.primarySpecialty,
       })),
     [schedules.data],
   );

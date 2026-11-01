@@ -135,6 +135,21 @@
 - [x] Inventory (items, movements, low-stock alerts, link to supplier bills)
 - [ ] Superadmin stats
 
+## Phase 10b — Doctor attribution, owner identity & specialties
+- [x] Own scope on invoices = header doctor or any line doctor; shared invoices visible in full; indexes `{clinicId, dentistId}` / `{clinicId, lines.dentistId}` (`04` §3)
+- [x] Privacy fixes: production report, AR aging, patient statement, patient billing summary and dashboard receivables respect own scope (`09` §8)
+- [x] Doctor validation (active dentist/hygienist of the clinic), `DENTIST_REQUIRED` on issue, procedure-line doctor locked (`09` §3.1)
+- [x] Proportional collection attribution with refunds by date; used by production report, receivables share and collection commission (`09` §8.1)
+- [x] Invoice UI: doctor column, "multiple doctors" marker, URL doctor filter (all-scope only), responsible-doctor picker + line doctors, locked procedure lines; `GET /billing/dentists`
+- [x] Clinic owner as a protected identity: no `isOwner` on the roles endpoint, `OWNER_PROTECTED`, `SELF_PERMISSION_CHANGE`, audited password-confirmed transfer, Owner badge (`04` §9)
+- [x] Fixed dental specialties (multi + primary), derived clinic specialties, `?specialty=` on staff and availability, prints and booking labels, migration script with dry run/rollback (`07` §13)
+- [x] Full access and `staff.role.manage` owner-controlled; custom roles bounded by the assigner's grants; HR changes job roles of existing staff (`04` §9.2)
+- [x] Write-offs split by doctors' outstanding shares, posted per doctor in the claim journal (`09` §8.1)
+- [x] Specialty migration applied on the local dev database (after a backup and dry run)
+- [ ] Run `npm run migrate:specialties -- --apply` on other environments after a backup and a reviewed dry run
+- [ ] Production: create the two doctor-scope invoice indexes before deploying (procedure in `03` §7)
+- [ ] Online booking specialty filter in the portal UI (the portal booking page is still a placeholder, Phase 9)
+
 ## Phase 11 — Hardening & Deploy
 - [ ] Security review against `11_SECURITY.md` (checklist), dependency audit, rate-limit tuning
 - [ ] Playwright e2e for the critical journeys

@@ -11,7 +11,7 @@ import {
   Typography,
 } from '@mui/material';
 import { Plus, Trash2 } from 'lucide-react';
-import { useMemo } from 'react';
+import { useEffect, useMemo } from 'react';
 import { Controller, useFieldArray, useWatch } from 'react-hook-form';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
@@ -31,7 +31,7 @@ import { useAppForm } from '@/shared/form/useAppForm';
 import { useNotify } from '@/shared/hooks/useNotify';
 import { useSeedName } from '@/shared/hooks/useSeedName';
 import { usePermission } from '@/shared/rbac/usePermission';
-import { useInvoiceMutations, type Invoice } from '../api';
+import { useBillingDentists, useInvoiceMutations, type Invoice } from '../api';
 
 const amount = z
   .number({ invalid_type_error: 'invalid_amount' })
@@ -51,6 +51,10 @@ const lineSchema = z
     unitPrice: amount,
     discount: amount,
     taxRateId: optional(objectId()),
+    dentistId: optional(objectId()),
+    /** UI only: the line comes from a recorded procedure, so its doctor is fixed. */
+    dentistLocked: z.boolean().optional(),
+    dentistName: z.string().optional(),
   })
   .superRefine((l, ctx) => {
     if (!l.clinicProcedureId && !l.performedProcedureId && !l.description)
@@ -63,6 +67,8 @@ const schema = z.object({
     .object({ id: objectId(), fullName: z.string() })
     .nullable()
     .refine((v) => v !== null, { message: 'required' }),
+  // Responsible doctor (09 §3.1): required, and the default for every manual line.
+  dentistId: z.string().min(1, { message: 'required' }).pipe(objectId()),
   insurancePolicyId: optional(objectId()),
   dueDate: optional(dateOnly()),
   invoiceDiscount: amount,
@@ -76,10 +82,13 @@ type Values = z.input<typeof schema>;
 export function InvoiceEditor({
   invoice,
   patient,
+  dentistId,
   onClose,
 }: {
   invoice?: Invoice;
   patient?: { id: string; fullName: string };
+  /** Default doctor, e.g. the appointment's doctor. */
+  dentistId?: string;
   onClose: () => void;
 }) {
   const { t } = useTranslation('billing');
@@ -91,6 +100,7 @@ export function InvoiceEditor({
   const procs = useProcedureLookup();
   const taxes = taxRatesApi.useAll();
   const taxName = useSeedName('taxRate');
+  const dentists = useBillingDentists();
   const canPrice = can('billing.invoice.discount');
   const form = useAppForm<Values>({
     schema,
@@ -98,6 +108,7 @@ export function InvoiceEditor({
       patient: invoice
         ? { id: invoice.patientId, fullName: invoice.patient?.fullName ?? '' }
         : (patient ?? null),
+      dentistId: invoice?.dentistId ?? dentistId ?? '',
       insurancePolicyId: invoice?.insurancePolicyId ?? '',
       dueDate: invoice?.dueDate ?? '',
       invoiceDiscount: invoice?.invoiceDiscount ?? 0,
@@ -112,6 +123,9 @@ export function InvoiceEditor({
         unitPrice: l.unitPrice,
         discount: invoice.invoiceDiscount ? 0 : l.discount,
         taxRateId: l.taxRateId ?? '',
+        dentistId: l.dentistId ?? '',
+        dentistLocked: Boolean(l.dentistLocked ?? l.performedProcedureId),
+        dentistName: l.dentistName ?? '',
       })) ?? [
         {
           clinicProcedureId: '',
@@ -120,6 +134,7 @@ export function InvoiceEditor({
           unitPrice: 0,
           discount: 0,
           taxRateId: '',
+          dentistId: '',
         },
       ],
     },
@@ -129,6 +144,17 @@ export function InvoiceEditor({
   const chosen = useWatch({ control: form.control, name: 'patient' });
   const policies = usePolicies(chosen?.id ?? '');
   const invoiceDiscount = useWatch({ control: form.control, name: 'invoiceDiscount' });
+  const headerDentist = useWatch({ control: form.control, name: 'dentistId' });
+  const dentistOptions = useMemo(
+    () => (dentists.data ?? []).map((d) => ({ value: d.id, label: d.name })),
+    [dentists.data],
+  );
+  // Only one doctor in the clinic: pre-select them (otherwise the user must choose).
+  useEffect(() => {
+    const only = dentists.data?.length === 1 ? dentists.data[0] : undefined;
+    if (only && !form.getValues('dentistId'))
+      form.setValue('dentistId', only.id, { shouldDirty: true });
+  }, [dentists.data, form]);
   const estimate = useMemo(
     () =>
       (lines ?? []).reduce(
@@ -147,8 +173,11 @@ export function InvoiceEditor({
       invoiceDiscount: v.invoiceDiscount,
       discountReason: v.discountReason ?? '',
       notes: v.notes ?? '',
+      dentistId: v.dentistId,
       lines: v.lines.map((l) => ({
         ...(l.id ? { id: l.id } : {}),
+        // Procedure lines keep their performer: never send a doctor for them.
+        ...(!l.dentistLocked ? { dentistId: l.dentistId || v.dentistId } : {}),
         ...(l.performedProcedureId ? { performedProcedureId: l.performedProcedureId } : {}),
         ...(l.clinicProcedureId ? { clinicProcedureId: l.clinicProcedureId } : {}),
         ...(l.description ? { description: l.description } : {}),
@@ -196,6 +225,16 @@ export function InvoiceEditor({
                     />
                   </Box>
                 )}
+              />
+            </Grid>
+            <Grid item xs={12} md={6}>
+              <RHFSelect
+                name="dentistId"
+                label={t('invoices.responsibleDoctor')}
+                required
+                fieldKey="dentist"
+                options={dentistOptions}
+                helperText={t('invoices.responsibleDoctorHint')}
               />
             </Grid>
             <Grid item xs={12} md={6}>
@@ -290,6 +329,30 @@ export function InvoiceEditor({
                         .map((x) => ({ value: x.id, label: `${taxName(x)} (${x.rate / 100}%)` }))}
                     />
                   </Grid>
+                  <Grid item xs={12} md={4.5}>
+                    {lines?.[i]?.dentistLocked ? (
+                      <TextField
+                        size="small"
+                        fullWidth
+                        disabled
+                        label={t('invoices.lineDoctor')}
+                        value={lines[i]?.dentistName ?? ''}
+                        helperText={t('invoices.doctorLocked')}
+                        inputProps={{ 'data-testid': `line-doctor-locked-${i}` }}
+                      />
+                    ) : (
+                      <RHFSelect
+                        name={`lines.${i}.dentistId`}
+                        label={t('invoices.lineDoctor')}
+                        clearable
+                        fieldKey="dentist"
+                        options={dentistOptions}
+                        helperText={
+                          lines?.[i]?.dentistId ? undefined : t('invoices.lineDoctorDefault')
+                        }
+                      />
+                    )}
+                  </Grid>
                   <Grid item xs={12} md={1} sx={{ display: 'flex', justifyContent: 'flex-end' }}>
                     <IconButton
                       aria-label={t('invoices.removeLine')}
@@ -314,6 +377,7 @@ export function InvoiceEditor({
                 unitPrice: 0,
                 discount: 0,
                 taxRateId: '',
+                dentistId: headerDentist ?? '',
               })
             }
             sx={{ alignSelf: 'flex-start' }}

@@ -23,7 +23,7 @@
 
 ## 2. Availability Algorithm
 
-`GET /availability?dentistId=&appointmentTypeId=&from=&to=&chairId?=&durationMin?=`
+`GET /availability?dentistId=&appointmentTypeId=&from=&to=&chairId?=&durationMin?=&specialty?=` (`specialty` narrows the doctors to those with that dental specialty, 07 §13; it never restricts who may treat)
 
 1. `duration = durationMin ?? appointmentType.defaultDurationMin`; `step = schedule.slotGranularityMin` (default 15).
 2. For each day in `[from, to]` (clinic timezone, max 42 days):

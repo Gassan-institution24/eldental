@@ -197,8 +197,12 @@ export function plainLines(lines: readonly StoredLine[]): JournalLine[] {
   }));
 }
 
+export async function clinicTimezone(): Promise<string> {
+  const clinic = await runWithoutTenant(() => ClinicModel.findById(currentClinicId()).select('timezone').lean());
+  return clinic?.timezone ?? 'Asia/Amman';
+}
+
 /** Today in the clinic timezone (document dates are clinic-local). */
 export async function clinicToday(): Promise<string> {
-  const clinic = await runWithoutTenant(() => ClinicModel.findById(currentClinicId()).select('timezone').lean());
-  return localDate(new Date(), clinic?.timezone ?? 'Asia/Amman');
+  return localDate(new Date(), await clinicTimezone());
 }

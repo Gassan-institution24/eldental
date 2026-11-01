@@ -25,7 +25,7 @@ beforeEach(async () => {
 });
 
 async function draft(amount = 100_000, s = owner) {
-  const res = await api(s).post('/invoices').send({ patientId, lines: [{ description: 'Composite filling', quantity: 1, unitPrice: amount }] });
+  const res = await api(s).post('/invoices').send({ patientId, dentistId: c.staff.dentist!.staffId, lines: [{ description: 'Composite filling', quantity: 1, unitPrice: amount }] });
   expect(res.status).toBe(201);
   return res.body.data as { id: string; total: number };
 }
@@ -182,7 +182,7 @@ describe('ledger scenario', () => {
     const company = await api(owner).post('/insurance-companies').send({ name: 'Jordan Insurance', defaultCoveragePercent: 80 });
     const policy = await api(owner).post(`/patients/${patientId}/insurance-policies`).send({ insuranceCompanyId: company.body.data.id, memberNumber: 'M-1', isPrimary: true });
     expect(policy.status).toBe(201);
-    const inv = await api(owner).post('/invoices').send({ patientId, insurancePolicyId: policy.body.data.id, lines: [{ description: 'Root canal', unitPrice: 200_000 }] });
+    const inv = await api(owner).post('/invoices').send({ patientId, dentistId: c.staff.dentist!.staffId, insurancePolicyId: policy.body.data.id, lines: [{ description: 'Root canal', unitPrice: 200_000 }] });
     expect(inv.body.data.insuranceTotal).toBe(160_000);
     expect(inv.body.data.patientTotal).toBe(40_000);
     await api(owner).post(`/invoices/${inv.body.data.id}/issue`).send({});

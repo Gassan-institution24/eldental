@@ -44,6 +44,18 @@
     "draftTitle": "Draft invoice",
     "empty": "No invoices",
     "emptyHint": "Invoices are created from visits automatically, or by hand.",
+    "emptyDoctorHint": "No invoices include work by this doctor.",
+    "doctor": "Doctor",
+    "allDoctors": "All doctors",
+    "noDoctor": "No doctor yet",
+    "multipleDoctors": "Multiple doctors",
+    "responsibleDoctor": "Responsible doctor",
+    "responsibleDoctorHint": "Required to issue. New lines use this doctor unless you pick another.",
+    "lineDoctor": "Doctor",
+    "lineDoctorDefault": "Uses the responsible doctor",
+    "doctorLocked": "Performed by this doctor — can't be changed on the invoice",
+    "doctorMissingNote": "Choose the responsible doctor before issuing this invoice.",
+    "sharedNote": "Shared invoice — work by: {{names}}. Payments are split between the doctors by the value of their work.",
     "print": "Print / PDF",
     "edit": "Edit",
     "delete": "Delete",
@@ -234,6 +246,7 @@
     }
   },
   "patientTab": {
+    "myShare": "Your share still owed",
     "balance": "Balance",
     "receivable": "Owed by patient",
     "credit": "Patient credit"

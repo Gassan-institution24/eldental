@@ -1,4 +1,4 @@
-import { Router } from 'express';
+import { Router, type Request } from 'express';
 import { Types } from 'mongoose';
 import { z } from 'zod';
 import { recordAudit } from '@/core/audit/audit.service';
@@ -10,12 +10,13 @@ import { registerPath } from '@/core/openapi/registry';
 import { authorize } from '@/core/rbac/authorize';
 import { currentClinicId, runWithoutTenant } from '@/core/tenancy/tenantPlugin';
 import { body, params, query, validate } from '@/core/validation/validate';
+import { ownDoctorOf } from '@/modules/billing/attribution';
 import { ClinicModel } from '@/modules/platform/clinic.model';
 import { pageQuery, skipOf } from '@/shared/pagination';
 import { dateOnly, email, entityName, enumOf, freeText, money, objectId, optional, phone, requiredText, taxNumber } from '@/shared/validation/fields';
 import { toSearchName } from '@/shared/validation/normalize';
 import { ACCOUNT_TYPES, AccountModel, ExpenseModel, FiscalPeriodModel, FiscalYearModel, JournalEntryModel, SupplierBillModel, SupplierModel, SupplierPaymentModel } from './accounting.models';
-import { clinicToday, createManualDraft, postManual, reverseEntry } from './journal.service';
+import { clinicTimezone, clinicToday, createManualDraft, postManual, reverseEntry } from './journal.service';
 import * as ops from './operations.service';
 import * as rep from './reports.service';
 import { normalBalanceOf } from './seed/chartOfAccounts.jo';
@@ -323,9 +324,12 @@ accountingRouter.get('/reports/general-ledger', authorize(R, 'accounting.journal
   ok(res, r);
 }));
 const agingQuery = z.object({ asOf: optional(dateOnly()), payer: z.enum(['patient', 'insurance']).default('patient') }).strict();
+// Own scope (04 §3): a doctor without accounting.report.read only gets invoices with their work.
+const ownDoctor = (req: Request, perm: string) => ownDoctorOf(req.auth!, R, perm) ?? undefined;
 accountingRouter.get('/reports/ar-aging', authorize(R, 'billing.invoice.read'), validate({ query: agingQuery }), asyncHandler(async (req, res) => {
   const q = query(req, agingQuery);
-  ok(res, await rep.arAging(q.asOf ?? (await clinicToday()), q.payer));
+  const dentistId = ownDoctor(req, 'billing.invoice.read');
+  ok(res, await rep.arAging(q.asOf ?? (await clinicToday()), q.payer, dentistId ? { dentistId } : {}));
 }));
 accountingRouter.get('/reports/ap-aging', authorize(R, 'accounting.supplier.manage'), validate({ query: asOfQuery }), asyncHandler(async (req, res) => ok(res, await rep.apAging(query(req, asOfQuery).asOf ?? (await clinicToday())))));
 const plainRange = z.object({ from: dateOnly(), to: dateOnly() }).strict();
@@ -338,11 +342,13 @@ accountingRouter.get('/reports/daily-cash', authorize(R, 'billing.cashSession.ma
 const statementQuery = z.object({ patientId: objectId(), from: dateOnly(), to: dateOnly() }).strict();
 accountingRouter.get('/reports/patient-statement', authorize(R, 'billing.invoice.read'), validate({ query: statementQuery }), asyncHandler(async (req, res) => {
   const q = query(req, statementQuery);
-  ok(res, await rep.patientStatement(q.patientId, q.from, q.to));
+  const dentistId = ownDoctor(req, 'billing.invoice.read');
+  ok(res, await rep.patientStatement(q.patientId, q.from, q.to, { tz: await clinicTimezone(), ...(dentistId ? { dentistId } : {}) }));
 }));
 accountingRouter.get('/reports/production', authorize(R, 'reports.production.read'), validate({ query: plainRange }), asyncHandler(async (req, res) => {
   const q = query(req, plainRange);
-  ok(res, await rep.dentistProduction(q.from, q.to));
+  const dentistId = ownDoctor(req, 'reports.production.read');
+  ok(res, await rep.dentistProduction(q.from, q.to, { tz: await clinicTimezone(), ...(dentistId ? { dentistId } : {}) }));
 }));
 
 registerPath({ method: 'get', path: '/reports/trial-balance', tags: ['accounting'], summary: 'Trial balance from the ledger', query: asOfQuery });

@@ -78,6 +78,9 @@ invoiceSchema.index({ clinicId: 1, number: 1 }, { unique: true, partialFilterExp
 invoiceSchema.index({ clinicId: 1, patientId: 1, issueDate: -1 });
 invoiceSchema.index({ clinicId: 1, status: 1, dueDate: 1 });
 invoiceSchema.index({ clinicId: 1, appointmentId: 1 });
+// Doctor scope (04 §3): header doctor or any line doctor; the $or uses one index per branch.
+invoiceSchema.index({ clinicId: 1, dentistId: 1, createdAt: -1 });
+invoiceSchema.index({ clinicId: 1, 'lines.dentistId': 1, createdAt: -1 });
 export type Invoice = InferSchemaType<typeof invoiceSchema>;
 export type InvoiceDoc = HydratedDocument<Invoice>;
 export const InvoiceModel = model('Invoice', invoiceSchema);
@@ -105,7 +108,8 @@ const paymentSchema = new Schema(
     unallocated: { type: Number, default: 0 },
     refunded: { type: Number, default: 0 },
     status: { type: String, enum: ['posted', 'partially_refunded', 'refunded', 'void'], default: 'posted' },
-    refunds: { type: [{ amount: Number, at: Date, reason: String, journalEntryId: Schema.Types.ObjectId, _id: false }], default: [] },
+    // `invoices`: what each refund took back from invoice allocations (doctor collections, 09 §8.1).
+    refunds: { type: [{ amount: Number, at: Date, reason: String, journalEntryId: Schema.Types.ObjectId, invoices: { type: [{ invoiceId: Schema.Types.ObjectId, amount: Number, _id: false }], default: undefined }, _id: false }], default: [] },
     journalEntryId: ref('JournalEntry'),
     idempotencyKey: String,
     notes: { type: String, default: '' },

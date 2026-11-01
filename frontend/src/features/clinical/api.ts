@@ -490,7 +490,8 @@ export type RxPrint = {
   dentist: {
     name: string;
     licenseNumber?: string;
-    specialty?: string;
+    primarySpecialty?: string;
+    specialties?: string[];
     signatureFileId?: string;
     stampFileId?: string;
   } | null;

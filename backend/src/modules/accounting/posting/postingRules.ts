@@ -104,10 +104,15 @@ export function chequeCleared(amount: number, bankAccountId: string, a: AccountM
 
 /* ---------- insurance claims (3.4) ---------- */
 
-/** Approved < claimed: write off or re-bill the difference to the patient. */
-export function claimShortfall(c: { amount: number; patientId: string; insuranceCompanyId: string; mode: 'write_off' | 'rebill' }, a: AccountMap): JournalLine[] {
-  const debit = c.mode === 'rebill' ? a('AR_PATIENTS') : a('DISCOUNTS');
-  return compact([dr(debit, c.amount, { patientId: c.patientId }), cr(a('AR_INSURANCE'), c.amount, { patientId: c.patientId, insuranceCompanyId: c.insuranceCompanyId })]);
+/**
+ * Approved < claimed: write off or re-bill the difference to the patient. A write-off is a revenue
+ * reduction, so its debit carries the doctor dimension per part (09 §8.1); parts must add up to amount.
+ */
+export function claimShortfall(c: { amount: number; patientId: string; insuranceCompanyId: string; mode: 'write_off' | 'rebill'; doctorParts?: { amount: number; dentistId?: string }[] }, a: AccountMap): JournalLine[] {
+  const credit = cr(a('AR_INSURANCE'), c.amount, { patientId: c.patientId, insuranceCompanyId: c.insuranceCompanyId });
+  if (c.mode === 'rebill') return compact([dr(a('AR_PATIENTS'), c.amount, { patientId: c.patientId }), credit]);
+  const parts = c.doctorParts?.length ? c.doctorParts : [{ amount: c.amount }];
+  return compact([...parts.map((p) => dr(a('DISCOUNTS'), p.amount, { patientId: c.patientId, ...(p.dentistId ? { dentistId: p.dentistId } : {}) })), credit]);
 }
 
 /* ---------- suppliers & expenses (4.6) ---------- */

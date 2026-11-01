@@ -18,6 +18,8 @@ import { AccountModel, JournalEntryModel } from '@/modules/accounting/accounting
 import { clinicToday, loadAccountMap, postEntry, reverseEntry } from '@/modules/accounting/journal.service';
 import { creditNote as creditNoteLines, invoiceIssued, type AccountMap } from '@/modules/accounting/posting/postingRules';
 import { REVENUE_BY_CATEGORY } from '@/modules/accounting/seed/chartOfAccounts.jo';
+import { StaffModel } from '@/modules/staff/staff.model';
+import { doctorInvoiceFilter } from './attribution';
 import { InvoiceModel, type InvoiceDoc } from './billing.models';
 
 const RESOURCE = 'billing.invoice';
@@ -78,8 +80,10 @@ export function refreshStatus(inv: InvoiceDoc) {
 type Raw = Record<string, unknown> & { _id: Types.ObjectId; __v?: number; lines?: Record<string, unknown>[] };
 const id = (v: unknown) => (v ? String(v) : undefined);
 
-export function toInvoiceDto(i: Raw, patient?: { fullName?: string | null; fileNumber?: string | null } | null) {
+export function toInvoiceDto(i: Raw, patient?: { fullName?: string | null; fileNumber?: string | null } | null, names: Map<string, string> = new Map()) {
   const d = dues(i as never);
+  const header = id(i.dentistId);
+  const doctorIds = [...new Set((i.lines ?? []).map((l) => id(l.dentistId) ?? header).filter((x): x is string => Boolean(x)))];
   return {
     id: String(i._id),
     version: i.__v ?? 0,
@@ -91,7 +95,10 @@ export function toInvoiceDto(i: Raw, patient?: { fullName?: string | null; fileN
     insurancePolicyId: id(i.insurancePolicyId),
     insuranceCompanyId: id(i.insuranceCompanyId),
     appointmentId: id(i.appointmentId),
-    dentistId: id(i.dentistId),
+    dentistId: header,
+    dentist: header ? { id: header, name: names.get(header) ?? '' } : undefined,
+    doctors: doctorIds.map((x) => ({ id: x, name: names.get(x) ?? '' })),
+    multipleDoctors: doctorIds.length > 1,
     lines: (i.lines ?? []).map((l) => ({
       id: String(l._id),
       performedProcedureId: id(l.performedProcedureId),
@@ -108,6 +115,9 @@ export function toInvoiceDto(i: Raw, patient?: { fullName?: string | null; fileN
       insuranceShare: l.insuranceShare,
       patientShare: l.patientShare,
       dentistId: id(l.dentistId),
+      dentistName: l.dentistId ? (names.get(String(l.dentistId)) ?? '') : undefined,
+      // Lines from a recorded procedure keep the doctor who performed it (09 §3.1).
+      dentistLocked: Boolean(l.performedProcedureId),
     })),
     invoiceDiscount: i.invoiceDiscount ?? 0,
     discountReason: i.discountReason ?? '',
@@ -141,12 +151,45 @@ export type InvoiceDto = ReturnType<typeof toInvoiceDto>;
 export async function serializeInvoices(auth: AuthContext, rows: Raw[]) {
   const policy = fieldPolicyOf(auth, RESOURCE, `${RESOURCE}.read`);
   const patients = new Map((await PatientModel.find({ _id: { $in: rows.map((r) => r.patientId) } }).select('fullName fileNumber').lean()).map((p) => [String(p._id), p]));
-  return rows.map((r) => applyFieldPolicy(toInvoiceDto(r, policy.visible.has('patient') ? patients.get(String(r.patientId)) : null), policy));
+  const names = policy.visible.has('dentist') ? await dentistNames(rows) : new Map<string, string>();
+  return rows.map((r) => applyFieldPolicy(toInvoiceDto(r, policy.visible.has('patient') ? patients.get(String(r.patientId)) : null, names), policy));
 }
 
-/** Own scope for invoices = invoices of the dentist's own visits (04 §3). */
+async function dentistNames(rows: Raw[]) {
+  const ids = new Set<string>();
+  for (const r of rows) {
+    if (r.dentistId) ids.add(String(r.dentistId));
+    for (const l of r.lines ?? []) if (l.dentistId) ids.add(String(l.dentistId));
+  }
+  if (!ids.size) return new Map<string, string>();
+  const staff = await StaffModel.find({ _id: { $in: [...ids] } }).select('name').lean();
+  return new Map(staff.map((x) => [String(x._id), x.name ?? '']));
+}
+
+/**
+ * Own scope for invoices (04 §3): invoices where I am the header doctor or the doctor of any line.
+ * A shared invoice is visible in full; changing it still needs the update/issue/void permissions.
+ */
 export function ownInvoiceFilter(auth: AuthContext): Record<string, unknown> {
-  return scopeFor(auth, `${RESOURCE}.read`) === 'own' ? { dentistId: new Types.ObjectId(auth.staffId) } : {};
+  return scopeFor(auth, `${RESOURCE}.read`) === 'own' ? doctorInvoiceFilter(auth.staffId ?? '000000000000000000000000') : {};
+}
+
+/** A billable doctor: an active dentist or hygienist of this clinic (tenant-scoped query). */
+export const BILLABLE_STAFF_TYPES = ['dentist', 'hygienist'] as const;
+export async function assertDentists(entries: { path: string; id: string | undefined }[]) {
+  const wanted = entries.filter((e): e is { path: string; id: string } => Boolean(e.id));
+  if (!wanted.length) return;
+  const ok = new Set(
+    (await StaffModel.find({ _id: { $in: [...new Set(wanted.map((e) => e.id))].filter((x) => Types.ObjectId.isValid(x)) }, staffType: { $in: BILLABLE_STAFF_TYPES }, status: 'active' }).select('_id').lean()).map((x) => String(x._id)),
+  );
+  const bad = wanted.filter((e) => !ok.has(e.id));
+  if (bad.length) throw ApiError.validation(bad.map((e) => ({ path: e.path, code: 'not_dentist' })));
+}
+
+export async function listBillableDentists(auth: AuthContext) {
+  const own = scopeFor(auth, `${RESOURCE}.create`) !== 'all' && scopeFor(auth, `${RESOURCE}.read`) === 'own';
+  const rows = await StaffModel.find({ staffType: { $in: BILLABLE_STAFF_TYPES }, status: 'active', ...(own ? { _id: new Types.ObjectId(auth.staffId) } : {}) }).select('name').sort({ name: 1 }).lean();
+  return rows.map((r) => ({ id: String(r._id), name: r.name ?? '' }));
 }
 
 export async function loadInvoice(auth: AuthContext | null, invoiceId: string, session?: ClientSession) {
@@ -166,14 +209,21 @@ async function defaultTaxRate() {
 }
 
 /** Resolves catalogue data for each line (price, tax, category, revenue account). */
-async function buildLines(input: DraftLineInput[], existing: InvoiceDoc | null, canPrice: boolean, insuranceCompanyId?: string) {
+async function buildLines(input: DraftLineInput[], existing: InvoiceDoc | null, canPrice: boolean, insuranceCompanyId?: string, headerDentistId?: string) {
   const accounts = await loadAccountMap();
   const defTax = await defaultTaxRate();
   const out = [];
+  const toCheck: { path: string; id: string }[] = [];
   for (const [i, l] of input.entries()) {
     const prev = l.id ? existing?.lines.find((x) => String(x._id) === l.id) : undefined;
-    const performed = l.performedProcedureId ? await PerformedProcedureModel.findOne({ _id: l.performedProcedureId, status: 'completed' }).lean() : null;
-    if (l.performedProcedureId && !performed) throw ApiError.validation([{ path: `lines.${i}.performedProcedureId`, code: 'not_found' }]);
+    const performedId = l.performedProcedureId ?? (prev?.performedProcedureId ? String(prev.performedProcedureId) : undefined);
+    const performed = performedId ? await PerformedProcedureModel.findOne({ _id: performedId, status: 'completed' }).lean() : null;
+    if (performedId && !performed) throw ApiError.validation([{ path: `lines.${i}.performedProcedureId`, code: 'not_found' }]);
+    // The doctor of a recorded procedure is fixed (09 §3.1); billing never reassigns it.
+    if (performed && l.dentistId && l.dentistId !== String(performed.dentistId)) {
+      throw ApiError.conflict('PROCEDURE_DENTIST_LOCKED', 'The doctor of a recorded procedure cannot be changed on the invoice', { fields: [`lines.${i}.dentistId`] });
+    }
+    if (!performed && l.dentistId && l.dentistId !== (prev?.dentistId ? String(prev.dentistId) : undefined)) toCheck.push({ path: `lines.${i}.dentistId`, id: l.dentistId });
     const cpId = l.clinicProcedureId ?? (performed ? String(performed.clinicProcedureId) : prev?.clinicProcedureId ? String(prev.clinicProcedureId) : undefined);
     const cp = cpId ? await ClinicProcedureModel.findById(cpId).lean() : null;
     if (cpId && !cp) throw ApiError.validation([{ path: `lines.${i}.clinicProcedureId`, code: 'not_found' }]);
@@ -199,9 +249,10 @@ async function buildLines(input: DraftLineInput[], existing: InvoiceDoc | null, 
       taxRateId: tax?._id,
       taxRate: tax?.rate ?? 0,
       revenueAccountId: new Types.ObjectId(accounts(REVENUE_BY_CATEGORY[category] ?? 'REVENUE_DEFAULT')),
-      dentistId: l.dentistId ? new Types.ObjectId(l.dentistId) : (performed?.dentistId ?? prev?.dentistId),
+      dentistId: performed ? performed.dentistId : l.dentistId ? new Types.ObjectId(l.dentistId) : (prev?.dentistId ?? (headerDentistId ? new Types.ObjectId(headerDentistId) : undefined)),
     });
   }
+  await assertDentists(toCheck);
   return out;
 }
 
@@ -242,9 +293,10 @@ export type DraftInput = { patientId: string; appointmentId?: string; dentistId?
 export async function createDraft(auth: AuthContext, b: DraftInput) {
   const patient = await PatientModel.findById(b.patientId).select('status').lean();
   if (!patient) throw ApiError.validation([{ path: 'patientId', code: 'not_found' }]);
+  await assertDentists([{ path: 'dentistId', id: b.dentistId }]);
   const inv = new InvoiceModel({ patientId: b.patientId, appointmentId: b.appointmentId, dentistId: b.dentistId, insurancePolicyId: b.insurancePolicyId ?? undefined, invoiceDiscount: b.invoiceDiscount ?? 0, discountReason: b.discountReason ?? '', dueDate: b.dueDate, notes: b.notes ?? '', installmentPlan: b.installmentPlan ?? [] });
   const cov = await policyCoverage(b.insurancePolicyId ?? null).catch(() => null);
-  inv.set('lines', await buildLines(b.lines, null, canPrice(auth), cov?.insuranceCompanyId));
+  inv.set('lines', await buildLines(b.lines, null, canPrice(auth), cov?.insuranceCompanyId, b.dentistId));
   await applyTotals(inv);
   await assertDiscountAllowed(auth, inv);
   await inv.save();
@@ -257,12 +309,13 @@ export async function updateDraft(auth: AuthContext, invoiceId: string, b: Parti
   const inv = await loadInvoice(auth, invoiceId);
   if (inv.status !== 'draft') throw ApiError.conflict('INVOICE_NOT_DRAFT', 'Issued invoices cannot be edited; use a credit note');
   if (b.version !== undefined && b.version !== inv.__v) throw ApiError.conflict('VERSION_CONFLICT', 'Someone else changed this invoice');
+  if (b.dentistId !== undefined && b.dentistId !== (inv.dentistId ? String(inv.dentistId) : undefined)) await assertDentists([{ path: 'dentistId', id: b.dentistId }]);
   if (b.insurancePolicyId !== undefined) inv.set('insurancePolicyId', b.insurancePolicyId ?? undefined);
   for (const k of ['invoiceDiscount', 'discountReason', 'dueDate', 'notes', 'installmentPlan', 'dentistId'] as const) if (b[k] !== undefined) inv.set(k, b[k]);
   if (b.lines) {
     const cov = await policyCoverage(inv.insurancePolicyId ? String(inv.insurancePolicyId) : null).catch(() => null);
     const before = inv.lines.map((l) => (l.performedProcedureId ? String(l.performedProcedureId) : '')).filter(Boolean);
-    inv.set('lines', await buildLines(b.lines, inv, canPrice(auth), cov?.insuranceCompanyId));
+    inv.set('lines', await buildLines(b.lines, inv, canPrice(auth), cov?.insuranceCompanyId, inv.dentistId ? String(inv.dentistId) : undefined));
     const after = new Set(inv.lines.map((l) => (l.performedProcedureId ? String(l.performedProcedureId) : '')));
     await PerformedProcedureModel.updateMany({ _id: { $in: before.filter((x) => !after.has(x)) } }, { $unset: { invoiceId: 1 } });
   }
@@ -361,6 +414,11 @@ export async function issueInvoice(auth: AuthContext, invoiceId: string, opts: {
     const inv = await loadInvoice(auth, invoiceId, s);
     if (inv.status !== 'draft') return { inv, already: true };
     if (!inv.lines.length) throw ApiError.conflict('INVOICE_EMPTY', 'Add at least one line before issuing');
+    // Every issued invoice is attributed (09 §3.1): a valid header doctor, and each line has a doctor.
+    const header = inv.dentistId ? String(inv.dentistId) : undefined;
+    const active = header ? await StaffModel.exists({ _id: header, staffType: { $in: BILLABLE_STAFF_TYPES }, status: 'active' }).session(s ?? null) : null;
+    if (!active) throw ApiError.conflict('DENTIST_REQUIRED', 'Choose the responsible doctor before issuing', { fields: ['dentistId'] });
+    for (const l of inv.lines) if (!l.dentistId) l.dentistId = inv.dentistId;
     await applyTotals(inv);
     await assertDiscountAllowed(auth, inv);
     const issueDate = opts.issueDate ?? (await clinicToday());

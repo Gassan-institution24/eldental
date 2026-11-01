@@ -106,6 +106,13 @@ issued/paid ──credit-note──► new credit_note document (negative), link
   - built manually or automatically from `appointment.completed` / `procedure.completed`;
   - editable;
   - **no number, no journal**.
+- **Doctors:**
+  - the header doctor (`dentistId`) and every manually chosen line doctor must be an **active dentist or hygienist of the clinic** (`422 not_dentist`; other clinics' staff are invisible to the tenant-scoped check);
+  - a draft may be saved without a header doctor, but it **cannot be issued** (`409 DENTIST_REQUIRED`); manual lines without a doctor take the header doctor at issue;
+  - a line from a performed procedure keeps the procedure's doctor: sending another one returns `409 PROCEDURE_DENTIST_LOCKED`;
+  - **deactivated doctors** keep all history: their performed procedures, invoice lines, ledger dimensions and collections are never changed. A draft whose header doctor has left can't be issued until billing chooses an active responsible doctor; its procedure lines stay with the departed doctor;
+  - **wrong performer:** void the performed procedure with a reason and record it again under the right doctor (07 §4). The voided record stays (status `voided`, reason, audit `create` + `status_change`), its chart entries are voided, not deleted; it leaves the draft so the patient is charged once. An invoiced procedure needs a credit note first (`PROCEDURE_INVOICED`);
+  - `GET /billing/dentists` returns id + name only, for the picker (no staff-directory access needed).
 - **Issue** (`POST /invoices/:id/issue`, idempotent):
   1. Validate lines and recompute totals server-side (the client's totals are ignored).
   2. Assign the sequential number `INV-{YYYY}-{000001}` (gapless per fiscal year, via the counter inside the transaction).
@@ -249,8 +256,20 @@ Implementation: `accounting/posting/postingRules.ts` exports one pure builder pe
 | Patient statement | Opening balance, invoices, payments, credits, closing (PDF, sendable) |
 | VAT return | Output vs input VAT for the period |
 | Daily cash | Cash sessions summary |
-| Dentist production / collection | From performed procedures (production) and allocated payments (collection); net of lab costs |
+| Dentist production / collection | Production from performed procedures (by performer); collection from money applied to invoices, split by doctor (§8.1). Own scope = the caller's row only |
 | Treatment plan conversion | Presented vs accepted value (clinical + billing) |
+
+Own scope: AR aging, patient statement, the patient billing summary and the dashboard receivables follow `billing.invoice.read` = own — only invoices that include the doctor's work, with **their share** of open balances; the own-scope statement is built from those invoices only (not from the patient's whole ledger). With `accounting.report.read` or `billing.invoice.read` = all (owner, manager, accountant, reception) they are clinic-wide.
+
+### 8.1 Doctor attribution of collections
+- **Weights.** For each invoice, a doctor's weight is the sum of `lineTotal` of their lines (after line and spread invoice discounts, tax included). A line without a doctor counts for the header doctor, else "unassigned".
+- **What is split.** Every amount applied to the invoice: each payment allocation (positive) and each refund taken back from it (negative). Unallocated credit is not attributed until it is applied.
+- **When.** An allocation counts on the payment date, or on the day it was applied when that was later (advance payment allocated afterwards). A refund counts on the refund date (`payments.refunds[].invoices`). Refunds recorded before that field existed are already netted into the allocation.
+- **Rounding.** Largest-remainder split in integer minor units (`shared/money.allocate`): the doctors' parts always add up to the amount exactly; ties go to the earlier line order.
+- **Write-offs** (insurance shortfall with `write_off`): the amount taken from each invoice is split by each doctor's **outstanding share** of that invoice at that moment (its balance due split by the weights), largest remainder. The claim journal's DISCOUNTS debit is posted **per doctor** (dentist dimension) — same total, one entry, so the ledger carries the attribution and nothing is duplicated. The production report's "Written off" column reads those ledger lines. A `rebill` moves the amount to the patient and isn't a write-off.
+- **Credit notes** scale every line by the same factor, so weights don't change; they reduce what is owed, not what was collected. **Voided** invoices have no payments by rule, so they collect nothing. Payment **methods** don't matter: cash, card, cheque, transfer and insurer payments are all allocations.
+- **Ledger.** Revenue is already recognised per line doctor (`lines.dentistId` dimension on revenue/discount lines, §4.1). Attribution is a report over payments; it posts nothing, so nothing is recognised twice. Σ doctors' collections = Σ allocations − Σ refunds from invoices = cash kept for invoices (test: `test/doctorBilling.test.ts`).
+- Used by: the production report, dashboard receivables (share of open balances) and the collection-basis commission (08 §5).
 
 Exports: JSON for the UI, PDF and XLSX via report jobs for large ranges.
 

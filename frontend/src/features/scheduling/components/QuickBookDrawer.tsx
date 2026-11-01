@@ -39,6 +39,7 @@ import { useAppForm } from '@/shared/form/useAppForm';
 import { useNotify } from '@/shared/hooks/useNotify';
 import { usePermission } from '@/shared/rbac/usePermission';
 import { useAvailability, useBook } from '../api';
+import { useSpecialtyName } from '@/features/staff/components/SpecialtyFields';
 import { localToIso, useSchedulingLookups } from './lookups';
 import { useQuickBook } from './quickBookStore';
 
@@ -70,6 +71,7 @@ export function QuickBookDrawer() {
   const { can } = usePermission();
   const { isOpen, preset, close } = useQuickBook();
   const lookups = useSchedulingLookups();
+  const specialtyName = useSpecialtyName();
   const book = useBook();
   const [quickName, setQuickName] = useState<string | null>(null);
   const fullScope = can('scheduling.appointment.book', 'all');
@@ -158,7 +160,11 @@ export function QuickBookDrawer() {
     close();
   };
 
-  const dentistOptions = lookups.dentists.map((d) => ({ value: d.id, label: d.name }));
+  // The specialty guides the choice of doctor; it never restricts who can be booked (07 §13).
+  const dentistOptions = lookups.dentists.map((d) => ({
+    value: d.id,
+    label: d.primarySpecialty ? `${d.name} · ${specialtyName(d.primarySpecialty)}` : d.name,
+  }));
   const typeOptions = lookups.types.map((ty) => ({
     value: ty.id,
     label: lookups.typeLabel(ty.id),

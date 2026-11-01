@@ -96,6 +96,8 @@ export type DentistSchedules = {
     staffType: string;
     bookableOnline: boolean;
     defaultChairId?: string;
+    specialties?: string[];
+    primarySpecialty?: string;
   };
   current: ScheduleVersion | null;
   versions: ScheduleVersion[];

@@ -1,5 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { getData, postData, putData } from '@/lib/api/axios';
+import { authKeys } from '@/features/auth/api/session';
 import { resourceHooks, type Entity } from '@/shared/api/resource';
 import type { FieldAccess, Scope } from '@/shared/generated/rbac/rbac.types';
 
@@ -21,7 +22,8 @@ export type StaffMember = Entity & {
   staffType: string;
   isOwner?: boolean;
   roleIds?: string[];
-  specialty?: string;
+  specialties?: string[];
+  primarySpecialty?: string;
   licenseNumber?: string;
   licenseExpiry?: string;
   color?: string;
@@ -67,9 +69,22 @@ export function useStaffAction() {
 export function useSetRoles() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: ({ id, ...body }: { id: string; roleIds: string[]; isOwner?: boolean }) =>
+    mutationFn: ({ id, ...body }: { id: string; roleIds: string[] }) =>
       putData<StaffMember>(`/staff/${id}/roles`, body),
     onSuccess: () => qc.invalidateQueries({ queryKey: staffApi.keys.all }),
+  });
+}
+
+/** Owner only, with the owner's password (04 §9). Ownership is never a role or a checkbox. */
+export function useTransferOwnership() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({ id, password }: { id: string; password: string }) =>
+      postData<StaffMember>(`/staff/${id}/transfer-ownership`, { password }),
+    onSuccess: () => {
+      void qc.invalidateQueries({ queryKey: staffApi.keys.all });
+      void qc.invalidateQueries({ queryKey: authKeys.me });
+    },
   });
 }
 
@@ -113,6 +128,10 @@ export type Role = Entity & {
   userCount?: number;
 };
 export const rolesApi = resourceHooks<Role>('/roles');
+
+/** Owner-controlled roles: Full access, or any role that can manage access (04 §9.2). */
+export const grantsAccessControl = (r: Pick<Role, 'key' | 'permissions'>) =>
+  r.key === 'owner' || r.permissions.some((g) => g.permission === 'staff.role.manage');
 
 export function useRoles() {
   return useQuery({ queryKey: ['/roles', 'all'], queryFn: () => getData<Role[]>('/roles') });

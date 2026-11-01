@@ -13,6 +13,7 @@ import { ClinicModel } from '@/modules/platform/clinic.model';
 import { minOf, sum } from '@/shared/money';
 import { clinicToday, loadAccountMap, postEntry, reverseEntry } from '@/modules/accounting/journal.service';
 import { cashOverShort, chequeCleared, claimShortfall, creditApplied, paymentReceived, refund as refundLines } from '@/modules/accounting/posting/postingRules';
+import { doctorWeights, splitByDoctor, UNASSIGNED } from './attribution';
 import { CashSessionModel, InsuranceClaimModel, InvoiceModel, PaymentModel, type InvoiceDoc } from './billing.models';
 import { dues, patientLedgerBalance, refreshPatientBalance, refreshStatus } from './invoice.service';
 
@@ -246,6 +247,7 @@ export async function refundPayment(auth: AuthContext, paymentId: string, b: { a
     if (p.method === 'cheque' && p.cheque?.status !== 'cleared') throw ApiError.conflict('INVALID_STATE_TRANSITION', 'Refund a cheque only after it clears');
     const fromCredit = minOf(b.amount, Math.max(p.unallocated ?? 0, ledgerCredit));
     let fromAr = b.amount - fromCredit;
+    const fromInvoices: { invoiceId: Types.ObjectId; amount: number }[] = [];
     for (let i = p.allocations.length - 1; i >= 0 && fromAr > 0; i -= 1) {
       const a = p.allocations[i]!;
       const take = minOf(fromAr, a.amount ?? 0);
@@ -256,6 +258,7 @@ export async function refundPayment(auth: AuthContext, paymentId: string, b: { a
         refreshStatus(inv);
         await inv.save({ session: s });
       }
+      if (take > 0) fromInvoices.push({ invoiceId: a.invoiceId as Types.ObjectId, amount: take });
       a.amount = (a.amount ?? 0) - take;
       fromAr -= take;
     }
@@ -273,7 +276,7 @@ export async function refundPayment(auth: AuthContext, paymentId: string, b: { a
     const je = await postEntry(auth, { date: await clinicToday(), source: 'refund', sourceId: p._id, memo: `Refund ${p.receiptNumber}`, lines }, s);
     p.unallocated = (p.unallocated ?? 0) - minOf(fromCredit, p.unallocated ?? 0);
     p.refunded = (p.refunded ?? 0) + b.amount;
-    p.refunds.push({ amount: b.amount, at: new Date(), reason: b.reason, journalEntryId: je._id });
+    p.refunds.push({ amount: b.amount, at: new Date(), reason: b.reason, journalEntryId: je._id, ...(fromInvoices.length ? { invoices: fromInvoices } : {}) });
     p.status = p.refunded >= p.amount ? 'refunded' : 'partially_refunded';
     await p.save({ session: s });
     onCommit(session, () => emit('payment.refunded', { clinicId, paymentId }));
@@ -451,15 +454,17 @@ export async function claimTransition(auth: AuthContext, claimId: string, b: { t
       if (b.reason) c.rejectionReason = b.reason;
       if (shortfall > 0) {
         c.shortfallMode = b.shortfallMode;
-        const accounts = await loadAccountMap(s);
-        const je = await postEntry(auth, { date: await clinicToday(), source: 'claim', sourceId: c._id, memo: `${c.number} shortfall`, lines: claimShortfall({ amount: shortfall, patientId: String(c.patientId), insuranceCompanyId: String(c.insuranceCompanyId), mode: b.shortfallMode! }, accounts) }, s);
-        c.shortfallJournalId = je._id;
         // Move the shortfall off the insurance share, spread over the claim's invoices.
+        // A write-off is split per doctor by their outstanding share of each invoice (09 §8.1).
         let left = shortfall;
+        const doctorParts = new Map<string, number>();
         const invs = await InvoiceModel.find({ _id: { $in: c.invoiceIds } }).session(s ?? null);
         for (const inv of invs) {
           const take = minOf(left, dues(inv).insuranceDue);
           if (take <= 0) continue;
+          if (b.shortfallMode === 'write_off') {
+            for (const [k, v] of splitByDoctor(take, splitByDoctor(dues(inv).balanceDue, doctorWeights(inv)))) doctorParts.set(k, (doctorParts.get(k) ?? 0) + v);
+          }
           inv.insuranceTotal = (inv.insuranceTotal ?? 0) - take;
           if (b.shortfallMode === 'rebill') inv.patientTotal = (inv.patientTotal ?? 0) + take;
           else inv.writtenOff = (inv.writtenOff ?? 0) + take;
@@ -467,6 +472,11 @@ export async function claimTransition(auth: AuthContext, claimId: string, b: { t
           await inv.save({ session: s });
           left -= take;
         }
+        if (left > 0 && b.shortfallMode === 'write_off') doctorParts.set(UNASSIGNED, (doctorParts.get(UNASSIGNED) ?? 0) + left);
+        const accounts = await loadAccountMap(s);
+        const parts = [...doctorParts].filter(([, v]) => v > 0).map(([k, v]) => ({ amount: v, ...(k ? { dentistId: k } : {}) }));
+        const je = await postEntry(auth, { date: await clinicToday(), source: 'claim', sourceId: c._id, memo: `${c.number} shortfall`, lines: claimShortfall({ amount: shortfall, patientId: String(c.patientId), insuranceCompanyId: String(c.insuranceCompanyId), mode: b.shortfallMode!, doctorParts: parts }, accounts) }, s);
+        c.shortfallJournalId = je._id;
       }
     }
     await c.save({ session: s });

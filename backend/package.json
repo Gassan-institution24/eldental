@@ -13,6 +13,7 @@
     "worker": "tsx src/worker.ts",
     "worker:prod": "node dist/worker.js",
     "seed": "tsx src/scripts/seed.ts",
+    "migrate:specialties": "tsx src/scripts/migrateSpecialties.ts",
     "lint": "eslint . --max-warnings 0",
     "format": "prettier --write .",
     "typecheck": "tsc --noEmit",

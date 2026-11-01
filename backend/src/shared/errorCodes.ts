@@ -36,6 +36,10 @@ export const ERROR_CODES = [
   'ESCALATION_FORBIDDEN',
   'ROOT_PROTECTED',
   'LAST_OWNER',
+  'OWNER_PROTECTED',
+  'OWNER_ONLY',
+  'SELF_PERMISSION_CHANGE',
+  'FULL_ACCESS_OWNER_ONLY',
   'NOT_FOUND',
   'ROUTE_NOT_FOUND',
   'DUPLICATE',
@@ -83,6 +87,8 @@ export const ERROR_CODES = [
   'INVOICE_NOT_DRAFT',
   'INVOICE_EMPTY',
   'INVOICE_HAS_PAYMENTS',
+  'DENTIST_REQUIRED',
+  'PROCEDURE_DENTIST_LOCKED',
   'DISCOUNT_NEEDS_APPROVAL',
   'ALLOCATION_EXCEEDS_BALANCE',
   'ALLOCATION_EXCEEDS_AMOUNT',
@@ -157,5 +163,8 @@ export const VALIDATION_CODES = [
   'not_balanced',
   'duplicate',
   'field_forbidden',
+  'not_dentist',
+  'primary_not_in_list',
+  'not_allowed_for_staff_type',
 ] as const;
 export type ValidationCode = (typeof VALIDATION_CODES)[number];

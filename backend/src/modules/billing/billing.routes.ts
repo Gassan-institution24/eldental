@@ -17,6 +17,7 @@ import { createBill } from '@/modules/accounting/operations.service';
 import { pageQuery, skipOf } from '@/shared/pagination';
 import { dateOnly, enumOf, freeText, money, objectId, optional, requiredText, toothNumber } from '@/shared/validation/fields';
 import { InsuranceClaimModel, InvoiceModel, PAYMENT_METHODS, PaymentModel } from './billing.models';
+import { doctorInvoiceFilter, ownDoctorOf, shareOf } from './attribution';
 import * as inv from './invoice.service';
 import * as pay from './payment.service';
 import { resubmit } from './einvoice/jofotara.service';
@@ -55,7 +56,7 @@ const draftShape = {
 const draftBody = z.object({ patientId: objectId(), ...draftShape }).strict();
 const draftUpdateBody = z.object({ ...draftShape, lines: z.array(lineBody).max(100).optional(), version: z.number().int().min(0).optional() }).strict();
 const invoiceListQuery = z
-  .object({ ...pageQuery, status: z.enum(['draft', 'issued', 'partially_paid', 'paid', 'void', 'open']).optional(), type: z.enum(['invoice', 'credit_note']).optional(), patientId: optional(objectId()), from: optional(dateOnly()), to: optional(dateOnly()), insuranceCompanyId: optional(objectId()), unclaimed: z.enum(['true', 'false']).optional() })
+  .object({ ...pageQuery, status: z.enum(['draft', 'issued', 'partially_paid', 'paid', 'void', 'open']).optional(), type: z.enum(['invoice', 'credit_note']).optional(), patientId: optional(objectId()), from: optional(dateOnly()), to: optional(dateOnly()), insuranceCompanyId: optional(objectId()), dentistId: optional(objectId()), unclaimed: z.enum(['true', 'false']).optional() })
   .strict();
 
 billingRouter.get(
@@ -64,7 +65,9 @@ billingRouter.get(
   validate({ query: invoiceListQuery }),
   asyncHandler(async (req, res) => {
     const q = query(req, invoiceListQuery);
-    const filter: Record<string, unknown> = { ...inv.ownInvoiceFilter(req.auth!) };
+    const filter: Record<string, unknown> = {};
+    // Own scope and the doctor filter are both $or clauses (header or line doctor), so they are ANDed.
+    filter.$and = [inv.ownInvoiceFilter(req.auth!), q.dentistId ? doctorInvoiceFilter(q.dentistId) : {}];
     if (q.status === 'open') filter.status = { $in: ['issued', 'partially_paid'] };
     else if (q.status) filter.status = q.status;
     if (q.type) filter.type = q.type;
@@ -77,6 +80,9 @@ billingRouter.get(
     ok(res, await inv.serializeInvoices(req.auth!, rows as never), pageMeta(q.page, q.limit, total));
   }),
 );
+
+/** Minimal doctor list for the invoice doctor picker (id + name only; no staff directory access). */
+billingRouter.get('/billing/dentists', authorize('billing.invoice.create', 'billing.invoice.read'), asyncHandler(async (req, res) => ok(res, await inv.listBillableDentists(req.auth!))));
 
 billingRouter.get(
   '/invoices/:id',
@@ -233,6 +239,14 @@ billingRouter.get(
   validate({ params: idParams }),
   asyncHandler(async (req, res) => {
     const p = await loadScopedPatient({ ...req.auth!, scope: 'all' }, params(req, idParams).id);
+    // A doctor with own scope sees only the invoices that include their work, and their share (09 §8.1).
+    const me = ownDoctorOf(req.auth!, 'billing.invoice.read', 'billing.payment.read');
+    if (me) {
+      const mine = await InvoiceModel.find({ patientId: p._id, type: 'invoice', status: { $in: ['issued', 'partially_paid'] }, ...doctorInvoiceFilter(me) }).sort({ dueDate: 1 }).lean();
+      const openInvoices = mine.map((i) => ({ id: String(i._id), number: i.number, issueDate: i.issueDate, dueDate: i.dueDate, total: i.total, ...inv.dues(i), myShare: shareOf(inv.dues(i).balanceDue, i, me) }));
+      ok(res, { balance: openInvoices.reduce((a, i) => a + i.myShare, 0), scope: 'own', openInvoices, credits: [] });
+      return;
+    }
     const balance = await inv.refreshPatientBalance(String(p._id));
     const [open, credits] = await Promise.all([
       InvoiceModel.find({ patientId: p._id, type: 'invoice', status: { $in: ['issued', 'partially_paid'] } }).sort({ dueDate: 1 }).lean(),
@@ -318,6 +332,7 @@ export async function labBillDraft(auth: Parameters<typeof createBill>[0], labOr
   return createBill(auth, { supplierId: String(lab.labSupplierId), supplierRef: lab.number, billDate: new Date().toISOString().slice(0, 10), lines: [{ description: `${lab.number} ${lab.labName}`, expenseAccountId: String(labCost._id), amount: lab.cost, labOrderId: String(lab._id) }] });
 }
 
+registerPath({ method: 'get', path: '/billing/dentists', tags: ['billing'], summary: 'Active dentists and hygienists for the invoice doctor picker (id + name)' });
 registerPath({ method: 'post', path: '/invoices/:id/issue', tags: ['billing'], summary: 'Issue: number + journal in one transaction (idempotent)', params: idParams, body: issueBody });
 registerPath({ method: 'post', path: '/payments', tags: ['billing'], summary: 'Record a payment (Idempotency-Key header)', body: paymentBody });
 registerPath({ method: 'post', path: '/invoices/:id/credit-notes', tags: ['billing'], summary: 'Credit note (full or partial)', params: idParams, body: creditBody });

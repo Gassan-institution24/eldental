@@ -27,6 +27,7 @@ const auditLogSchema = new Schema(
         'post',
         'reverse',
         'approve',
+        'ownership_transfer',
       ],
       required: true,
     },

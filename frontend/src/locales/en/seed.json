@@ -117,7 +117,7 @@
     "standard": "General sales tax 16%"
   },
   "roles": {
-    "owner": "Owner",
+    "owner": "Full access",
     "dentist": "Dentist",
     "hygienist": "Hygienist",
     "assistant": "Dental assistant",

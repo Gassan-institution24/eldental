@@ -124,7 +124,7 @@ export const RESOURCE_FIELDS = {
     dateOfBirth: { group: 'identity', default: 'hidden' },
     gender: { group: 'identity', default: 'read' },
     nationality: { group: 'identity', default: 'hidden' },
-    specialty: { group: 'professional', default: 'read' },
+    specialties: { group: 'professional', default: 'read', paths: ['specialties', 'primarySpecialty'] },
     licenseNumber: { group: 'professional', default: 'read' },
     licenseExpiry: { group: 'professional', default: 'read' },
     bookableOnline: { group: 'professional', default: 'read' },
@@ -161,7 +161,7 @@ export const RESOURCE_FIELDS = {
   },
   'billing.invoice': {
     patient: { group: 'basic', default: 'read', paths: ['patientId', 'billTo', 'insurancePolicyId'] },
-    dentist: { group: 'basic', default: 'read', paths: ['dentistId'] },
+    dentist: { group: 'basic', default: 'read', paths: ['dentistId', 'dentist', 'doctors', 'multipleDoctors'] },
     lines: { group: 'lines', default: 'read', paths: ['lines.description', 'lines.quantity', 'lines.performedProcedureId', 'lines.clinicProcedureId', 'lines.toothNumbers'] },
     prices: { group: 'lines', default: 'read', paths: ['lines.unitPrice', 'lines.lineTotal', 'lines.taxAmount', 'lines.taxRateId', 'lines.patientShare', 'lines.insuranceShare'] },
     discounts: { group: 'lines', default: 'read', paths: ['lines.discount', 'discountTotal', 'discountReason'] },

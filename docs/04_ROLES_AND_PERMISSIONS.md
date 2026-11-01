@@ -15,7 +15,7 @@
    - *For this person specifically?* Per-staff overrides on top of their roles.
 4. **Scopes, not work groups.** `own` = records where the user is the dentist, author, assignee or subject; `all` = whole clinic. This replaces Hakeemna's work-group scoping.
 5. **Union of roles, then overrides.** For roles: `all` beats `own`, and for fields `write > read > masked > hidden`. Per-staff overrides are applied **after** and can both grant and restrict.
-6. **Owner bypass.** `staff.isOwner = true` grants everything inside that clinic. This is audited.
+6. **Owner bypass.** The clinic owner (`staff.isOwner`, mirrored by `clinics.ownerUserId`) has every permission and every field inside **their own clinic**, whatever the roles say. Ownership is an identity, not a role or an override; see §9.
 7. **The backend is the authority.** The UI hides or disables things for convenience. The API filters fields, rejects forbidden writes, and never returns hidden data.
 
 ---
@@ -76,7 +76,7 @@ Labels are i18n keys (`ar`/`en` in the locale files). There are no bilingual fie
 | | `clinical.labOrder.read` / `.manage` | own, all | |
 | | `clinical.imaging.read` / `.upload` | own, all | |
 | | `clinical.consent.manage` | all | |
-| **billing** | `billing.invoice.read` | own, all | own = invoices where I am the dentist |
+| **billing** | `billing.invoice.read` | own, all | own = invoices where I am the header doctor **or** the doctor of at least one line (shared invoices are visible in full). Own also limits AR aging, patient statements, the patient billing summary and dashboard receivables to those invoices and to my attributed share (09 §8.1). Seeing an invoice never allows changing it. |
 | | `billing.invoice.create` / `.update` / `.issue` / `.void` | all | |
 | | `billing.invoice.discount` | all | Discount above the threshold |
 | | `billing.payment.read` / `.create` / `.refund` | all | |
@@ -183,7 +183,7 @@ export const RESOURCE_FIELDS = {
 
 ## 5. System Role Templates
 
-Seeded on clinic creation (cloned from global templates; editable).
+Seeded on clinic creation (cloned from global templates; editable). The "Owner" column is the **Full access** role (key `owner`, shown as "Full access" and given to managers by default): it holds every permission but is not the clinic owner identity (§9).
 
 | Permission group | Owner | Dentist | Hygienist | Assistant | Receptionist | Accountant | HR Manager |
 |---|---|---|---|---|---|---|---|
@@ -305,10 +305,55 @@ export const appointmentScope: ScopeRule = {
 
 ---
 
-## 9. Tests (required)
+## 9. Clinic Owner (protected identity)
+
+**Who.** The person who creates the clinic (`createClinic`) becomes its only owner: `staff.isOwner = true` on their staff record and `clinics.ownerUserId` on the clinic. Inviting or creating staff never sets ownership. There is exactly one owner per clinic.
+
+**Authority.** Inside their clinic the owner bypasses scopes and field rules (`scopeFor` → `all`, field policy bypass): all staff, roles, overrides, patients, clinical records, invoices, payments, refunds, credit notes, accounting and every report, per doctor and clinic-wide. The bypass never crosses the tenant boundary: every query is still scoped to the token's clinic, so another clinic's records return 404.
+
+**Protection (backend, `staff.service.ts`).**
+- Ownership is not part of `PUT /staff/:id/roles` (the body is strict: an `isOwner` field is rejected as `unknown_field`), nor of overrides or profile updates.
+- Only the owner may change the owner's record (profile, roles, overrides, status): others get `403 OWNER_PROTECTED`.
+- The owner can't be deactivated or terminated by anyone, themselves included, while they are the owner (`OWNER_PROTECTED`): transfer first. There is no hard delete of staff.
+- Nobody but the owner changes their **own** roles, overrides or status (`403 SELF_PERMISSION_CHANGE`), so a manager can't widen their own access.
+- The "Full access" system role (key `owner`) gives every permission but **not** the owner identity or its protection, and only the owner can grant or remove it (§9.2).
+
+**Transfer.** `POST /staff/:id/transfer-ownership { password }`: only the current owner (`403 OWNER_ONLY` otherwise), re-confirming their own password (`422 password invalid`); the target must be an active member of the same clinic. In one transaction: old owner `isOwner=false`, new owner `isOwner=true`, `clinics.ownerUserId` = new owner's user. The previous owner keeps their roles. Audited as `ownership_transfer` (`before/after.ownerStaffId`). `authenticate` reads `isOwner` from the database on every request, so the change applies immediately.
+
+**UI.** A distinct Owner badge (crown, warning colour) on the profile and the staff list; the roles tab is read-only on the owner's profile (and on your own) for everyone but the owner; the transfer card appears only for the owner, on another active member's profile.
+
+**Existing clinics.** No migration: `createClinic` has always set both markers on the creator. Verified on the dev database (one clinic, owner = creator = `ownerUserId`). If a clinic ever has none or several owners, fix it manually after confirming with the clinic, never automatically.
+
+### 9.2 Access-control boundary (`core/rbac/accessBoundary.ts`)
+| Action | Owner | Everyone else |
+|---|---|---|
+| Grant or remove the **Full access** role (on invite or via roles) | ✅ | ❌ `403 FULL_ACCESS_OWNER_ONLY` |
+| Grant or remove `staff.role.manage` (the power to manage access) through a role, a custom role, a cloned role, a role edit or an override | ✅ | ❌ `403 FULL_ACCESS_OWNER_ONLY` |
+| Edit (or rename) the Full access role | ✅ | ❌ |
+| Assign or change a built-in job role (Dentist, Hygienist, Assistant, Receptionist, Accountant, HR Manager) | ✅ | ✅ with `staff.member.create` (invite) or `staff.member.update` / `staff.role.manage` (`PUT /staff/:id/roles` on existing staff) |
+| Assign a custom role | ✅ | only if all its grants are within the assigner's own (`403 ESCALATION_FORBIDDEN`) |
+| Grant overrides | ✅ | within the assigner's own grants |
+| Change your own roles, overrides or status | ✅ | ❌ `SELF_PERMISSION_CHANGE` |
+| Change the owner's record / ownership | ✅ (transfer) | ❌ `OWNER_PROTECTED` / `OWNER_ONLY` |
+
+HR (default template) has `staff.member.*` but not `staff.role.manage`: it assigns and changes job roles (on invite and on existing staff, audited as `permission_change`), but can't edit role definitions or overrides, can't grant or remove Full access or `staff.role.manage`, can't assign a custom role beyond its own grants, and can't change the owner or itself. In the UI, HR sees the profile's roles section with built-in roles only and no overrides. Built-in job roles are trusted as assignable because their definitions can only be changed by holders of `staff.role.manage`, under the same rules. The UI hides Full access from the invite role list and disables owner-controlled role chips for non-owners; the server enforces it regardless.
+
+### 9.1 Terms
+| Term | Meaning |
+|---|---|
+| Clinic owner | The protected identity above. One per clinic. |
+| Employee role | A bundle of grants (dentist, receptionist, accountant, Full access…). Says what someone can do, never who owns the clinic. |
+| Procedure doctor | `performedProcedures.dentistId`: who did the work. Fixed once recorded. |
+| Invoice line doctor | `invoices.lines[].dentistId`: copied from the procedure (locked) or chosen for a manual line (default: the header doctor). Drives revenue and collection attribution. |
+| Invoice header doctor | `invoices.dentistId`: the responsible doctor; required to issue; default for manual lines. |
+| Invoice creator | `createdBy` / `issuedBy`: the employee who typed or issued it. Not an attribution. |
+| Collection attribution | Money applied to an invoice split between its line doctors by value (09 §8.1). |
+
+## 10. Tests (required)
 - Snapshot tests of allowed and denied permissions for every system role template, including field maps.
 - Route meta test: every route has `authorize` or `public`.
-- Scope tests: a dentist with `own` cannot read another dentist's records (expects 404).
+- Scope tests: a dentist with `own` cannot read another dentist's records (expects 404); a shared invoice is visible to every doctor on it; own-scope reports return only the caller's row/share (`test/doctorBilling.test.ts`).
+- Owner tests (`test/ownership.test.ts`): HR assigns job roles but not Full access; a Full access manager can't grant/remove Full access or `staff.role.manage` by any route; custom roles stay within the assigner's grants; creator is the only owner; staff creation doesn't change it; managers can't promote themselves or change/deactivate the owner; transfer needs the owner and their password and is audited; owner rights stop at the clinic boundary.
 - **Field tests:**
   - a hidden field is absent from list, get, export and socket payloads;
   - a masked field is masked in every output;

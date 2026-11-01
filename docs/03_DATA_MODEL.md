@@ -102,10 +102,12 @@ One document per (user, clinic).
 | gender, dateOfBirth, nationalId, nationality | | |
 | jobTitle | string | |
 | staffType | `dentist`\|`hygienist`\|`assistant`\|`receptionist`\|`accountant`\|`hr`\|`manager`\|`other` | |
-| isOwner | boolean | bypasses RBAC inside the clinic |
+| isOwner | boolean | the clinic owner (one per clinic, mirrored by `clinics.ownerUserId`); bypasses RBAC inside the clinic; changed only by the ownership transfer (04 §9) |
 | roleIds | → roles[] | **multiple roles**; effective permissions = union |
 | permissionOverrides | `(Grant \| { permission, revoked: true })[]` | per-person customisation applied after roles (see `04_ROLES_AND_PERMISSIONS.md` §4.4) |
-| specialty | string? | for dentists: orthodontics, endodontics, … |
+| specialties | DentalSpecialty[]? | dentists and hygienists only; fixed codes from `shared/dental/specialties.ts` (07 §13), names via i18n |
+| primarySpecialty | DentalSpecialty? | required when `specialties` is set, must be one of them |
+| specialtyLegacy | string? (not selected) | the old free-text value, kept by `npm run migrate:specialties` for recovery |
 | licenseNumber, licenseExpiry | | expiry alert job |
 | signatureFileId, stampFileId | FileRef | used on prescriptions and reports |
 | color | string | calendar colour for dentists |
@@ -316,7 +318,7 @@ The source of truth for production and billing.
 | billTo | `patient`\|`insurance` | split invoices allowed |
 | insurancePolicyId? | | |
 | appointmentId?, treatmentPlanId? | | |
-| dentistId | → staff | for production reports |
+| dentistId | → staff | responsible (header) doctor: an active dentist/hygienist of the clinic; required to issue (`DENTIST_REQUIRED`); default doctor of manual lines. `lines[].dentistId` is the doctor of each line (locked for lines from a performed procedure) and is what attribution uses (09 §8.1) |
 | lines | `[{ performedProcedureId?, clinicProcedureId?, description: string, quantity, unitPrice, discount, taxRateId, taxAmount, lineTotal, revenueAccountId }]` | |
 | subtotal, discountTotal, taxTotal, total, amountPaid, balanceDue | Money | computed server-side |
 | issueDate, dueDate | Date | |
@@ -326,7 +328,27 @@ The source of truth for production and billing.
 | einvoice | `{ status: not_sent\|queued\|accepted\|rejected, uuid, qr, submittedAt, response, attempts }` | |
 | voidReason | | |
 
-Indexes: `{clinicId, number}` unique (partial: number exists); `{clinicId, patientId, issueDate}`; `{clinicId, status, dueDate}`.
+Indexes: `{clinicId, number}` unique (partial: number exists); `{clinicId, patientId, issueDate}`; `{clinicId, status, dueDate}`; plus the two doctor-scope indexes below.
+
+**Doctor-scope indexes** (defined in `billing.models.ts`). The own-scope and doctor-filter query is `{ clinicId, $or: [{ dentistId: X }, { 'lines.dentistId': X }] }` sorted by `createdAt: -1`; MongoDB uses one index per `$or` branch and merges them (`SORT_MERGE`, verified with `explain`):
+| Name | Keys | Options |
+|---|---|---|
+| `clinicId_1_dentistId_1_createdAt_-1` | `{ clinicId: 1, dentistId: 1, createdAt: -1 }` | none (not unique) |
+| `clinicId_1_lines.dentistId_1_createdAt_-1` | `{ clinicId: 1, 'lines.dentistId': 1, createdAt: -1 }` | none (multikey on `lines`) |
+
+**Production deployment** (`autoIndex` is off in production, so these are not created by the app):
+1. Back up first (`mongodump`), and check free disk space (each index ≈ the size of its keys).
+2. Create them explicitly, **before** deploying the code that relies on them, outside peak hours. Do **not** run Mongoose `syncIndexes()` against production for this: it also drops indexes that aren't declared in the schemas.
+   ```js
+   // mongosh, on the primary
+   db.invoices.createIndex({ clinicId: 1, dentistId: 1, createdAt: -1 }, { name: 'clinicId_1_dentistId_1_createdAt_-1' })
+   db.invoices.createIndex({ clinicId: 1, 'lines.dentistId': 1, createdAt: -1 }, { name: 'clinicId_1_lines.dentistId_1_createdAt_-1' })
+   ```
+   On MongoDB ≥ 4.2 the build holds an exclusive lock only briefly at start and end; reads and writes continue meanwhile, and replica-set members build it together. `createIndex` with the same keys and name is a no-op, so it is safe to re-run.
+3. Verify: `db.invoices.getIndexes()` lists both; `db.invoices.find({ clinicId: <id>, $or: [{ dentistId: <id> }, { 'lines.dentistId': <id> }] }).sort({ createdAt: -1 }).explain()` shows `IXSCAN` on both names (no `COLLSCAN`).
+4. Rollback (only if needed, e.g. a failed build): `db.invoices.dropIndex('<name>')`. The application still works without them (the queries fall back to slower plans).
+
+Payments: `refunds[].invoices[] {invoiceId, amount}` records what each refund took back from invoice allocations (attribution by refund date).
 
 ### `payments`
 `number`, `patientId?`, `payerType` (`patient`\|`insurance`), `insuranceCompanyId?`, `method` (`cash`\|`card`\|`bank_transfer`\|`cheque`\|`wallet`\|`other`), `amount`, `receivedAt`, `reference`, `cheque? { number, bank, dueDate, status }`, `depositAccountId` (→ accounts: cash box / bank), `allocations: [{ invoiceId, amount }]` (sum ≤ amount; the remainder is patient credit), `unallocated: Money`, `status` (`posted`\|`refunded`\|`partially_refunded`\|`void`), `refunds: [{ amount, at, reason, journalEntryId }]`, `journalEntryId`, `idempotencyKey` (unique per clinic), `receiptNumber`.
