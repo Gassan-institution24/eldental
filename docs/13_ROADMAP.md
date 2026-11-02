@@ -123,10 +123,11 @@
 - [ ] Wire appointment booked/reminder/cancel/reschedule, recall, OTP, invoice/receipt sending
 
 ## Phase 9 — Patient Portal
-- [ ] Patient registration (OTP), link to a clinic record, family
-- [ ] Public clinic page + online booking flow (rules from `06_MODULE_APPOINTMENTS.md` §2)
-- [ ] My appointments (cancel within the window), treatment plans (accept), invoices/receipts, profile
-- [ ] PWA manifest + mobile polish
+- [x] Patient registration (OTP), link to a clinic record, family
+- [x] Public clinic page + online booking flow (rules from `06_MODULE_APPOINTMENTS.md` §2) — public clinic API + booking inside the portal; a public `/book/:clinicSlug` page without sign-in is not built yet
+- [x] My appointments (cancel within the window), treatment plans (accept), invoices/receipts, profile
+- [ ] PWA manifest + mobile polish — responsive full-width layout done (side menu on md+, bottom bar on phones); PWA manifest/offline shell not done
+- [x] Demo portal account in the seed (`patient@smile.local` / `Password123!`), online booking on for the demo clinic
 
 ## Phase 10 — Dashboards, Reports & Inventory
 - [x] Clinic dashboard KPIs (today, production, collections, new patients, no-show rate, plan conversion), per-role variants

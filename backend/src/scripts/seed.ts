@@ -11,7 +11,7 @@ async function main(): Promise<void> {
   await Promise.all(Object.values(mongoose.models).map((m) => m.syncIndexes().catch(() => undefined)));
   const clinicId = await seedCore();
   await seedDemoData(clinicId);
-  logger.info('seed complete — demo users: owner@smile.local / dentist@smile.local / reception@smile.local / accountant@smile.local / hr@smile.local (Password123!)');
+  logger.info('seed complete — demo users: owner@smile.local / dentist@smile.local / reception@smile.local / accountant@smile.local / hr@smile.local (Password123!); patient portal: patient@smile.local (Password123!)');
   await disconnectDb();
   process.exit(0);
 }

@@ -67,17 +67,191 @@
     "subtitle": "Book appointments online, get reminders on WhatsApp, review your treatment plans and keep every invoice in one place — for you and your family.",
     "create": "Create a free account",
     "signIn": "Patient sign in",
-    "b1": { "title": "Book online, 24/7", "body": "See real free times for your dentist and book in four simple steps — no phone calls." },
-    "b2": { "title": "Reminders that help", "body": "Get a WhatsApp or email reminder before every visit, and confirm with one tap." },
-    "b3": { "title": "Understand your treatment", "body": "Review your treatment plan, the cost estimate and insurance share, then accept it with your signature." },
-    "b4": { "title": "Invoices & receipts", "body": "Every invoice and receipt in one place, ready to download as a PDF." },
-    "b5": { "title": "The whole family", "body": "Parents can manage their children's appointments from the same account." },
-    "b6": { "title": "Private & secure", "body": "Your records are encrypted and only you and your clinic can see them." },
+    "b1": {
+      "title": "Book online, 24/7",
+      "body": "See real free times for your dentist and book in four simple steps — no phone calls."
+    },
+    "b2": {
+      "title": "Reminders that help",
+      "body": "Get a WhatsApp or email reminder before every visit, and confirm with one tap."
+    },
+    "b3": {
+      "title": "Understand your treatment",
+      "body": "Review your treatment plan, the cost estimate and insurance share, then accept it with your signature."
+    },
+    "b4": {
+      "title": "Invoices & receipts",
+      "body": "Every invoice and receipt in one place, ready to download as a PDF."
+    },
+    "b5": {
+      "title": "The whole family",
+      "body": "Parents can manage their children's appointments from the same account."
+    },
+    "b6": {
+      "title": "Private & secure",
+      "body": "Your records are encrypted and only you and your clinic can see them."
+    },
     "howTitle": "How it works",
-    "h1": { "title": "Create your account", "body": "Your name and mobile number — we confirm it with a code." },
-    "h2": { "title": "Link your clinic", "body": "Connect the file your clinic already has for you." },
-    "h3": { "title": "Book and relax", "body": "Pick a time, get reminders and arrive ready." },
+    "h1": {
+      "title": "Create your account",
+      "body": "Your name and mobile number — we confirm it with a code."
+    },
+    "h2": {
+      "title": "Link your clinic",
+      "body": "Connect the file your clinic already has for you."
+    },
+    "h3": {
+      "title": "Book and relax",
+      "body": "Pick a time, get reminders and arrive ready."
+    },
     "ctaTitle": "Ready for an easier visit?",
     "ctaBody": "Create your free patient account in under a minute."
+  },
+  "portal": {
+    "common": {
+      "self": "Me",
+      "dependant": "Dependant",
+      "file": "File no.",
+      "male": "Male",
+      "female": "Female"
+    },
+    "home": {
+      "manage": "Manage",
+      "plansWaiting": "Plans waiting for you"
+    },
+    "book": {
+      "title": "Book an appointment",
+      "subtitle": "Choose a service and a time that suits you. The clinic confirms your visit.",
+      "noClinics": "No clinics take online bookings yet",
+      "noClinicsHint": "Please call your clinic to book.",
+      "clinic": "Clinic",
+      "chooseClinic": "Choose a clinic",
+      "who": "Who is the visit for?",
+      "newFileShort": "Me",
+      "newFile": "A new file will be opened for you at this clinic",
+      "service": "Service",
+      "noServices": "This clinic has no services open for online booking.",
+      "minutes": "{{n}} min",
+      "dentist": "Dentist",
+      "any": "Any dentist",
+      "anyHint": "The earliest free time",
+      "when": "Day and time",
+      "prevWeek": "Previous week",
+      "nextWeek": "Next week",
+      "slotsCount_one": "{{count}} time",
+      "slotsCount_other": "{{count}} times",
+      "noSlots": "No free times on this day",
+      "noSlotsHint": "Try another day, week or dentist.",
+      "summary": "Your booking",
+      "pickSlot": "Pick a time",
+      "notes": "Note for the clinic",
+      "notesHint": "Optional, e.g. what is bothering you.",
+      "confirm": "Confirm booking",
+      "booking": "Booking…",
+      "rules": "You can cancel online up to {{hours}} hours before the visit.",
+      "done": "Your appointment is booked",
+      "doneBody": "{{date}} at {{time}} with {{dentist}}",
+      "viewAppointments": "My appointments",
+      "bookAnother": "Book another"
+    },
+    "appointments": {
+      "title": "My appointments",
+      "subtitle": "Upcoming visits for you and your family, and your history.",
+      "upcoming": "Upcoming",
+      "past": "Past",
+      "emptyUpcoming": "No upcoming appointments",
+      "emptyPast": "No past appointments yet",
+      "visit": "Visit",
+      "for": "For {{name}}",
+      "cancel": "Cancel",
+      "cancelBy": "Cancel online until {{date}}",
+      "tooLate": "Less than {{hours}} hours to go: please call the clinic to change this visit.",
+      "cancelTitle": "Cancel this appointment?",
+      "cancelBody": "Your visit on {{date}} with {{dentist}} will be cancelled and the time released.",
+      "cancelComment": "Reason (optional)",
+      "cancelConfirm": "Cancel appointment",
+      "cancelled": "Appointment cancelled"
+    },
+    "plans": {
+      "title": "Treatment plans",
+      "subtitle": "Plans your dentist shared with you, with costs and what insurance covers.",
+      "empty": "No treatment plans yet",
+      "emptyHint": "When your dentist shares a plan, you can review and approve it here.",
+      "waiting": "Waiting for your approval",
+      "expired": "Expired",
+      "validUntil": "Valid until {{date}}",
+      "review": "Review and approve",
+      "tooth": "Tooth {{n}}",
+      "insurance": "Insurance",
+      "yourShare": "Your share",
+      "acceptTitle": "Approve plan {{number}}",
+      "acceptBody": "Untick anything you do not want to go ahead with now. Your signature confirms your consent.",
+      "choose": "Treatments",
+      "signerName": "Your full name",
+      "signature": "Signature",
+      "consent": "I have read the plan, understand the treatments and the estimated costs, and agree to go ahead.",
+      "acceptConfirm": "Approve and sign",
+      "accepted": "Thank you. The clinic has your approval.",
+      "acceptedOn": "Approved on {{date}} by {{name}}"
+    },
+    "billing": {
+      "title": "Invoices & payments",
+      "subtitle": "Your balance, invoices and receipts at each clinic.",
+      "owes": "Amount due",
+      "credit": "Credit",
+      "settled": "Settled",
+      "invoices": "Invoices",
+      "payments": "Payments",
+      "emptyInvoices": "No invoices yet",
+      "emptyPayments": "No payments yet",
+      "creditNote": "Credit note",
+      "due": "Due",
+      "print": "View / print",
+      "receipt": "Receipt"
+    },
+    "family": {
+      "title": "Family & files",
+      "subtitle": "Your clinic files and the family members you manage.",
+      "none": "No clinic files are linked to your account yet. Link your file below, or simply book: a file is opened for you at your first visit.",
+      "born": "Born {{date}}",
+      "link": {
+        "title": "Link a clinic file",
+        "body": "Already a patient? Enter the clinic code and your file number. We send a code to the phone the clinic has on file.",
+        "clinic": "Clinic code",
+        "clinicHint": "Ask the clinic, or pick one below.",
+        "fileNumber": "File number",
+        "fileNumberHint": "Printed on your invoices and receipts, e.g. P-000123.",
+        "send": "Send code",
+        "codeSent": "We sent a code to {{phone}}.",
+        "code": "Verification code",
+        "confirm": "Link file",
+        "change": "Change details",
+        "done": "Your clinic file is linked"
+      },
+      "child": {
+        "title": "Add a child",
+        "body": "Add a child or dependant to your file so you can book and follow their care.",
+        "clinicFile": "At clinic",
+        "first": "First name",
+        "family": "Family name",
+        "dateOfBirth": "Date of birth",
+        "gender": "Gender",
+        "submit": "Add",
+        "done": "{{name}} was added"
+      }
+    },
+    "profile": {
+      "title": "My profile",
+      "subtitle": "Your details and sign-in.",
+      "details": "Personal details",
+      "name": "Full name",
+      "phone": "Mobile",
+      "phoneHint": "Your verified sign-in number. Contact the clinic to change it.",
+      "email": "Email",
+      "language": "Language",
+      "save": "Save",
+      "saved": "Profile saved",
+      "password": "Password"
+    }
   }
 }

@@ -1,6 +1,7 @@
 import type { Router } from 'express';
 import { authRouter } from './auth/auth.routes';
 import { patientAuthRouter } from './auth/patientAuth';
+import { portalRouter } from './portal/portal.routes';
 import { contactRouter } from './public/contact';
 import { clinicRouter } from './clinic/clinic.routes';
 import { patientRouter } from './patients/patient.routes';
@@ -16,4 +17,4 @@ import { staffRouter } from './staff/staff.routes';
 import { telemetryRouter } from './telemetry/telemetry.routes';
 
 /** Every feature module's router. Each router declares its own full paths (e.g. `/patients`). */
-export const moduleRouters: Router[] = [authRouter, patientAuthRouter, telemetryRouter, staffRouter, rolesRouter, contactRouter, clinicRouter, patientRouter, schedulingRouter, clinicalRouter, billingRouter, accountingRouter, hrRouter, notificationsRouter, insightsRouter];
+export const moduleRouters: Router[] = [authRouter, patientAuthRouter, portalRouter, telemetryRouter, staffRouter, rolesRouter, contactRouter, clinicRouter, patientRouter, schedulingRouter, clinicalRouter, billingRouter, accountingRouter, hrRouter, notificationsRouter, insightsRouter];

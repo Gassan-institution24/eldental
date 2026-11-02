@@ -3,7 +3,7 @@ import { render, renderHook, screen, waitFor, within } from '@testing-library/re
 import userEvent from '@testing-library/user-event';
 import type { ReactNode } from 'react';
 import { createMemoryRouter, RouterProvider } from 'react-router-dom';
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
 import i18n from '@/i18n';
 import { AppThemeProvider } from '@/app/providers/AppThemeProvider';
 import { ConfirmProvider } from '@/shared/components/ConfirmDialog';
@@ -125,6 +125,11 @@ function wrap(node: ReactNode, path = '/') {
     </QueryClientProvider>,
   );
 }
+
+// The invoice pages are large; load them once outside the per-test timeout.
+beforeAll(async () => {
+  await Promise.all([import('../pages/InvoicePages'), import('../components/InvoiceDoctors')]);
+}, 30_000);
 
 beforeEach(() => {
   perm.scope = 'all';

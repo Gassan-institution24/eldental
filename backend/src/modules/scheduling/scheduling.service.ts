@@ -546,3 +546,86 @@ export async function todayBoard(auth: AuthContext, date?: string) {
 export async function futureAppointmentCount(staffId: string): Promise<number> {
   return AppointmentModel.countDocuments({ dentistId: staffId, start: { $gt: new Date() }, status: { $in: ['scheduled', 'confirmed'] } });
 }
+
+/* ---------- patient portal (01 §4.10, 06 §2 step 7) ---------- */
+
+export type OnlineBookInput = { patientId: string; dentistId: string; appointmentTypeId: string; start: Date; patientNotes?: string; userId: string };
+
+/**
+ * Online booking by a patient: the slot must be one the engine offers online (bookable dentist,
+ * online block, online type, lead time, days ahead). Runs inside the clinic's tenant.
+ */
+export async function bookOnline(b: OnlineBookInput) {
+  const clinic = await loadClinic();
+  if (!clinic.settings?.onlineBookingEnabled) throw ApiError.conflict('ONLINE_BOOKING_DISABLED', 'This clinic does not take online bookings');
+  await validateResources(b);
+  const patient = await PatientModel.findById(b.patientId).select('noShowCount').lean();
+  if ((patient?.noShowCount ?? 0) >= (clinic.settings?.noShowAlertThreshold ?? 3)) throw ApiError.conflict('ONLINE_BOOKING_BLOCKED', 'Please call the clinic to book');
+  const tz = clinic.timezone ?? 'Asia/Amman';
+  const date = localDate(b.start, tz);
+  const input = await engineInput(clinic, { from: date, to: date, dentistId: b.dentistId, appointmentTypeId: b.appointmentTypeId, online: true });
+  const free = computeSlots(input)[0]?.slots ?? [];
+  const slot = free.find((s) => new Date(s.start).getTime() === b.start.getTime() && s.dentistId === b.dentistId);
+  if (!slot) throw ApiError.conflict('APPOINTMENT_OUTSIDE_SCHEDULE', 'This time is not available', { suggestions: free.slice(0, 6).map((s) => s.start) });
+  const end = new Date(b.start.getTime() + input.durationMin * MIN);
+  const chairId = slot.chairId ? new Types.ObjectId(slot.chairId) : null;
+  const id = new Types.ObjectId();
+  const appt = await withTransaction(async (session) => {
+    const s = session ?? undefined;
+    await insertLocks(id, { dentistId: new Types.ObjectId(b.dentistId), chairId, start: b.start, end }, s);
+    const number = await nextNumber('appointment', clinic.settings?.numbering?.appointment ?? 'APT', { session: s ?? null });
+    const [doc] = await AppointmentModel.create(
+      [
+        {
+          _id: id,
+          number,
+          patientId: b.patientId,
+          dentistId: b.dentistId,
+          ...(chairId ? { chairId } : {}),
+          appointmentTypeId: b.appointmentTypeId,
+          start: b.start,
+          end,
+          status: 'scheduled',
+          statusHistory: [{ to: 'scheduled', at: new Date(), byUserId: b.userId }],
+          source: 'online',
+          patientNotes: b.patientNotes ?? '',
+        },
+      ],
+      { session: s },
+    );
+    onCommit(session, () => emit('appointment.booked', { clinicId: String(clinic._id), appointmentId: String(id), actorUserId: b.userId }));
+    return doc!;
+  }).catch(async (err: unknown) => {
+    if (!(err instanceof ApiError)) await SlotLockModel.deleteMany({ appointmentId: id });
+    throw err;
+  });
+  await recordAudit({ action: 'create', entity: 'appointment', entityId: id, actorUserId: b.userId, summary: 'online booking', after: { number: appt.number, start: b.start, dentistId: b.dentistId, patientId: b.patientId } });
+  return appt.toObject();
+}
+
+/** Patient cancellation: only scheduled/confirmed visits, and only before the clinic's window. */
+export async function cancelOnline(appointmentId: string, patientIds: Types.ObjectId[], userId: string, comment?: string) {
+  const doc = await AppointmentModel.findOne({ _id: appointmentId, patientId: { $in: patientIds } });
+  if (!doc) throw ApiError.notFound();
+  if (!['scheduled', 'confirmed'].includes(doc.status)) throw ApiError.conflict('INVALID_STATE_TRANSITION', `Cannot cancel a ${doc.status} appointment`);
+  const clinic = await loadClinic();
+  const windowH = clinic.settings?.cancellationWindowHours ?? 24;
+  const now = new Date();
+  if (doc.start.getTime() - now.getTime() < windowH * 3_600_000) throw ApiError.conflict('CANCEL_WINDOW_PASSED', 'Too close to the appointment to cancel online', { hours: windowH });
+  const from = doc.status;
+  await withTransaction(async (session) => {
+    const s = session ?? undefined;
+    doc.status = 'cancelled';
+    doc.statusHistory.push({ from, to: 'cancelled', at: now, byUserId: new Types.ObjectId(userId), reason: 'patient_request' });
+    doc.set('cancellation', { reason: 'patient_request', comment: comment ?? '', byUserId: userId, at: now, lateCancel: false });
+    await releaseLocks(doc._id, s);
+    await doc.save({ session: s });
+    const clinicId = String(clinic._id);
+    onCommit(session, async () => {
+      await emit('appointment.statusChanged', { clinicId, appointmentId, from, to: 'cancelled', actorUserId: userId });
+      await emit('appointment.cancelled', { clinicId, appointmentId, actorUserId: userId });
+    });
+  });
+  await recordAudit({ action: 'status_change', entity: 'appointment', entityId: appointmentId, actorUserId: userId, before: { status: from }, after: { status: 'cancelled' }, reason: 'patient_request' });
+  return doc.toObject();
+}

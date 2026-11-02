@@ -162,7 +162,7 @@ Reports `/reports/accounting/…`: `trial-balance`, `profit-and-loss`, `balance-
 `GET /files/:id` (authorised download / signed redirect) · `DELETE /files/:id`.
 
 ### Patient portal `/portal` (patient token)
-`/portal/me` · `/portal/patients` (self plus dependants) · `/portal/clinics/:slug` (public) · `/portal/availability` (public, only online-bookable) · `POST /portal/appointments` · `/portal/appointments` (list) · `POST /portal/appointments/:id/cancel` · `/portal/treatment-plans` (+ `/:id/accept`) · `/portal/invoices` (+ pdf) · `/portal/link-patient` (OTP to the phone on file).
+`/portal/me` (GET: account, linked files and dependants; PATCH: name, email, language) · `/portal/clinics` (public: clinics with online booking) · `/portal/clinics/:slug` (public: online appointment types, bookable dentists, cancellation and lead-time rules) · `/portal/clinics/:slug/availability?appointmentTypeId&dentistId?&from&to` (public, online rules, ≤ 14 days) · `POST /portal/link-patient/start` + `POST /portal/link-patient` (OTP to the phone on the clinic file) · `POST /portal/dependants` (child under one of the account's files) · `/portal/appointments` (list; `POST` books online and opens a file at a clinic where the account has none; `POST /:id/cancel` only before `cancellationWindowHours`) · `/portal/treatment-plans` (shared plans only, never drafts; `POST /:id/accept` with signature, presented and not expired) · `/portal/billing` (issued invoices, payments, balances) · `/portal/invoices/:id/print` · `/portal/payments/:id/receipt` (same shapes as the clinic print endpoints). Every patient endpoint is limited to the account's files and their dependants; anything else is 404.
 
 ### System
 `GET /health` · `GET /ready` · `GET /api/docs`.

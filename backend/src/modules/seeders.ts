@@ -6,3 +6,4 @@ import './scheduling/scheduling.seeders';
 import './clinical/clinical.seeders';
 import './accounting/accounting.seeders';
 import './hr/hr.routes';
+import './portal/portal.seeders';

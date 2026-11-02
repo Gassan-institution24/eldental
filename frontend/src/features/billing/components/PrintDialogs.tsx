@@ -20,7 +20,7 @@ import { PrintArea } from '@/features/clinical/components/shared';
 import { formatDate, formatDateTime } from '@/lib/dates';
 import { useFormatMoney } from '@/shared/components/MoneyText';
 import { ErrorState, PageSkeleton } from '@/shared/components/States';
-import { fetchInvoicePrint, fetchReceipt } from '../api';
+import { fetchInvoicePrint, fetchReceipt, type InvoicePrint, type ReceiptPrint } from '../api';
 
 function Shell({
   title,
@@ -96,10 +96,19 @@ function Letterhead({
   );
 }
 
-export function InvoicePrintDialog({ id, onClose }: { id: string; onClose: () => void }) {
+/** `fetcher` lets the patient portal print through its own patient-scoped endpoint. */
+export function InvoicePrintDialog({
+  id,
+  onClose,
+  fetcher = fetchInvoicePrint,
+}: {
+  id: string;
+  onClose: () => void;
+  fetcher?: (id: string) => Promise<InvoicePrint>;
+}) {
   const { t } = useTranslation('billing');
   const fmt = useFormatMoney();
-  const q = useQuery({ queryKey: ['invoice-print', id], queryFn: () => fetchInvoicePrint(id) });
+  const q = useQuery({ queryKey: ['invoice-print', id], queryFn: () => fetcher(id) });
   const d = q.data;
   const inv = d?.invoice;
   return (
@@ -198,10 +207,18 @@ export function InvoicePrintDialog({ id, onClose }: { id: string; onClose: () =>
   );
 }
 
-export function ReceiptPrintDialog({ id, onClose }: { id: string; onClose: () => void }) {
+export function ReceiptPrintDialog({
+  id,
+  onClose,
+  fetcher = fetchReceipt,
+}: {
+  id: string;
+  onClose: () => void;
+  fetcher?: (id: string) => Promise<ReceiptPrint>;
+}) {
   const { t, i18n } = useTranslation('billing');
   const fmt = useFormatMoney();
-  const q = useQuery({ queryKey: ['receipt-print', id], queryFn: () => fetchReceipt(id) });
+  const q = useQuery({ queryKey: ['receipt-print', id], queryFn: () => fetcher(id) });
   const d = q.data;
   const p = d?.payment;
   return (

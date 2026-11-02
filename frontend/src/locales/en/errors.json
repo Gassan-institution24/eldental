@@ -101,5 +101,9 @@
   "PAYROLL_EXISTS": "A payroll run already exists for this period.",
   "PAYROLL_FOUR_EYES": "A different person must approve this payroll.",
   "INSUFFICIENT_STOCK": "Not enough stock.",
-  "referenceCode": "Reference code: {{code}}"
+  "referenceCode": "Reference code: {{code}}",
+  "ONLINE_BOOKING_BLOCKED": "Online booking is paused for this file. Please call the clinic to book.",
+  "CANCEL_WINDOW_PASSED": "It is too close to the appointment to cancel online ({{hours}} hours notice). Please call the clinic.",
+  "PATIENT_ALREADY_LINKED": "This clinic file is already linked to another account. Please contact the clinic.",
+  "PLAN_EXPIRED": "This treatment plan has expired. Please contact the clinic for an updated plan."
 }

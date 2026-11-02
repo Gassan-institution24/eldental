@@ -9,12 +9,11 @@ import { publicRoute } from '@/core/http/routeMeta';
 import { publicBookingRateLimit } from '@/core/http/security';
 import { emails } from '@/core/notifications/email/email.service';
 import { registerPath } from '@/core/openapi/registry';
-import { requirePatient } from '@/core/rbac/authorize';
 import { body, validate } from '@/core/validation/validate';
 import { sendOtpWhatsApp } from '@/modules/notifications/whatsapp.hooks';
 import { UserModel } from '@/modules/users/user.model';
 import { email, enumOf, optional, otpCode, password, personName, phone } from '@/shared/validation/fields';
-import { hashPassword, login, publicUser } from './auth.service';
+import { hashPassword, login } from './auth.service';
 import { issueOtp, verifyOtp } from './otp.service';
 
 /** Step 1: name + mobile (+ optional email) → OTP to the mobile (WhatsApp) and email (01 §4.10). */
@@ -82,17 +81,5 @@ patientAuthRouter.post(
   }),
 );
 
-patientAuthRouter.get(
-  '/portal/me',
-  requirePatient(),
-  asyncHandler(async (req, res) => {
-    const user = await UserModel.findById(req.auth!.userId);
-    if (!user) throw ApiError.unauthenticated();
-    // Linked clinic files arrive with the patients module (Phase 3/9).
-    ok(res, { user: publicUser(user), clinics: [], patients: [] });
-  }),
-);
-
 registerPath({ method: 'post', path: '/auth/patient/register/start', tags: ['patient portal'], summary: 'Send a verification code to a new patient', body: patientRegisterStartBody, isPublic: true });
 registerPath({ method: 'post', path: '/auth/patient/register', tags: ['patient portal'], summary: 'Create the patient account and sign in', body: patientRegisterCompleteBody, isPublic: true });
-registerPath({ method: 'get', path: '/portal/me', tags: ['patient portal'], summary: 'Signed-in patient' });

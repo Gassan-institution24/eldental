@@ -321,9 +321,8 @@ export function AppShell({ nav, brand: brandSlot, topbar, banner, footer, childr
             flex: 1,
             p: { xs: 4, md: 8 },
             outline: 'none',
-            maxWidth: 1600,
             width: '100%',
-            mx: 'auto',
+            minWidth: 0,
           }}
         >
           <ErrorBoundary key={location.pathname} name="page">
