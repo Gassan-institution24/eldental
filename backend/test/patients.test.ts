@@ -101,6 +101,23 @@ describe('patients', () => {
     expect((await api(owner).get('/patients')).body.meta.total).toBe(1);
   });
 
+  it('soft-deletes and restores (Undo), changes status, filters by tag and dentist', async () => {
+    const owner = await login(c.ownerEmail);
+    const p = (await api(reception).post('/patients').send({ ...base, tags: ['VIP'], preferredDentistId: c.staff.dentist!.staffId })).body.data;
+    await api(reception).post('/patients').send({ ...base, phone: '0791234580', nationalId: undefined });
+    expect((await api(reception).get('/patients?tag=VIP')).body.data.map((x: { id: string }) => x.id)).toEqual([p.id]);
+    expect((await api(reception).get(`/patients?dentistId=${c.staff.dentist!.staffId}`)).body.meta.total).toBe(1);
+
+    const upd = await api(reception).patch(`/patients/${p.id}`).send({ version: p.version, status: 'deceased' });
+    expect(upd.body.data.status).toBe('deceased');
+    expect((await api(reception).get('/patients?status=deceased')).body.meta.total).toBe(1);
+
+    await api(owner).delete(`/patients/${p.id}`).expect(204);
+    expect((await api(owner).get(`/patients/${p.id}`)).status).toBe(404);
+    await api(owner).post(`/patients/${p.id}/restore`).expect(204);
+    expect((await api(owner).get(`/patients/${p.id}`)).status).toBe(200);
+  });
+
   it('timeline only shows events the caller may open (04 §1)', async () => {
     const p = (await api(reception).post('/patients').send(base)).body.data;
     await api(reception).post(`/patients/${p.id}/medical-history`).send({ conditions: ['diabetes'], allergies: [] });

@@ -295,5 +295,8 @@
       "dependant": "Dependant",
       "member": "Member"
     }
-  }
+  },
+  "noMatches": "No patients match these filters",
+  "allDentists": "All dentists",
+  "statusHint": "Inactive and deceased patients are hidden from booking and reminders."
 }

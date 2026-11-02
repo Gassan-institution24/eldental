@@ -61,7 +61,14 @@ vi.mock('@/features/scheduling/api', () => ({
     return {
       isLoading: false,
       data: id
-        ? [{ id: 'a1', status: 'confirmed', start: '2030-01-15T09:00:00Z', end: '2030-01-15T09:30:00Z' }]
+        ? [
+            {
+              id: 'a1',
+              status: 'confirmed',
+              start: '2030-01-15T09:00:00Z',
+              end: '2030-01-15T09:30:00Z',
+            },
+          ]
         : undefined,
     };
   },
@@ -71,7 +78,9 @@ vi.mock('@/features/clinical/api', () => ({
     state.plansEnabled.push(enabled);
     return {
       isLoading: false,
-      data: enabled ? [{ id: 'tp1', number: 'TP-1', title: 'Upper arch', status: 'in_progress' }] : undefined,
+      data: enabled
+        ? [{ id: 'tp1', number: 'TP-1', title: 'Upper arch', status: 'in_progress' }]
+        : undefined,
     };
   },
 }));

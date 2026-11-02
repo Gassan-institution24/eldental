@@ -80,6 +80,7 @@ const schema = z
     }),
     tags: z.array(z.string().max(30)).max(10),
     notes: opt(freeText(2000)),
+    status: enumOf(['active', 'inactive', 'deceased']),
   })
   .superRefine((v, ctx) => {
     if (v.dateOfBirth && ageOn(v.dateOfBirth) < 18) {
@@ -136,6 +137,7 @@ function toForm(p?: Patient): Values {
     },
     tags: p?.tags ?? [],
     notes: p?.notes ?? '',
+    status: p?.status === 'inactive' || p?.status === 'deceased' ? p.status : 'active',
   };
 }
 
@@ -164,6 +166,8 @@ function toBody(v: Output, dirty: Record<string, unknown> | undefined) {
     communicationPrefs: v.communicationPrefs,
     tags: v.tags,
     notes: v.notes,
+    // Registration always starts active; status is only sent when edited.
+    status: dirty ? v.status : undefined,
   };
   const cleaned = Object.fromEntries(
     Object.entries(body).filter(([, x]) => x !== undefined && x !== ''),
@@ -416,6 +420,20 @@ function PatientForm({ patient }: { patient?: Patient }) {
 
         <SectionCard title={t('sections.preferences')}>
           <Grid container spacing={4}>
+            {patient && (
+              <Grid item xs={12} md={4}>
+                <RHFSelect
+                  name="status"
+                  label={t('fields.status')}
+                  fieldKey="status"
+                  helperText={t('statusHint')}
+                  options={(['active', 'inactive', 'deceased'] as const).map((s) => ({
+                    value: s,
+                    label: t(`statuses.${s}`),
+                  }))}
+                />
+              </Grid>
+            )}
             <Grid item xs={12} md={4}>
               <RHFSelect
                 name="preferredDentistId"

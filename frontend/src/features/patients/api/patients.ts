@@ -71,6 +71,15 @@ export function useDuplicateCheck(phone: string | undefined, excludeId?: string)
   });
 }
 
+/** Undo for a soft delete (16 §4). */
+export function useRestorePatient() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (id: string) => postData<void>(`/patients/${id}/restore`, {}),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['/patients'] }),
+  });
+}
+
 export function useMergePatient() {
   const qc = useQueryClient();
   return useMutation({

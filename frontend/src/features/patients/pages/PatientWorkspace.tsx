@@ -25,7 +25,7 @@ import { ErrorState, PageSkeleton } from '@/shared/components/States';
 import { useNotify } from '@/shared/hooks/useNotify';
 import { FieldScope } from '@/shared/rbac/fieldAccess';
 import { useFieldAccess, usePermission } from '@/shared/rbac/usePermission';
-import { patientsApi, useMergePatient, type Patient } from '../api/patients';
+import { patientsApi, useMergePatient, useRestorePatient, type Patient } from '../api/patients';
 import { PatientHeader } from '../components/PatientHeader';
 import { PatientPicker } from '../components/PatientPicker';
 
@@ -125,6 +125,7 @@ export function PatientWorkspace() {
   const access = useFieldAccess('patients.patient');
   const { can } = usePermission();
   const remove = patientsApi.useRemove();
+  const restore = useRestorePatient();
   const confirm = useConfirm();
   const notify = useNotify();
   const [merging, setMerging] = useState(false);
@@ -151,7 +152,16 @@ export function PatientWorkspace() {
     if (!r.confirmed) return;
     try {
       await remove.mutateAsync(p.id);
-      notify.success(t('deleted'));
+      notify.success(t('deleted'), {
+        undo: async () => {
+          try {
+            await restore.mutateAsync(p.id);
+            navigate(`/clinic/patients/${p.id}`);
+          } catch (err) {
+            notify.error(err);
+          }
+        },
+      });
       navigate('/clinic/patients');
     } catch (err) {
       notify.error(err);

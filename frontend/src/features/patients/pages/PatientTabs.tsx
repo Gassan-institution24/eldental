@@ -424,10 +424,7 @@ export function OverviewTab() {
               <Info label={t('fields.altPhone')} value={<span dir="ltr">{p.altPhone}</span>} />
             )}
             {(scope.canSee('email') || scope.isMasked('email')) && (
-              <Info
-                label={t('fields.email')}
-                value={p.email && <span dir="ltr">{p.email}</span>}
-              />
+              <Info label={t('fields.email')} value={p.email && <span dir="ltr">{p.email}</span>} />
             )}
             {scope.canSee('address') && (
               <Info
@@ -841,7 +838,12 @@ export function MedicalTab() {
             {h.allergies.length ? (
               <Stack spacing={1}>
                 {h.allergies.map((a, i) => (
-                  <Stack key={`${a.substance}-${i}`} direction="row" spacing={2} alignItems="center">
+                  <Stack
+                    key={`${a.substance}-${i}`}
+                    direction="row"
+                    spacing={2}
+                    alignItems="center"
+                  >
                     <Chip
                       size="small"
                       color={

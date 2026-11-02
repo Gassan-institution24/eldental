@@ -97,7 +97,8 @@ function plusFields(auth: AuthContext) {
 
 export async function listPatients(auth: AuthContext, q: PatientListQuery) {
   const policy = fieldPolicyOf(auth, RESOURCE, `${RESOURCE}.read`);
-  assertQueryable([...sortFields(q.sort)], policy);
+  // Filters are queries too: no inference on hidden fields (04 §4).
+  assertQueryable([...sortFields(q.sort), ...(q.tag ? ['tags'] : []), ...(q.dentistId ? ['preferredDentist'] : [])], policy);
   const filter: Record<string, unknown> = { status: q.status ?? { $ne: 'merged' } };
   if (q.tag) filter.tags = q.tag;
   if (q.dentistId) filter.preferredDentistId = new Types.ObjectId(q.dentistId);
