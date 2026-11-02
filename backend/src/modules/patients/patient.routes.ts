@@ -5,6 +5,7 @@ import { z } from 'zod';
 import { env } from '@/config/env';
 import { recordAudit } from '@/core/audit/audit.service';
 import { AuditLogModel } from '@/core/audit/auditLog.model';
+import type { AuthContext } from '@/core/auth/auth.types';
 import { crudRouter, defaultDto, updateOf } from '@/core/crud/crudRouter';
 import { asyncHandler } from '@/core/http/asyncHandler';
 import { ApiError } from '@/core/http/ApiError';
@@ -333,28 +334,71 @@ patientRouter.get(
 
 /* ---------- timeline ---------- */
 
-/** Chronological history from the audit trail (+ modules add their own events). */
-type TimelineSource = (patientId: Types.ObjectId) => Promise<{ at: Date; kind: string; title: string; ref?: string; data?: Record<string, unknown> }[]>;
+/**
+ * Chronological history from the audit trail (+ modules add their own events). Each source
+ * declares the permission it needs and applies its own scope, so the timeline never shows
+ * what the caller couldn't open in its own tab (04 §1).
+ */
+export type TimelineEvent = { at: Date; kind: string; title: string; ref?: string };
+type TimelineSource = { permissions: string[]; load: (patientId: Types.ObjectId, auth: AuthContext) => Promise<TimelineEvent[]> };
 const timelineSources: TimelineSource[] = [];
-export function registerTimelineSource(fn: TimelineSource): void {
-  timelineSources.push(fn);
+export function registerTimelineSource(permissions: string | string[], load: TimelineSource['load']): void {
+  timelineSources.push({ permissions: [permissions].flat(), load });
 }
+
+/** Audit entities shown on the timeline and the permission each one needs. */
+const AUDIT_TIMELINE: Record<string, string[]> = {
+  patient: ['patients.patient.read'],
+  insurancePolicy: ['patients.patient.read'],
+  medicalHistory: ['patients.medicalHistory.read'],
+  file: ['patients.document.read', 'clinical.imaging.read'],
+};
+const allowed = (auth: AuthContext, perms: string[]) => perms.some((p) => scopeFor(auth, p));
 
 patientRouter.get(
   '/patients/:id/timeline',
   authorize('patients.patient.read'),
   validate({ params: s.idParams }),
   asyncHandler(async (req, res) => {
-    const p = await svc.loadScopedPatient(req.auth!, params(req, s.idParams).id);
-    const audit = await AuditLogModel.find({ entity: { $in: ['patient', 'medicalHistory', 'insurancePolicy', 'file'] }, $or: [{ entityId: String(p._id) }, { 'after.patientId': String(p._id) }] })
+    const auth = req.auth!;
+    const p = await svc.loadScopedPatient(auth, params(req, s.idParams).id);
+    const entities = Object.keys(AUDIT_TIMELINE).filter((e) => allowed(auth, AUDIT_TIMELINE[e]!));
+    const audit = await AuditLogModel.find({ entity: { $in: entities }, $or: [{ entityId: String(p._id) }, { 'after.patientId': String(p._id) }] })
       .sort({ at: -1 })
       .limit(50)
       .lean();
+    const sources = timelineSources.filter((src) => allowed(auth, src.permissions));
     const events = [
-      ...audit.map((a) => ({ at: a.at, kind: `${a.entity}.${a.action}`, title: a.summary ?? '', actor: a.actorUserId ? String(a.actorUserId) : undefined })),
-      ...(await Promise.all(timelineSources.map((src) => src(p._id)))).flat(),
+      ...audit.map((a) => ({ at: a.at, kind: `${a.entity}.${a.action}`, title: a.summary ?? '' })),
+      ...(await Promise.all(sources.map((src) => src.load(p._id, auth)))).flat(),
     ].sort((a, b) => new Date(b.at).getTime() - new Date(a.at).getTime());
     ok(res, events.slice(0, 100));
+  }),
+);
+
+/* ---------- family (01 §4.3) ---------- */
+
+patientRouter.get(
+  '/patients/:id/family',
+  authorize('patients.patient.read'),
+  validate({ params: s.idParams }),
+  asyncHandler(async (req, res) => ok(res, await svc.familyMembers(req.auth!, params(req, s.idParams).id))),
+);
+
+patientRouter.post(
+  '/patients/:id/family',
+  authorize('patients.patient.update'),
+  validate({ params: s.idParams, body: s.familyLinkBody }),
+  asyncHandler(async (req, res) => ok(res, await svc.linkFamily(req.auth!, params(req, s.idParams).id, body(req, s.familyLinkBody).patientId))),
+);
+
+patientRouter.delete(
+  '/patients/:id/family',
+  authorize('patients.patient.update'),
+  validate({ params: s.idParams }),
+  asyncHandler(async (req, res) => {
+    await svc.unlinkFamily(req.auth!, params(req, s.idParams).id);
+    noContent(res);
   }),
 );
 
@@ -390,3 +434,6 @@ registerPath({ method: 'post', path: '/patients', tags: ['patients'], summary: '
 registerPath({ method: 'get', path: '/patients/search', tags: ['patients'], summary: 'Typeahead', query: s.searchQuery });
 registerPath({ method: 'post', path: '/patients/:id/merge', tags: ['patients'], summary: 'Merge a duplicate into this patient', params: s.idParams, body: s.mergeBody });
 registerPath({ method: 'post', path: '/patients/:id/medical-history', tags: ['patients'], summary: 'New medical history version', params: s.idParams, body: s.medicalHistoryBody });
+registerPath({ method: 'get', path: '/patients/:id/timeline', tags: ['patients'], summary: 'History (only events the caller may see)', params: s.idParams });
+registerPath({ method: 'get', path: '/patients/:id/family', tags: ['patients'], summary: 'Family members (scoped)', params: s.idParams });
+registerPath({ method: 'post', path: '/patients/:id/family', tags: ['patients'], summary: 'Link another patient into this family', params: s.idParams, body: s.familyLinkBody });

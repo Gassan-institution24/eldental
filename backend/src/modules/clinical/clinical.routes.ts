@@ -605,15 +605,21 @@ registerOwnPatientSource(async (staffId) => {
 
 registerCompletionCheck(async (appointmentId) => PerformedProcedureModel.countDocuments({ appointmentId, status: 'completed' }));
 
-registerTimelineSource(async (patientId) => {
-  const [procs, plans] = await Promise.all([
-    PerformedProcedureModel.find({ patientId }).sort({ performedAt: -1 }).limit(50).select('code toothNumbers performedAt status').lean(),
-    TreatmentPlanModel.find({ patientId }).sort({ createdAt: -1 }).limit(20).select('number status createdAt').lean(),
-  ]);
-  return [
-    ...procs.map((p) => ({ at: p.performedAt, kind: `procedure.${p.status}`, title: `${p.code}${p.toothNumbers.length ? ` · ${p.toothNumbers.join(', ')}` : ''}` })),
-    ...plans.map((p) => ({ at: (p as { createdAt?: Date }).createdAt ?? new Date(), kind: `plan.${p.status}`, title: p.number })),
-  ];
+const ownDentist = (auth: AuthContext, perm: string) => (scopeFor(auth, perm) === 'own' ? { dentistId: new Types.ObjectId(auth.staffId) } : {});
+
+registerTimelineSource('clinical.chart.read', async (patientId, auth) => {
+  const procs = await PerformedProcedureModel.find({ patientId, ...ownDentist(auth, 'clinical.chart.read') }).sort({ performedAt: -1 }).limit(50).select('code toothNumbers performedAt status').lean();
+  return procs.map((p) => ({ at: p.performedAt, kind: `procedure.${p.status}`, title: `${p.code}${p.toothNumbers.length ? ` · ${p.toothNumbers.join(', ')}` : ''}`, ref: 'chart' }));
+});
+
+registerTimelineSource('clinical.treatmentPlan.read', async (patientId, auth) => {
+  const plans = await TreatmentPlanModel.find({ patientId, ...ownDentist(auth, 'clinical.treatmentPlan.read') }).sort({ createdAt: -1 }).limit(20).select('number status createdAt').lean();
+  return plans.map((p) => ({ at: (p as { createdAt?: Date }).createdAt ?? new Date(), kind: `plan.${p.status}`, title: p.number, ref: 'plans' }));
+});
+
+registerTimelineSource('clinical.note.read', async (patientId, auth) => {
+  const notes = await ClinicalNoteModel.find({ patientId, ...ownNotes(auth, 'clinical.note.read') }).sort({ createdAt: -1 }).limit(30).select('createdAt signedAt').lean();
+  return notes.map((n) => ({ at: (n as { createdAt?: Date }).createdAt ?? new Date(), kind: n.signedAt ? 'note.signed' : 'note.draft', title: '', ref: 'notes' }));
 });
 
 // Recall rules from the procedure (07 §7 / 06 §7): e.g. prophylaxis → cleaning in 6 months.

@@ -7,6 +7,7 @@ import { ApiError } from '@/core/http/ApiError';
 import { pageMeta } from '@/core/http/response';
 import { fieldPolicyOf } from '@/core/rbac/authorize';
 import { applyFieldPolicy, assertQueryable, assertWritable, projectionFor, sortFields } from '@/core/rbac/fieldPolicy';
+import { StaffModel } from '@/modules/staff/staff.model';
 import { decrypt, encrypt, searchHash } from '@/shared/crypto';
 import { parseSort, skipOf } from '@/shared/pagination';
 import { normalizePhone } from '@/shared/validation/fields';
@@ -142,7 +143,10 @@ export async function getPatient(auth: AuthContext, id: string) {
   if (plus) query.select(plus);
   const raw = await query.lean();
   if (!raw) throw ApiError.notFound();
-  return serialize(auth, raw as Raw);
+  const dto = serialize(auth, raw as Raw);
+  // The profile shows the dentist's name; most roles can't read the staff directory.
+  const dentist = dto.preferredDentist ? await StaffModel.findById(dto.preferredDentist).select('name').lean() : null;
+  return { ...dto, ...(dentist ? { preferredDentistName: dentist.name } : {}) };
 }
 
 /** Loads the document after checking scope; 404 outside scope/tenant. */
@@ -201,13 +205,14 @@ export async function createPatient(auth: AuthContext, b: PatientCreate) {
 }
 
 async function familyOf(guardianPatientId: string): Promise<Types.ObjectId> {
-  const g = await PatientModel.findById(guardianPatientId).select('familyGroupId');
+  const g = await PatientModel.findById(guardianPatientId).select('familyGroupId').lean();
   if (!g) throw ApiError.validation([{ path: 'guardian.patientId', code: 'not_found' }]);
-  if (!g.familyGroupId) {
-    g.familyGroupId = new Types.ObjectId();
-    await g.save();
-  }
-  return g.familyGroupId;
+  if (g.familyGroupId) return g.familyGroupId;
+  // Atomic update: a projected document can't be save()d (required fields aren't loaded).
+  const familyGroupId = new Types.ObjectId();
+  await PatientModel.updateOne({ _id: g._id, familyGroupId: { $exists: false } }, { $set: { familyGroupId } });
+  const after = await PatientModel.findById(g._id).select('familyGroupId').lean();
+  return after?.familyGroupId ?? familyGroupId;
 }
 
 export async function updatePatient(auth: AuthContext, id: string, body: Partial<PatientCreate> & { version: number; status?: string; nationalId?: string | null }) {
@@ -243,16 +248,71 @@ export async function restorePatient(id: string) {
   await recordAudit({ action: 'restore', entity: 'patient', entityId: id });
 }
 
-/** Possible duplicates by phone / national ID (a warning, not a block — 16 §5.2). */
+/** Possible duplicates by phone / national ID (a warning, not a block — 16 §5.2). Only records in the caller's scope. */
 export async function findDuplicates(auth: AuthContext, q: { phone?: string; nationalId?: string; excludeId?: string }) {
   const or: Record<string, unknown>[] = [];
   const e164 = q.phone ? normalizePhone(q.phone) : null;
   if (e164) or.push({ 'phone.e164': e164 });
   if (q.nationalId && /^\d{10}$/.test(q.nationalId)) or.push({ nationalIdHash: searchHash(q.nationalId) });
   if (!or.length) return [];
-  const items = await PatientModel.find({ $or: or, status: { $ne: 'merged' }, ...(q.excludeId ? { _id: { $ne: q.excludeId } } : {}) }).select('fileNumber fullName phone').limit(5).lean();
-  void auth;
+  const filter = await scoped(auth, { $or: or, status: { $ne: 'merged' }, ...(q.excludeId ? { _id: { $ne: new Types.ObjectId(q.excludeId) } } : {}) });
+  const items = await PatientModel.find(filter).select('fileNumber fullName phone').limit(5).lean();
   return items.map((p) => ({ id: String(p._id), fileNumber: p.fileNumber, fullName: p.fullName, phone: p.phone?.e164 }));
+}
+
+/* ---------- family (familyGroupId is part of the `guardian` field) ---------- */
+
+/** Members of the patient's family group that the caller may see, with their relation to this patient. */
+export async function familyMembers(auth: AuthContext, id: string) {
+  const policy = fieldPolicyOf(auth, RESOURCE, `${RESOURCE}.read`);
+  const p = await loadScopedPatient(auth, id);
+  if (!policy.visible.has('guardian') || !p.familyGroupId) return [];
+  const rows = await PatientModel.find(await scoped(auth, { familyGroupId: p.familyGroupId, _id: { $ne: p._id }, status: { $ne: 'merged' } }))
+    .select('fileNumber fullName gender dateOfBirth status guardian.patientId')
+    .sort({ dateOfBirth: 1 })
+    .limit(30)
+    .lean();
+  return rows.map((m) =>
+    applyFieldPolicy(
+      {
+        id: String(m._id),
+        fileNumber: m.fileNumber,
+        fullName: m.fullName,
+        gender: m.gender ?? undefined,
+        dateOfBirth: m.dateOfBirth ?? undefined,
+        status: m.status,
+        relation: String(m.guardian?.patientId) === String(p._id) ? 'dependant' : String(p.guardian?.patientId) === String(m._id) ? 'guardian' : 'member',
+      },
+      policy,
+    ),
+  );
+}
+
+/** Puts `otherId` (and its current family, if any) into this patient's family group. */
+export async function linkFamily(auth: AuthContext, id: string, otherId: string) {
+  assertWritable({ familyGroupId: otherId }, fieldPolicyOf(auth, RESOURCE, `${RESOURCE}.update`));
+  if (id === otherId) throw ApiError.validation([{ path: 'patientId', code: 'family_self' }]);
+  const [p, other] = await Promise.all([loadScopedPatient(auth, id), loadScopedPatient(auth, otherId).catch(() => null)]);
+  if (!other) throw ApiError.validation([{ path: 'patientId', code: 'not_found' }]);
+  if (p.status === 'merged' || other.status === 'merged') throw ApiError.conflict('INVALID_STATE_TRANSITION', 'Merged patients cannot be linked');
+  const group = p.familyGroupId ?? other.familyGroupId ?? new Types.ObjectId();
+  await withTransaction(async (session) => {
+    if (other.familyGroupId && !other.familyGroupId.equals(group)) {
+      await PatientModel.updateMany({ familyGroupId: other.familyGroupId }, { $set: { familyGroupId: group } }, { session });
+    }
+    await PatientModel.updateMany({ _id: { $in: [p._id, other._id] } }, { $set: { familyGroupId: group } }, { session });
+  });
+  await recordAudit({ action: 'update', entity: 'patient', entityId: id, summary: `family linked ${other.fileNumber}`, after: { patientId: id, familyGroupId: String(group) }, resource: RESOURCE });
+  return familyMembers(auth, id);
+}
+
+/** Removes this patient from their family group (the others stay linked). */
+export async function unlinkFamily(auth: AuthContext, id: string) {
+  assertWritable({ familyGroupId: null }, fieldPolicyOf(auth, RESOURCE, `${RESOURCE}.update`));
+  const p = await loadScopedPatient(auth, id);
+  if (!p.familyGroupId) return;
+  await PatientModel.updateOne({ _id: p._id }, { $unset: { familyGroupId: 1 } });
+  await recordAudit({ action: 'update', entity: 'patient', entityId: id, summary: 'family unlinked', resource: RESOURCE });
 }
 
 /** Merge duplicates: references move to the target, the source becomes `merged` (01 §4.3). */

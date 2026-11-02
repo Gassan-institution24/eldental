@@ -20,6 +20,7 @@ export type Patient = Entity & {
   emergencyContact?: { name: string; relation?: string; phone: string };
   referralSource?: string;
   preferredDentist?: string;
+  preferredDentistName?: string;
   preferredLanguage?: 'ar' | 'en';
   communicationPrefs?: { whatsapp?: boolean; sms?: boolean; email?: boolean; marketing?: boolean };
   medicalAlerts: string[];
@@ -27,6 +28,7 @@ export type Patient = Entity & {
   tags: string[];
   notes?: string;
   status: 'active' | 'inactive' | 'deceased' | 'merged';
+  mergedIntoId?: string;
   lastVisitAt?: string;
   noShowCount?: number;
   hasPortalAccount?: boolean;
@@ -88,10 +90,11 @@ export type MedicalHistory = Entity & {
   createdAt: string;
 };
 
-export function useMedicalHistory(patientId: string) {
+export function useMedicalHistory(patientId: string, enabled = true) {
   return useQuery({
     queryKey: ['/patients', patientId, 'medical'],
     queryFn: () => getData<MedicalHistory | null>(`/patients/${patientId}/medical-history`),
+    enabled,
   });
 }
 
@@ -219,10 +222,47 @@ export function useDeleteDocument(patientId: string) {
   });
 }
 
+/** `ref` is a workspace tab path (`chart`) or an absolute app path (`/clinic/...`). */
 export type TimelineEvent = { at: string; kind: string; title: string; ref?: string };
 export function useTimeline(patientId: string) {
   return useQuery({
     queryKey: ['/patients', patientId, 'timeline'],
     queryFn: () => getData<TimelineEvent[]>(`/patients/${patientId}/timeline`),
+  });
+}
+
+export type FamilyMember = {
+  id: string;
+  fileNumber: string;
+  fullName: string;
+  gender?: 'male' | 'female';
+  dateOfBirth?: string;
+  status: Patient['status'];
+  relation: 'guardian' | 'dependant' | 'member';
+};
+
+export function useFamily(patientId: string, enabled = true) {
+  return useQuery({
+    queryKey: ['/patients', patientId, 'family'],
+    queryFn: () => getData<FamilyMember[]>(`/patients/${patientId}/family`),
+    enabled,
+  });
+}
+
+/** Linking or unlinking changes every member's family list, so all patient queries refresh. */
+export function useLinkFamily(patientId: string) {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (otherId: string) =>
+      postData<FamilyMember[]>(`/patients/${patientId}/family`, { patientId: otherId }),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['/patients'] }),
+  });
+}
+
+export function useUnlinkFamily() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (memberId: string) => deleteData(`/patients/${memberId}/family`),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['/patients'] }),
   });
 }

@@ -14,6 +14,7 @@
   "date_in_future": "Date can't be in the future",
   "invalid_date": "Enter a valid date",
   "guardian_required": "A guardian is required for patients under 18",
+  "family_self": "A patient cannot be linked to themselves",
   "range_invalid": "The end date must be on or after the start date",
   "range_too_long": "The range can be at most {{max}} days",
   "invalid_time": "Enter a valid time (HH:mm)",

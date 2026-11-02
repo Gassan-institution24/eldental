@@ -80,7 +80,8 @@ export type PatientListQuery = z.infer<typeof patientListQuery>;
 export const searchQuery = z.object({ q: z.string().trim().min(1).max(60), limit: z.coerce.number().int().min(1).max(20).default(8) }).strict();
 export const duplicateQuery = z.object({ phone: z.string().max(30).optional(), nationalId: z.string().max(20).optional(), excludeId: objectId().optional() }).strict();
 export const idParams = z.object({ id: objectId() });
-export const mergeBody = z.object({ sourceId: objectId(), reason: freeText(500) }).strict();
+export const familyLinkBody = z.object({ patientId: objectId() }).strict();
+export const mergeBody =z.object({ sourceId: objectId(), reason: freeText(500) }).strict();
 
 const allergy = z.object({ substance: z.string().trim().min(1, { message: 'required' }).max(80), reaction: optional(freeText(120)), severity: enumOf(['mild', 'moderate', 'severe']) }).strict();
 export const MEDICAL_CONDITIONS = [

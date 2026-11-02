@@ -202,8 +202,8 @@ schedulingRouter.patch(
 
 registerOwnPatientSource(async (staffId) => AppointmentModel.distinct('patientId', { $or: [{ dentistId: staffId }, { assistantIds: staffId }] }) as Promise<Types.ObjectId[]>);
 
-registerTimelineSource(async (patientId) => {
-  const rows = await AppointmentModel.find({ patientId }).sort({ start: -1 }).limit(50).select('number start status').lean();
+registerTimelineSource(`${A}.read`, async (patientId, auth) => {
+  const rows = await AppointmentModel.find({ patientId, ...svc.ownFilter(auth, `${A}.read`) }).sort({ start: -1 }).limit(50).select('number start status').lean();
   return rows.map((a) => ({ at: a.start, kind: `appointment.${a.status}`, title: a.number, ref: `/clinic/calendar?appointment=${String(a._id)}` }));
 });
 

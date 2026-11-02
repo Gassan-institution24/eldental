@@ -100,4 +100,48 @@ describe('patients', () => {
     expect(src.body.data.status).toBe('merged');
     expect((await api(owner).get('/patients')).body.meta.total).toBe(1);
   });
+
+  it('timeline only shows events the caller may open (04 §1)', async () => {
+    const p = (await api(reception).post('/patients').send(base)).body.data;
+    await api(reception).post(`/patients/${p.id}/medical-history`).send({ conditions: ['diabetes'], allergies: [] });
+    const pdf = Buffer.from('%PDF-1.4\n1 0 obj<<>>endobj\ntrailer<<>>\n%%EOF');
+    await api(reception).post(`/patients/${p.id}/documents`).attach('file', pdf, 'id.pdf').field('category', 'id');
+    const owner = await login(c.ownerEmail);
+    const all = (await api(owner).get(`/patients/${p.id}/timeline`)).body.data.map((e: { kind: string }) => e.kind);
+    expect(all).toEqual(expect.arrayContaining(['patient.create', 'medicalHistory.create', 'file.create']));
+    // The accountant reads patients but has no medical-history or document permission.
+    const accountant = await login(c.staff.accountant!.email);
+    const limited = (await api(accountant).get(`/patients/${p.id}/timeline`)).body.data.map((e: { kind: string }) => e.kind);
+    expect(limited).toContain('patient.create');
+    expect(limited).not.toContain('medicalHistory.create');
+    expect(limited).not.toContain('file.create');
+  });
+
+  it('links family members, merges family groups and unlinks', async () => {
+    const mum = (await api(reception).post('/patients').send(base)).body.data;
+    const kidRes = await api(reception).post('/patients').send({ ...base, name: { first: 'Omar', family: 'Haddad' }, phone: '0791234570', dateOfBirth: '2016-05-01', nationalId: undefined, guardian: { patientId: mum.id, name: 'Lina Haddad', relation: 'mother', phone: '0791234567' } });
+    // Regression: registering a minor linked to an existing guardian patient used to fail (clinicId invalid).
+    expect(kidRes.status).toBe(201);
+    const kid = kidRes.body.data;
+    const fam = (await api(reception).get(`/patients/${mum.id}/family`)).body.data;
+    expect(fam).toEqual([expect.objectContaining({ id: kid.id, relation: 'dependant' })]);
+    expect((await api(reception).get(`/patients/${kid.id}/family`)).body.data[0]).toMatchObject({ id: mum.id, relation: 'guardian' });
+
+    // Linking someone who already has a family brings the whole group along.
+    const dad = (await api(reception).post('/patients').send({ ...base, name: { first: 'Sami', family: 'Haddad' }, phone: '0791234571', nationalId: undefined })).body.data;
+    const aunt = (await api(reception).post('/patients').send({ ...base, name: { first: 'Rana', family: 'Haddad' }, phone: '0791234572', nationalId: undefined })).body.data;
+    await api(reception).post(`/patients/${dad.id}/family`).send({ patientId: aunt.id }).expect(200);
+    const linked = await api(reception).post(`/patients/${mum.id}/family`).send({ patientId: dad.id });
+    expect(linked.status).toBe(200);
+    expect(linked.body.data.map((m: { id: string }) => m.id).sort()).toEqual([kid.id, dad.id, aunt.id].sort());
+
+    expect((await api(reception).post(`/patients/${mum.id}/family`).send({ patientId: mum.id })).body.error.details.fields[0].code).toBe('family_self');
+    await api(reception).delete(`/patients/${aunt.id}/family`).expect(204);
+    expect((await api(reception).get(`/patients/${aunt.id}/family`)).body.data).toEqual([]);
+    expect((await api(reception).get(`/patients/${mum.id}/family`)).body.data).toHaveLength(2);
+
+    // A dentist with own scope can't see or link patients they don't treat.
+    const dentist = await login(c.staff.dentist!.email);
+    expect((await api(dentist).get(`/patients/${mum.id}/family`)).status).toBe(404);
+  });
 });

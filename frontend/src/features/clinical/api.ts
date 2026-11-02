@@ -312,10 +312,11 @@ export function useChartMutations(patientId: string) {
 
 /* ---------- plans & procedures ---------- */
 
-export const usePlans = (patientId: string) =>
+export const usePlans = (patientId: string, enabled = true) =>
   useQuery({
     queryKey: k.plans(patientId),
     queryFn: () => getData<TreatmentPlan[]>(`/patients/${patientId}/treatment-plans`),
+    enabled,
   });
 export const useProcedures = (patientId: string) =>
   useQuery({

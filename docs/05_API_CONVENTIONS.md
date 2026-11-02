@@ -109,7 +109,7 @@ Responses of every resource are filtered by the caller's field rules (hidden fie
 `POST /telemetry/activity` (batched events, beacon-friendly) · `POST /telemetry/issues` (errors, failed calls, validation failures, user reports with an optional screenshot) · `/logs/{audit,activity,issues}` (clinic-scoped views; `logs.*` permissions).
 
 ### Patients
-`/patients` CRUD + `/patients/:id/merge` · `/patients/search?q=` (fast typeahead) · `/patients/:id/timeline` · `/patients/:id/medical-history` (GET latest, POST new version, GET `/versions`) · `/patients/:id/insurance-policies` · `/patients/:id/documents` (upload/list) · `/patients/:id/balance` · `/patients/:id/statement?from&to` (PDF) · `/patients/export` (async job, returns a download link).
+`/patients` CRUD + `/patients/:id/merge` · `/patients/search?q=` (fast typeahead) · `/patients/:id/timeline` (each event type only with its own read permission and scope: appointments, procedures, plans, notes, invoices, payments, medical history, documents) · `/patients/:id/family` (GET members in scope; POST `{ patientId }` links them, joining both families; DELETE removes this patient from the family — the `guardian` field rules apply) · `/patients/:id/medical-history` (GET latest, POST new version, GET `/versions`) · `/patients/:id/insurance-policies` · `/patients/:id/documents` (upload/list) · `/patients/:id/balance` · `/patients/:id/statement?from&to` (PDF) · `/patients/export` (async job, returns a download link).
 
 ### Scheduling
 | Method | Path | Notes |

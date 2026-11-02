@@ -116,7 +116,15 @@
     "reviewOverdue": "لم تتم مراجعة التاريخ الطبي خلال آخر 6 أشهر",
     "portal": "بوابة المريض",
     "portalLinked": "مرتبط بحساب في البوابة",
-    "portalNotLinked": "غير مرتبط بعد"
+    "portalNotLinked": "غير مرتبط بعد",
+    "openPlan": "خطة العلاج المفتوحة",
+    "noShows": "المواعيد الفائتة",
+    "channels": "الرسائل المسموح بها",
+    "registered": "تاريخ التسجيل",
+    "languages": {
+      "ar": "العربية",
+      "en": "الإنجليزية"
+    }
   },
   "medical": {
     "title": "التاريخ الطبي",
@@ -162,7 +170,8 @@
       "pregnancy": "حامل",
       "smoker": "مدخن",
       "pacemaker": "منظم ضربات القلب"
-    }
+    },
+    "reviewedShort": "تمت المراجعة"
   },
   "insurance": {
     "title": "وثائق التأمين",
@@ -230,7 +239,34 @@
       "procedure": "إجراء",
       "invoice": "فاتورة",
       "payment": "دفعة",
-      "note": "ملاحظة سريرية"
+      "note": "ملاحظة سريرية",
+      "appointment.completed": "اكتملت الزيارة",
+      "appointment.cancelled": "أُلغي الموعد",
+      "appointment.no_show": "موعد فائت",
+      "procedure.completed": "تم تنفيذ إجراء",
+      "procedure.void": "أُلغي إجراء",
+      "plan": "خطة علاج",
+      "plan.accepted": "تمت الموافقة على خطة العلاج",
+      "note.signed": "وُقّعت ملاحظة سريرية",
+      "note.draft": "ملاحظة سريرية (مسودة)",
+      "invoice.issued": "صدرت فاتورة",
+      "invoice.paid": "سُددت فاتورة",
+      "invoice.void": "أُلغيت فاتورة",
+      "invoice.credit_note": "إشعار دائن",
+      "payment.refunded": "استُردّت دفعة"
+    },
+    "filter": "عرض",
+    "groups": {
+      "patient": "ملف المريض",
+      "medicalHistory": "التاريخ الطبي",
+      "insurancePolicy": "التأمين",
+      "file": "المستندات",
+      "appointment": "المواعيد",
+      "procedure": "الإجراءات",
+      "plan": "خطط العلاج",
+      "note": "الملاحظات السريرية",
+      "invoice": "الفواتير",
+      "payment": "الدفعات"
     }
   },
   "merge": {
@@ -246,5 +282,22 @@
     "noResults": "لا يوجد مرضى مطابقون",
     "createQuick": "تسجيل «{{name}}»",
     "quickTitle": "تسجيل سريع"
+  },
+  "family": {
+    "members": "أفراد العائلة",
+    "none": "لا يوجد أفراد عائلة مرتبطون",
+    "link": "ربط فرد من العائلة",
+    "linkTitle": "ربط فرد من العائلة",
+    "linkHint": "ابحث عن ملف القريب. إذا كان ينتمي إلى عائلة أخرى فسيتم دمج العائلتين.",
+    "member": "فرد العائلة",
+    "linked": "تم ربط {{name}} بالعائلة",
+    "unlink": "إزالة من العائلة",
+    "unlinkTitle": "إزالة {{name}} من هذه العائلة؟",
+    "unlinked": "تمت الإزالة من العائلة",
+    "relations": {
+      "guardian": "وليّ الأمر",
+      "dependant": "تابع",
+      "member": "فرد"
+    }
   }
 }

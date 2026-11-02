@@ -125,6 +125,7 @@ export const VALIDATION_CODES = [
   'date_in_future',
   'invalid_date',
   'guardian_required',
+  'family_self',
   'range_invalid',
   'range_too_long',
   'invalid_time',

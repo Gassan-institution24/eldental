@@ -6,23 +6,44 @@ import {
   CardActionArea,
   Checkbox,
   Chip,
+  Collapse,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogTitle,
   FormControlLabel,
   Grid,
   IconButton,
   LinearProgress,
+  Link,
   MenuItem,
+  Skeleton,
   Stack,
   TextField,
   Tooltip,
   Typography,
 } from '@mui/material';
 import { alpha } from '@mui/material/styles';
-import { FileText, History, Pencil, Plus, ShieldCheck, Trash2, Upload, X } from 'lucide-react';
+import {
+  Check,
+  ChevronDown,
+  FileText,
+  History,
+  Pencil,
+  Plus,
+  ShieldCheck,
+  Trash2,
+  Upload,
+  Users,
+  X,
+} from 'lucide-react';
 import { useRef, useState, type DragEvent } from 'react';
 import { useFieldArray } from 'react-hook-form';
 import { useTranslation } from 'react-i18next';
+import { useNavigate } from 'react-router-dom';
 import { z } from 'zod';
-import { formatDate, formatDateTime } from '@/lib/dates';
+import { usePlans } from '@/features/clinical/api';
+import { formatDate, formatDateTime, formatTime } from '@/lib/dates';
 import {
   dateOnly,
   enumOf,
@@ -36,6 +57,7 @@ import { FormDrawer } from '@/shared/components/FormDrawer';
 import { MoneyText, useCurrency } from '@/shared/components/MoneyText';
 import { SectionCard } from '@/shared/components/SectionCard';
 import { EmptyState, ErrorState, PageSkeleton } from '@/shared/components/States';
+import { StatusChip } from '@/shared/components/StatusChip';
 import { Form } from '@/shared/form/Form';
 import { RHFCheckbox, RHFDate, RHFMoney } from '@/shared/form/RHFInputs';
 import { RHFSelect } from '@/shared/form/RHFSelect';
@@ -50,17 +72,23 @@ import {
   useDeleteDocument,
   useDeletePolicy,
   useDocuments,
+  useFamily,
+  useLinkFamily,
   useMedicalHistory,
   useMedicalVersions,
   usePolicies,
   useSaveMedicalHistory,
   useSavePolicy,
   useTimeline,
+  useUnlinkFamily,
   useUploadDocument,
   type FileItem,
+  type MedicalHistory,
   type Policy,
+  type TimelineEvent,
 } from '../api/patients';
-import { useAlertLabel } from '../utils';
+import { PatientPicker } from '../components/PatientPicker';
+import { ageOf, useAlertLabel, useNextAppointment } from '../utils';
 import { usePatientContext } from './PatientWorkspace';
 
 function Info({ label, value }: { label: string; value?: React.ReactNode }) {
@@ -78,106 +106,439 @@ function Info({ label, value }: { label: string; value?: React.ReactNode }) {
 
 /* ---------------- overview ---------------- */
 
+function Glance({
+  label,
+  children,
+  onClick,
+}: {
+  label: string;
+  children: React.ReactNode;
+  onClick?: () => void;
+}) {
+  const body = (
+    <Box sx={{ p: 4 }}>
+      <Typography variant="caption" color="text.secondary" display="block">
+        {label}
+      </Typography>
+      <Box sx={{ mt: 1, fontWeight: 700 }}>{children}</Box>
+    </Box>
+  );
+  return (
+    <Card variant="outlined" sx={{ height: '100%' }}>
+      {onClick ? (
+        <CardActionArea onClick={onClick} sx={{ height: '100%' }}>
+          {body}
+        </CardActionArea>
+      ) : (
+        body
+      )}
+    </Card>
+  );
+}
+
+const OPEN_PLAN = ['presented', 'accepted', 'partially_accepted', 'in_progress'];
+
+/** Next visit, open treatment plan, last visit and no-shows; each only with its permission. */
+function AtAGlance() {
+  const { t, i18n } = useTranslation('patients');
+  const { patient: p } = usePatientContext();
+  const { can } = usePermission();
+  const navigate = useNavigate();
+  const lang = i18n.resolvedLanguage ?? 'ar';
+  const next = useNextAppointment(p.id);
+  const canPlans = can('clinical.treatmentPlan.read');
+  const plans = usePlans(p.id, canPlans);
+  const plan = (plans.data ?? []).find((x) => OPEN_PLAN.includes(x.status));
+  const base = `/clinic/patients/${p.id}`;
+  return (
+    <Grid container spacing={4} sx={{ mb: 6 }}>
+      {next.allowed && (
+        <Grid item xs={6} md={3}>
+          <Glance
+            label={t('header.nextAppointment')}
+            onClick={() => navigate(`${base}/appointments`)}
+          >
+            {next.isLoading ? (
+              <Skeleton width={100} />
+            ) : next.next ? (
+              <>
+                {formatDate(next.next.start, lang, 'ddd ll')}
+                <Typography
+                  variant="body2"
+                  color="text.secondary"
+                  dir="ltr"
+                  sx={{ textAlign: 'start' }}
+                >
+                  {formatTime(next.next.start, lang)}
+                </Typography>
+              </>
+            ) : (
+              <Typography color="text.secondary">{t('header.none')}</Typography>
+            )}
+          </Glance>
+        </Grid>
+      )}
+      {canPlans && (
+        <Grid item xs={6} md={3}>
+          <Glance label={t('overview.openPlan')} onClick={() => navigate(`${base}/plans`)}>
+            {plans.isLoading ? (
+              <Skeleton width={100} />
+            ) : plan ? (
+              <Stack
+                direction="row"
+                spacing={1}
+                alignItems="center"
+                sx={{ flexWrap: 'wrap', rowGap: 1 }}
+              >
+                <span dir="auto">{plan.title || plan.number}</span>
+                <StatusChip status={plan.status} />
+              </Stack>
+            ) : (
+              <Typography color="text.secondary">{t('header.none')}</Typography>
+            )}
+          </Glance>
+        </Grid>
+      )}
+      <Grid item xs={6} md={3}>
+        <Glance label={t('fields.lastVisit')}>
+          {p.lastVisitAt ? formatDate(p.lastVisitAt, lang, 'll') : '—'}
+        </Glance>
+      </Grid>
+      <Grid item xs={6} md={3}>
+        <Glance label={t('overview.noShows')}>
+          <Typography
+            component="span"
+            fontWeight={700}
+            color={(p.noShowCount ?? 0) > 0 ? 'warning.main' : undefined}
+          >
+            {p.noShowCount ?? 0}
+          </Typography>
+        </Glance>
+      </Grid>
+    </Grid>
+  );
+}
+
+function LinkFamilyDialog({ patientId, onClose }: { patientId: string; onClose: () => void }) {
+  const { t } = useTranslation('patients');
+  const link = useLinkFamily(patientId);
+  const notify = useNotify();
+  const [other, setOther] = useState<{ id: string; fullName: string } | null>(null);
+  const run = async () => {
+    if (!other) return;
+    try {
+      await link.mutateAsync(other.id);
+      notify.success(t('family.linked', { name: other.fullName }));
+      onClose();
+    } catch (err) {
+      notify.error(err);
+    }
+  };
+  return (
+    <Dialog open onClose={onClose} maxWidth="sm" fullWidth>
+      <DialogTitle>{t('family.linkTitle')}</DialogTitle>
+      <DialogContent>
+        <Typography color="text.secondary" sx={{ mb: 4 }}>
+          {t('family.linkHint')}
+        </Typography>
+        <PatientPicker
+          label={t('family.member')}
+          value={other}
+          onChange={setOther}
+          excludeId={patientId}
+        />
+      </DialogContent>
+      <DialogActions sx={{ px: 6, pb: 4 }}>
+        <Button onClick={onClose}>{t('common:actions.cancel')}</Button>
+        <Button variant="contained" disabled={!other || link.isPending} onClick={() => void run()}>
+          {t('family.link')}
+        </Button>
+      </DialogActions>
+    </Dialog>
+  );
+}
+
+function FamilyCard() {
+  const { t, i18n } = useTranslation('patients');
+  const { patient: p } = usePatientContext();
+  const scope = useFieldScope();
+  const { can } = usePermission();
+  const navigate = useNavigate();
+  const confirm = useConfirm();
+  const notify = useNotify();
+  const visible = scope.canSee('guardian');
+  const canEdit =
+    can('patients.patient.update') && scope.canEdit('guardian') && p.status !== 'merged';
+  const family = useFamily(p.id, visible);
+  const unlink = useUnlinkFamily();
+  const [linking, setLinking] = useState(false);
+  const members = family.data ?? [];
+
+  const remove = async (id: string, name: string) => {
+    const r = await confirm({ title: t('family.unlinkTitle', { name }), destructive: true });
+    if (!r.confirmed) return;
+    try {
+      await unlink.mutateAsync(id);
+      notify.success(t('family.unlinked'));
+    } catch (err) {
+      notify.error(err);
+    }
+  };
+
+  return (
+    <SectionCard
+      title={t('overview.family')}
+      actions={
+        canEdit && (
+          <Button startIcon={<Users size={16} />} onClick={() => setLinking(true)}>
+            {t('family.link')}
+          </Button>
+        )
+      }
+    >
+      {visible && p.guardian && (
+        <>
+          <Info label={t('fields.guardianName')} value={p.guardian.name} />
+          <Info label={t('fields.relation')} value={p.guardian.relation} />
+          <Info
+            label={t('fields.guardianPhone')}
+            value={<span dir="ltr">{p.guardian.phone}</span>}
+          />
+        </>
+      )}
+      {scope.canSee('emergencyContact') && p.emergencyContact && (
+        <Info
+          label={t('sections.emergency')}
+          value={
+            <>
+              <span dir="auto">{p.emergencyContact.name}</span>
+              {p.emergencyContact.relation ? ` (${p.emergencyContact.relation})` : ''} ·{' '}
+              <span dir="ltr">{p.emergencyContact.phone}</span>
+            </>
+          }
+        />
+      )}
+      {visible && (
+        <Box sx={{ mt: 2 }}>
+          <Typography variant="caption" color="text.secondary">
+            {t('family.members')}
+          </Typography>
+          {family.isLoading ? (
+            <Skeleton height={40} />
+          ) : family.isError ? (
+            <ErrorState error={family.error} onRetry={() => void family.refetch()} />
+          ) : members.length === 0 ? (
+            <Typography color="text.secondary">{t('family.none')}</Typography>
+          ) : (
+            <Stack spacing={1} sx={{ mt: 1 }}>
+              {members.map((m) => {
+                const age = ageOf(m.dateOfBirth);
+                return (
+                  <Stack
+                    key={m.id}
+                    direction="row"
+                    spacing={2}
+                    alignItems="center"
+                    sx={{ py: 1, borderBottom: 1, borderColor: 'divider' }}
+                  >
+                    <Box sx={{ flex: 1, minWidth: 0 }}>
+                      <Link
+                        component="button"
+                        type="button"
+                        onClick={() => navigate(`/clinic/patients/${m.id}`)}
+                        fontWeight={650}
+                        sx={{ textAlign: 'start' }}
+                      >
+                        <span dir="auto">{m.fullName}</span>
+                      </Link>
+                      <Typography variant="caption" color="text.secondary" display="block">
+                        <span dir="ltr">{m.fileNumber}</span>
+                        {age !== null ? ` · ${t('years', { count: age })}` : ''}
+                        {m.dateOfBirth
+                          ? ` · ${formatDate(m.dateOfBirth, i18n.resolvedLanguage ?? 'ar', 'll')}`
+                          : ''}
+                      </Typography>
+                    </Box>
+                    {m.relation !== 'member' && (
+                      <Chip
+                        size="small"
+                        variant="outlined"
+                        label={t(`family.relations.${m.relation}`)}
+                      />
+                    )}
+                    {canEdit && (
+                      <Tooltip title={t('family.unlink')}>
+                        <IconButton
+                          size="small"
+                          aria-label={t('family.unlink')}
+                          onClick={() => void remove(m.id, m.fullName)}
+                        >
+                          <X size={16} />
+                        </IconButton>
+                      </Tooltip>
+                    )}
+                  </Stack>
+                );
+              })}
+            </Stack>
+          )}
+        </Box>
+      )}
+      {linking && <LinkFamilyDialog patientId={p.id} onClose={() => setLinking(false)} />}
+    </SectionCard>
+  );
+}
+
+const COMM_LABEL = {
+  whatsapp: 'commWhatsapp',
+  sms: 'commSms',
+  email: 'commEmail',
+  marketing: 'commMarketing',
+} as const;
+const COMM_CHANNELS = Object.keys(COMM_LABEL) as (keyof typeof COMM_LABEL)[];
+
 export function OverviewTab() {
   const { t, i18n } = useTranslation('patients');
   const { patient: p } = usePatientContext();
   const scope = useFieldScope();
   const alertLabel = useAlertLabel();
-  const medical = useMedicalHistory(p.id);
+  const { can } = usePermission();
+  const canMedical = can('patients.medicalHistory.read');
+  const medical = useMedicalHistory(p.id, canMedical);
+  const lang = i18n.resolvedLanguage ?? 'ar';
   const sixMonths = 182 * 86_400_000;
   const overdue = medical.data
     ? !medical.data.reviewedAt || Date.now() - Date.parse(medical.data.reviewedAt) > sixMonths
     : false;
+  const prefs = p.communicationPrefs ?? {};
   return (
-    <Grid container spacing={5}>
-      <Grid item xs={12} md={6}>
-        <SectionCard title={t('overview.contact')}>
-          {scope.canSee('phone') || scope.isMasked('phone') ? (
-            <Info label={t('fields.phone')} value={<span dir="ltr">{p.phone}</span>} />
-          ) : null}
-          {scope.canSee('altPhone') && (
-            <Info label={t('fields.altPhone')} value={<span dir="ltr">{p.altPhone}</span>} />
-          )}
-          {scope.canSee('email') && (
-            <Info label={t('fields.email')} value={<span dir="ltr">{p.email}</span>} />
-          )}
-          {scope.canSee('address') && (
-            <Info
-              label={t('fields.addressLine1')}
-              value={[p.address?.line1, p.address?.city].filter(Boolean).join('، ')}
-            />
-          )}
-          {(scope.canSee('nationalId') || scope.isMasked('nationalId')) && (
-            <Info label={t('fields.nationalId')} value={<span dir="ltr">{p.nationalId}</span>} />
-          )}
-          {p.dateOfBirth && (
-            <Info
-              label={t('fields.dateOfBirth')}
-              value={formatDate(p.dateOfBirth, i18n.resolvedLanguage ?? 'ar')}
-            />
-          )}
-        </SectionCard>
-      </Grid>
-      <Grid item xs={12} md={6}>
-        <SectionCard title={t('medical.title')}>
-          {overdue && (
-            <Alert severity="warning" sx={{ mb: 3 }}>
-              {t('overview.reviewOverdue')}
-            </Alert>
-          )}
-          {p.medicalAlerts.length === 0 ? (
-            <Typography color="text.secondary">{t('overview.noAlerts')}</Typography>
-          ) : (
-            <Stack direction="row" sx={{ flexWrap: 'wrap', gap: 1 }}>
-              {p.medicalAlerts.map((a) => (
-                <Chip
-                  key={a}
-                  color="error"
-                  variant="outlined"
-                  label={<span dir="auto">{alertLabel(a)}</span>}
-                />
-              ))}
-            </Stack>
-          )}
-        </SectionCard>
-        <SectionCard title={t('overview.family')}>
-          {p.guardian ? (
-            <>
-              <Info label={t('fields.guardianName')} value={p.guardian.name} />
-              <Info label={t('fields.relation')} value={p.guardian.relation} />
+    <>
+      <AtAGlance />
+      <Grid container spacing={5}>
+        <Grid item xs={12} md={6}>
+          <SectionCard title={t('overview.contact')}>
+            {scope.canSee('phone') || scope.isMasked('phone') ? (
+              <Info label={t('fields.phone')} value={<span dir="ltr">{p.phone}</span>} />
+            ) : null}
+            {(scope.canSee('altPhone') || scope.isMasked('altPhone')) && p.altPhone && (
+              <Info label={t('fields.altPhone')} value={<span dir="ltr">{p.altPhone}</span>} />
+            )}
+            {(scope.canSee('email') || scope.isMasked('email')) && (
               <Info
-                label={t('fields.guardianPhone')}
-                value={<span dir="ltr">{p.guardian.phone}</span>}
+                label={t('fields.email')}
+                value={p.email && <span dir="ltr">{p.email}</span>}
               />
-            </>
-          ) : (
-            <Typography color="text.secondary">—</Typography>
-          )}
-          {p.emergencyContact && (
-            <Info
-              label={t('sections.emergency')}
-              value={`${p.emergencyContact.name} · ${p.emergencyContact.phone}`}
-            />
-          )}
-        </SectionCard>
-        <SectionCard title={t('overview.portal')}>
-          <Chip
-            icon={<ShieldCheck size={16} />}
-            color={p.hasPortalAccount ? 'success' : 'default'}
-            label={p.hasPortalAccount ? t('overview.portalLinked') : t('overview.portalNotLinked')}
-          />
-        </SectionCard>
-      </Grid>
-      {p.notes && (
-        <Grid item xs={12}>
-          <SectionCard title={t('fields.notes')}>
-            <Typography sx={{ whiteSpace: 'pre-wrap' }} dir="auto">
-              {p.notes}
-            </Typography>
+            )}
+            {scope.canSee('address') && (
+              <Info
+                label={t('fields.addressLine1')}
+                value={[p.address?.line1, p.address?.city]
+                  .filter(Boolean)
+                  .join(lang === 'ar' ? '، ' : ', ')}
+              />
+            )}
+            {(scope.canSee('nationalId') || scope.isMasked('nationalId')) && (
+              <>
+                <Info
+                  label={t('fields.nationalId')}
+                  value={p.nationalId && <span dir="ltr">{p.nationalId}</span>}
+                />
+                {p.passportNo && (
+                  <Info
+                    label={t('fields.passportNo')}
+                    value={<span dir="ltr">{p.passportNo}</span>}
+                  />
+                )}
+              </>
+            )}
+            {p.dateOfBirth && (
+              <Info label={t('fields.dateOfBirth')} value={formatDate(p.dateOfBirth, lang)} />
+            )}
+          </SectionCard>
+          <SectionCard title={t('overview.preferences')}>
+            {scope.canSee('preferredDentist') && (
+              <Info
+                label={t('fields.preferredDentist')}
+                value={p.preferredDentistName && <span dir="auto">{p.preferredDentistName}</span>}
+              />
+            )}
+            {scope.canSee('preferredLanguage') && p.preferredLanguage && (
+              <Info
+                label={t('fields.preferredLanguage')}
+                value={t(`overview.languages.${p.preferredLanguage}`)}
+              />
+            )}
+            {scope.canSee('communicationPrefs') && (
+              <Box sx={{ py: 2 }}>
+                <Typography variant="caption" color="text.secondary">
+                  {t('overview.channels')}
+                </Typography>
+                <Stack direction="row" sx={{ flexWrap: 'wrap', gap: 1, mt: 1 }}>
+                  {COMM_CHANNELS.map((c) => (
+                    <Chip
+                      key={c}
+                      size="small"
+                      variant={prefs[c] ? 'filled' : 'outlined'}
+                      color={prefs[c] ? 'success' : 'default'}
+                      icon={prefs[c] ? <Check size={14} /> : <X size={14} />}
+                      label={t(`fields.${COMM_LABEL[c]}`)}
+                    />
+                  ))}
+                </Stack>
+              </Box>
+            )}
+            {scope.canSee('referralSource') && p.referralSource && (
+              <Info label={t('fields.referralSource')} value={p.referralSource} />
+            )}
+            <Info label={t('overview.registered')} value={formatDate(p.createdAt, lang)} />
           </SectionCard>
         </Grid>
-      )}
-    </Grid>
+        <Grid item xs={12} md={6}>
+          {canMedical && (
+            <SectionCard title={t('medical.title')}>
+              {overdue && (
+                <Alert severity="warning" sx={{ mb: 3 }}>
+                  {t('overview.reviewOverdue')}
+                </Alert>
+              )}
+              {p.medicalAlerts.length === 0 ? (
+                <Typography color="text.secondary">{t('overview.noAlerts')}</Typography>
+              ) : (
+                <Stack direction="row" sx={{ flexWrap: 'wrap', gap: 1 }}>
+                  {p.medicalAlerts.map((a) => (
+                    <Chip
+                      key={a}
+                      color="error"
+                      variant="outlined"
+                      label={<span dir="auto">{alertLabel(a)}</span>}
+                    />
+                  ))}
+                </Stack>
+              )}
+            </SectionCard>
+          )}
+          <FamilyCard />
+          <SectionCard title={t('overview.portal')}>
+            <Chip
+              icon={<ShieldCheck size={16} />}
+              color={p.hasPortalAccount ? 'success' : 'default'}
+              label={
+                p.hasPortalAccount ? t('overview.portalLinked') : t('overview.portalNotLinked')
+              }
+            />
+          </SectionCard>
+        </Grid>
+        {scope.canSee('notes') && p.notes && (
+          <Grid item xs={12}>
+            <SectionCard title={t('fields.notes')}>
+              <Typography sx={{ whiteSpace: 'pre-wrap' }} dir="auto">
+                {p.notes}
+              </Typography>
+            </SectionCard>
+          </Grid>
+        )}
+      </Grid>
+    </>
   );
 }
 
@@ -216,6 +577,70 @@ const medSchema = z.object({
 });
 type Med = z.input<typeof medSchema>;
 
+/** Every saved version, newest first; expand one to read exactly what was recorded then. */
+function MedicalVersions({ patientId }: { patientId: string }) {
+  const { t, i18n } = useTranslation('patients');
+  const q = useMedicalVersions(patientId, true);
+  const [open, setOpen] = useState<string | null>(null);
+  const lang = i18n.resolvedLanguage ?? 'ar';
+  const sep = lang === 'ar' ? '، ' : ', ';
+  if (q.isLoading) return <PageSkeleton rows={2} />;
+  if (q.isError) return <ErrorState error={q.error} onRetry={() => void q.refetch()} compact />;
+  return (
+    <Box>
+      <Typography fontWeight={700} sx={{ mb: 2 }}>
+        {t('medical.versions')}
+      </Typography>
+      <Stack spacing={1}>
+        {(q.data ?? []).map((v: MedicalHistory) => (
+          <Card variant="outlined" key={v.id}>
+            <CardActionArea
+              onClick={() => setOpen((o) => (o === v.id ? null : v.id))}
+              aria-expanded={open === v.id}
+              sx={{ px: 4, py: 2 }}
+            >
+              <Stack direction="row" spacing={2} alignItems="center">
+                <Typography fontWeight={650}>{t('medical.version', { n: v.version })}</Typography>
+                <Typography variant="body2" color="text.secondary" sx={{ flex: 1 }}>
+                  {formatDateTime(v.createdAt, lang)}
+                </Typography>
+                {v.reviewedAt && (
+                  <Chip
+                    size="small"
+                    color="success"
+                    variant="outlined"
+                    label={t('medical.reviewedShort')}
+                  />
+                )}
+                <ChevronDown
+                  size={16}
+                  style={{ transform: open === v.id ? 'rotate(180deg)' : undefined }}
+                />
+              </Stack>
+            </CardActionArea>
+            <Collapse in={open === v.id} unmountOnExit>
+              <Box sx={{ px: 4, pb: 3 }}>
+                <Info
+                  label={t('medical.conditions')}
+                  value={v.conditions.map((c) => t(`medical.condition.${c}`)).join(sep)}
+                />
+                <Info
+                  label={t('medical.allergies')}
+                  value={v.allergies
+                    .map((a) => `${a.substance} (${t(`medical.severities.${a.severity}`)})`)
+                    .join(sep)}
+                />
+                {v.medications && <Info label={t('medical.medications')} value={v.medications} />}
+                {v.notes && <Info label={t('medical.notes')} value={v.notes} />}
+              </Box>
+            </Collapse>
+          </Card>
+        ))}
+      </Stack>
+    </Box>
+  );
+}
+
 export function MedicalTab() {
   const { t, i18n } = useTranslation('patients');
   const { patient: p } = usePatientContext();
@@ -223,7 +648,6 @@ export function MedicalTab() {
   const q = useMedicalHistory(p.id);
   const [editing, setEditing] = useState(false);
   const [showVersions, setShowVersions] = useState(false);
-  const versions = useMedicalVersions(p.id, showVersions);
   const save = useSaveMedicalHistory(p.id);
   const notify = useNotify();
   const h = q.data;
@@ -416,8 +840,8 @@ export function MedicalTab() {
             </Typography>
             {h.allergies.length ? (
               <Stack spacing={1}>
-                {h.allergies.map((a) => (
-                  <Stack key={a.substance} direction="row" spacing={2} alignItems="center">
+                {h.allergies.map((a, i) => (
+                  <Stack key={`${a.substance}-${i}`} direction="row" spacing={2} alignItems="center">
                     <Chip
                       size="small"
                       color={
@@ -442,20 +866,7 @@ export function MedicalTab() {
           </Box>
           {h.medications && <Info label={t('medical.medications')} value={h.medications} />}
           {h.notes && <Info label={t('medical.notes')} value={h.notes} />}
-          {showVersions && (
-            <Box>
-              <Typography fontWeight={700} sx={{ mb: 2 }}>
-                {t('medical.versions')}
-              </Typography>
-              {(versions.data ?? []).map((v) => (
-                <Typography key={v.id} variant="body2" color="text.secondary">
-                  {t('medical.version', { n: v.version })} ·{' '}
-                  {formatDateTime(v.createdAt, i18n.resolvedLanguage ?? 'ar')} ·{' '}
-                  {v.conditions.length} / {v.allergies.length}
-                </Typography>
-              ))}
-            </Box>
-          )}
+          {showVersions && <MedicalVersions patientId={p.id} />}
         </Stack>
       )}
     </SectionCard>
@@ -618,6 +1029,7 @@ export function InsuranceTab() {
   const canEdit = can('patients.patient.update') || can('billing.insurance.manage');
   const today = new Date().toISOString().slice(0, 10);
   if (q.isLoading) return <PageSkeleton rows={3} />;
+  if (q.isError) return <ErrorState error={q.error} onRetry={() => void q.refetch()} />;
   return (
     <SectionCard
       title={t('insurance.title')}
@@ -700,8 +1112,12 @@ export function InsuranceTab() {
                                 destructive: true,
                               });
                               if (!r.confirmed) return;
-                              await del.mutateAsync(pol.id);
-                              notify.success(t('insurance.deleted'));
+                              try {
+                                await del.mutateAsync(pol.id);
+                                notify.success(t('insurance.deleted'));
+                              } catch (err) {
+                                notify.error(err);
+                              }
                             }}
                           >
                             <Trash2 size={16} />
@@ -941,6 +1357,8 @@ export function DocumentsTab({ imagingOnly }: { imagingOnly?: boolean }) {
       )}
       {docs.isLoading ? (
         <PageSkeleton rows={2} />
+      ) : docs.isError ? (
+        <ErrorState error={docs.error} onRetry={() => void docs.refetch()} compact />
       ) : items.length === 0 ? (
         <EmptyState title={t('documents.empty')} compact />
       ) : (
@@ -957,8 +1375,12 @@ export function DocumentsTab({ imagingOnly }: { imagingOnly?: boolean }) {
                           destructive: true,
                         });
                         if (!r.confirmed) return;
-                        await del.mutateAsync(f.id);
-                        notify.success(t('documents.deleted'));
+                        try {
+                          await del.mutateAsync(f.id);
+                          notify.success(t('documents.deleted'));
+                        } catch (err) {
+                          notify.error(err);
+                        }
                       }
                     : undefined
                 }
@@ -973,42 +1395,99 @@ export function DocumentsTab({ imagingOnly }: { imagingOnly?: boolean }) {
 
 /* ---------------- history ---------------- */
 
+/** Group of an event kind (`invoice.paid` → `invoice`), used for the filter and the dot colour. */
+const groupOf = (kind: string) => kind.split('.')[0] ?? kind;
+const DOT: Record<string, 'primary' | 'success' | 'warning' | 'info' | 'secondary' | 'error'> = {
+  appointment: 'primary',
+  procedure: 'success',
+  plan: 'success',
+  note: 'secondary',
+  invoice: 'warning',
+  payment: 'warning',
+  medicalHistory: 'error',
+};
+
 export function HistoryTab() {
   const { t, i18n } = useTranslation('patients');
   const { patient: p } = usePatientContext();
+  const navigate = useNavigate();
   const q = useTimeline(p.id);
+  const [group, setGroup] = useState('');
   if (q.isLoading) return <PageSkeleton rows={4} />;
+  if (q.isError) return <ErrorState error={q.error} onRetry={() => void q.refetch()} />;
+  const events = q.data ?? [];
+  const groups = [...new Set(events.map((e) => groupOf(e.kind)))];
+  const shown = group ? events.filter((e) => groupOf(e.kind) === group) : events;
+  const open = (e: TimelineEvent) => {
+    if (!e.ref) return;
+    navigate(e.ref.startsWith('/') ? e.ref : `/clinic/patients/${p.id}/${e.ref}`);
+  };
+  const label = (kind: string) =>
+    t(`timeline.events.${kind}`, {
+      defaultValue: t(`timeline.events.${groupOf(kind)}`, { defaultValue: kind }),
+    });
+
   return (
-    <SectionCard title={t('timeline.title')}>
-      {(q.data ?? []).length === 0 ? (
+    <SectionCard
+      title={t('timeline.title')}
+      actions={
+        groups.length > 1 && (
+          <TextField
+            select
+            size="small"
+            value={group}
+            onChange={(e) => setGroup(e.target.value)}
+            label={t('timeline.filter')}
+            sx={{ minWidth: 180 }}
+          >
+            <MenuItem value="">{t('documents.all')}</MenuItem>
+            {groups.map((g) => (
+              <MenuItem key={g} value={g}>
+                {t(`timeline.groups.${g}`, { defaultValue: g })}
+              </MenuItem>
+            ))}
+          </TextField>
+        )
+      }
+    >
+      {shown.length === 0 ? (
         <EmptyState title={t('timeline.empty')} compact />
       ) : (
         <Box component="ol" sx={{ listStyle: 'none', p: 0, m: 0, position: 'relative' }}>
-          {(q.data ?? []).map((e, i) => (
+          {shown.map((e, i) => (
             <Box
               component="li"
-              key={i}
+              key={`${e.kind}-${e.at}-${i}`}
               sx={{ display: 'flex', gap: 3, pb: 4, position: 'relative' }}
             >
               <Box
-                sx={(th) => ({
-                  width: 12,
-                  height: 12,
-                  mt: 0.75,
-                  borderRadius: '50%',
-                  bgcolor: th.palette.primary.main,
-                  boxShadow: `0 0 0 4px ${alpha(th.palette.primary.main, 0.15)}`,
-                  flexShrink: 0,
-                })}
+                sx={(th) => {
+                  const c = th.palette[DOT[groupOf(e.kind)] ?? 'info'].main;
+                  return {
+                    width: 12,
+                    height: 12,
+                    mt: 0.75,
+                    borderRadius: '50%',
+                    bgcolor: c,
+                    boxShadow: `0 0 0 4px ${alpha(c, 0.15)}`,
+                    flexShrink: 0,
+                  };
+                }}
               />
               <Box>
-                <Typography fontWeight={650}>
-                  {t(`timeline.events.${e.kind}`, {
-                    defaultValue: t(`timeline.events.${e.kind.split('.')[0]}`, {
-                      defaultValue: e.kind,
-                    }),
-                  })}
-                </Typography>
+                {e.ref ? (
+                  <Link
+                    component="button"
+                    type="button"
+                    fontWeight={650}
+                    onClick={() => open(e)}
+                    sx={{ textAlign: 'start' }}
+                  >
+                    {label(e.kind)}
+                  </Link>
+                ) : (
+                  <Typography fontWeight={650}>{label(e.kind)}</Typography>
+                )}
                 {e.title && (
                   <Typography variant="body2" color="text.secondary" dir="auto">
                     {e.title}

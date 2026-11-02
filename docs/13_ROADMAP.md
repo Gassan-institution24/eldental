@@ -66,11 +66,11 @@
 - the user timeline shows pages, actions, validation errors and failed requests for a session.
 
 ## Phase 3 — Patients
-- [ ] Patients CRUD, search/typeahead, file numbers, guardian/family, merge, communication prefs
-- [ ] Medical history (versioned) + allergies + alerts banner
-- [ ] Insurance companies (basic) + patient policies
-- [ ] File assets + storage driver (local) + secure download endpoint + document upload UI
-- [ ] Patient profile page with tabs (overview, documents, history placeholder)
+- [x] Patients CRUD, search/typeahead, file numbers, guardian/family, merge, communication prefs
+- [x] Medical history (versioned) + allergies + alerts banner
+- [x] Insurance companies (basic) + patient policies
+- [x] File assets + storage driver (local) + secure download endpoint + document upload UI
+- [x] Patient profile page with tabs (overview, documents, history placeholder)
 
 **Accept:** a receptionist registers a patient, uploads an ID and records history; a dentist with `own` scope cannot see untreated patients (404).
 

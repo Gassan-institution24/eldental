@@ -1,4 +1,6 @@
 import { useTranslation } from 'react-i18next';
+import { usePatientAppointments, type Appointment } from '@/features/scheduling/api';
+import { usePermission } from '@/shared/rbac/usePermission';
 
 export function ageOf(dob?: string): number | null {
   if (!dob) return null;
@@ -19,4 +21,16 @@ export function useAlertLabel() {
     if (kind === 'condition') return t(`medical.condition.${value}`, { defaultValue: value });
     return value;
   };
+}
+
+/** The patient's next scheduled/confirmed visit; not fetched without appointment access. */
+export function useNextAppointment(patientId: string) {
+  const { can } = usePermission();
+  const allowed = can('scheduling.appointment.read');
+  const q = usePatientAppointments(allowed ? patientId : undefined);
+  const now = Date.now();
+  const next = (q.data ?? [])
+    .filter((a) => ['scheduled', 'confirmed'].includes(a.status) && Date.parse(a.start) >= now)
+    .reduce<Appointment | null>((m, a) => (!m || a.start < m.start ? a : m), null);
+  return { allowed, isLoading: allowed && q.isLoading, next };
 }

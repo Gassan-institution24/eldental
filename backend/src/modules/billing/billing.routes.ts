@@ -10,6 +10,7 @@ import { authorize } from '@/core/rbac/authorize';
 import { currentClinicId, runInTenant, runWithoutTenant } from '@/core/tenancy/tenantPlugin';
 import { body, params, query, validate } from '@/core/validation/validate';
 import { LabOrderModel } from '@/modules/clinical/clinical.models';
+import { registerTimelineSource } from '@/modules/patients/patient.routes';
 import { loadScopedPatient } from '@/modules/patients/patient.service';
 import { ClinicModel } from '@/modules/platform/clinic.model';
 import { AccountModel } from '@/modules/accounting/accounting.models';
@@ -336,3 +337,15 @@ registerPath({ method: 'get', path: '/billing/dentists', tags: ['billing'], summ
 registerPath({ method: 'post', path: '/invoices/:id/issue', tags: ['billing'], summary: 'Issue: number + journal in one transaction (idempotent)', params: idParams, body: issueBody });
 registerPath({ method: 'post', path: '/payments', tags: ['billing'], summary: 'Record a payment (Idempotency-Key header)', body: paymentBody });
 registerPath({ method: 'post', path: '/invoices/:id/credit-notes', tags: ['billing'], summary: 'Credit note (full or partial)', params: idParams, body: creditBody });
+
+/* ---------- patient timeline (01 §4.3): issued documents and payments, scoped like the lists ---------- */
+
+registerTimelineSource('billing.invoice.read', async (patientId, auth) => {
+  const rows = await InvoiceModel.find({ patientId, status: { $ne: 'draft' }, ...inv.ownInvoiceFilter(auth) }).sort({ createdAt: -1 }).limit(30).select('number type status createdAt').lean();
+  return rows.map((i) => ({ at: (i as { createdAt?: Date }).createdAt ?? new Date(), kind: i.type === 'credit_note' ? 'invoice.credit_note' : `invoice.${i.status}`, title: i.number ?? '', ref: `/clinic/billing/invoices/${String(i._id)}` }));
+});
+
+registerTimelineSource('billing.payment.read', async (patientId) => {
+  const rows = await PaymentModel.find({ patientId }).sort({ receivedAt: -1 }).limit(30).select('number status receivedAt').lean();
+  return rows.map((p) => ({ at: p.receivedAt, kind: `payment.${p.status}`, title: p.number, ref: `/clinic/billing/payments?patientId=${String(patientId)}` }));
+});

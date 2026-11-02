@@ -112,7 +112,15 @@
     "reviewOverdue": "Medical history was not reviewed in the last 6 months",
     "portal": "Patient portal",
     "portalLinked": "Linked to a portal account",
-    "portalNotLinked": "Not linked yet"
+    "portalNotLinked": "Not linked yet",
+    "openPlan": "Open treatment plan",
+    "noShows": "Missed appointments",
+    "channels": "Allowed messages",
+    "registered": "Registered on",
+    "languages": {
+      "ar": "Arabic",
+      "en": "English"
+    }
   },
   "medical": {
     "title": "Medical history",
@@ -158,7 +166,8 @@
       "pregnancy": "Pregnant",
       "smoker": "Smoker",
       "pacemaker": "Pacemaker"
-    }
+    },
+    "reviewedShort": "Reviewed"
   },
   "insurance": {
     "title": "Insurance policies",
@@ -226,7 +235,34 @@
       "procedure": "Procedure",
       "invoice": "Invoice",
       "payment": "Payment",
-      "note": "Clinical note"
+      "note": "Clinical note",
+      "appointment.completed": "Visit completed",
+      "appointment.cancelled": "Appointment cancelled",
+      "appointment.no_show": "Missed appointment",
+      "procedure.completed": "Procedure performed",
+      "procedure.void": "Procedure voided",
+      "plan": "Treatment plan",
+      "plan.accepted": "Treatment plan accepted",
+      "note.signed": "Clinical note signed",
+      "note.draft": "Clinical note (draft)",
+      "invoice.issued": "Invoice issued",
+      "invoice.paid": "Invoice paid",
+      "invoice.void": "Invoice voided",
+      "invoice.credit_note": "Credit note",
+      "payment.refunded": "Payment refunded"
+    },
+    "filter": "Show",
+    "groups": {
+      "patient": "Patient record",
+      "medicalHistory": "Medical history",
+      "insurancePolicy": "Insurance",
+      "file": "Documents",
+      "appointment": "Appointments",
+      "procedure": "Procedures",
+      "plan": "Treatment plans",
+      "note": "Clinical notes",
+      "invoice": "Invoices",
+      "payment": "Payments"
     }
   },
   "merge": {
@@ -242,5 +278,22 @@
     "noResults": "No patients found",
     "createQuick": "Register “{{name}}”",
     "quickTitle": "Quick registration"
+  },
+  "family": {
+    "members": "Family members",
+    "none": "No family members linked",
+    "link": "Link family member",
+    "linkTitle": "Link a family member",
+    "linkHint": "Search for the relative’s file. If they already belong to a family, the two families are joined.",
+    "member": "Family member",
+    "linked": "{{name}} linked to the family",
+    "unlink": "Remove from family",
+    "unlinkTitle": "Remove {{name}} from this family?",
+    "unlinked": "Removed from the family",
+    "relations": {
+      "guardian": "Guardian",
+      "dependant": "Dependant",
+      "member": "Member"
+    }
   }
 }
