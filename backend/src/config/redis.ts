@@ -25,9 +25,10 @@ export async function probeRedis(): Promise<boolean> {
   const attempts = isProd ? 5 : 1;
   let lastError: unknown;
   for (let i = 0; i < attempts; i += 1) {
-    const probe = new Redis(env.REDIS_URL, { ...BASE, lazyConnect: true, maxRetriesPerRequest: 0, connectTimeout: isProd ? 5000 : 1500, retryStrategy: () => null });
-    probe.on('error', () => undefined);
+    let probe: Redis | null = null;
     try {
+      probe = new Redis(env.REDIS_URL, { ...BASE, lazyConnect: true, maxRetriesPerRequest: 0, connectTimeout: isProd ? 5000 : 1500, retryStrategy: () => null });
+      probe.on('error', () => undefined);
       await probe.connect();
       await probe.ping();
       available = true;
@@ -36,7 +37,7 @@ export async function probeRedis(): Promise<boolean> {
       lastError = err;
       if (i < attempts - 1) await new Promise((r) => setTimeout(r, 2000));
     } finally {
-      probe.disconnect();
+      probe?.disconnect();
     }
   }
   available = false;

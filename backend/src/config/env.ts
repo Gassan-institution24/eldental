@@ -44,7 +44,12 @@ const schema = z
       .transform((v) => v === 'true' || v === '1'),
 
     MONGODB_URI: z.string().min(1),
-    REDIS_URL: z.string().min(1),
+    REDIS_URL: z
+      .string()
+      .trim()
+      .min(1)
+      // ioredis parses it with WHATWG URL; catch quotes, spaces and unresolved `${{...}}` references at boot.
+      .refine((v) => /^rediss?:\/\/[^\s"'{}]+$/.test(v) && URL.canParse(v), 'must be a redis:// or rediss:// URL (no quotes or spaces)'),
 
     JWT_ACCESS_SECRET: z.string().min(32),
     JWT_ACCESS_SECRET_PREVIOUS: z.string().min(32).optional(),
