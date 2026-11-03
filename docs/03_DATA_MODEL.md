@@ -352,6 +352,12 @@ The source of truth for production and billing.
 
 Indexes: `{clinicId, number}` unique, `{clinicId, patientId, issuedAt: -1}`.
 
+### `instructionTemplates` (`07` §15)
+`name` (null for seeded ones until edited), `body` (null likewise; ≤ 4000), `systemKey?` (`extraction\|filling\|root_canal\|scaling\|braces\|dentures\|whitening`, text from `seed.instruction.<key>.name/.body`), `procedureCodes: string[]` (suggest the template when one was performed today), `isActive`. Unique `{clinicId, systemKey}` when set. Seeded on clinic creation.
+
+### `patientInstructions`
+`patientId` (moved on merge), `templateId?`, `appointmentId?`, `title` ≤ 120, `body` ≤ 4000 (**snapshot** of what was given; later template edits don't change it), `givenBy` → staff, `givenAt`. Index `{clinicId, patientId, givenAt: -1}`.
+
 ### `labOrders`
 `patientId`, `dentistId`, `labSupplierId` (→ suppliers), `items: [{ type: crown|bridge|denture|veneer|aligner|night_guard|other, toothNumbers[], material, shade, notes }]`, `status` (`draft`\|`sent`\|`in_progress`\|`received`\|`fitted`\|`remake`\|`cancelled`), `sentAt`, `dueDate`, `receivedAt`, `cost: Money` (posts a supplier bill), `attachments: FileRef[]`.
 

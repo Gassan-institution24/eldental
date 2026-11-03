@@ -21,6 +21,7 @@ import {
   ReceiptText,
   User,
   Users,
+  FileHeart,
 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { Outlet, useLocation, useNavigate } from 'react-router-dom';
@@ -38,6 +39,7 @@ const NAV = [
   { key: 'appointments', to: '/portal/appointments', icon: CalendarCheck, mobile: true },
   { key: 'plans', to: '/portal/plans', icon: ClipboardList, mobile: true },
   { key: 'invoices', to: '/portal/invoices', icon: ReceiptText, mobile: true },
+  { key: 'documents', to: '/portal/documents', icon: FileHeart, mobile: false },
   { key: 'family', to: '/portal/family', icon: Users, mobile: false },
   { key: 'profile', to: '/portal/profile', icon: User, mobile: false },
 ] as const;

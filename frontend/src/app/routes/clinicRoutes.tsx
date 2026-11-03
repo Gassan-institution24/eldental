@@ -71,6 +71,7 @@ import {
 } from '@/features/patients/pages/PatientTabs';
 import { CommunicationTab } from '@/features/patients/components/CommunicationLog';
 import { CertificatesTab } from '@/features/clinical/pages/CertificatesTab';
+import { InstructionsTab, InstructionTemplatesPage } from '@/features/clinical/pages/InstructionsPages';
 import { page } from '../routeHelpers';
 
 /** Clinic route tree (10_FRONTEND.md §3). Modules replace placeholders as they land. */
@@ -206,6 +207,7 @@ export const clinicRoutes: RouteObject[] = [
       page(<IntegrationsPage />, { perm: 'clinic.settings.update' }, 'integrations'),
       page(<NoteTemplatesPage />, { perm: 'clinical.note.sign' }, 'note-templates'),
       page(<ConsentTemplatesPage />, { perm: 'clinical.consent.manage' }, 'consents'),
+      page(<InstructionTemplatesPage />, { perm: 'clinic.settings.update' }, 'instruction-templates'),
       page(<RolesPage />, { perm: 'staff.role.manage' }, 'roles'),
       page(<LogsPage />, { perm: 'logs.activity.read' }, 'logs'),
     ],
@@ -225,6 +227,7 @@ function patientTabRoutes(): RouteObject[] {
     page(<DocumentsTab imagingOnly />, { perm: 'clinical.imaging.read' }, 'imaging'),
     page(<PrescriptionsTab />, { perm: 'clinical.prescription.read' }, 'prescriptions'),
     page(<CertificatesTab />, { perm: 'clinical.certificate.read' }, 'certificates'),
+    page(<InstructionsTab />, { perm: 'clinical.instruction.read' }, 'instructions'),
     page(<LabTab />, { perm: 'clinical.labOrder.read' }, 'lab'),
     page(<ConsentsTab />, { perm: 'clinical.chart.read' }, 'consents'),
     page(<PatientBillingTab />, { perm: 'billing.invoice.read' }, 'billing'),

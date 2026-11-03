@@ -125,7 +125,8 @@
     "lab": "Lab",
     "consents": "Consents",
     "communication": "Communication",
-    "certificates": "Certificates"
+    "certificates": "Certificates",
+    "instructions": "Instructions"
   },
   "overview": {
     "contact": "Contact",
@@ -317,7 +318,9 @@
       "certificate.sick_leave": "Sick leave issued",
       "certificate.medical_report": "Medical report issued",
       "certificate.attendance": "Attendance certificate issued",
-      "certificate.void": "Certificate voided"
+      "certificate.void": "Certificate voided",
+      "instruction": "Instructions",
+      "instruction.given": "Instructions given"
     },
     "filter": "Show",
     "groups": {
@@ -332,7 +335,8 @@
       "invoice": "Invoices",
       "payment": "Payments",
       "communication": "Communication",
-      "certificate": "Certificates"
+      "certificate": "Certificates",
+      "instruction": "Instructions"
     }
   },
   "merge": {

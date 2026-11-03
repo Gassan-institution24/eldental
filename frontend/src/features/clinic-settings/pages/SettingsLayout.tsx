@@ -23,6 +23,7 @@ import {
   Stethoscope,
   FileSignature,
   NotebookPen,
+  NotebookText,
 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom';
@@ -58,6 +59,12 @@ const TABS = [
     to: 'note-templates',
     icon: <NotebookPen size={18} />,
     perm: 'clinical.note.sign',
+  },
+  {
+    key: 'instructionTemplates',
+    to: 'instruction-templates',
+    icon: <NotebookText size={18} />,
+    perm: 'clinic.settings.update',
   },
   {
     key: 'consents',

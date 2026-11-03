@@ -155,3 +155,8 @@ Seed a starter global catalog of about 80 common procedures and categories. Seed
 - **Immutable:** there is no edit route and the model rejects changes. A wrong certificate is **voided with a reason** and a new one is issued; voided certificates stay on file and print with a "VOID" banner.
 - Printed on the clinic letterhead with the patient, period, diagnosis, text, recommendations, the dentist's name/specialty/license and a signature line (signature and stamp images when on file). Prints are audited.
 - Permissions `clinical.certificate.read` / `.issue` (own = certificates I issued). Shown on the patient timeline and moved on merge. The patient sees them in the portal (`My documents`, slice 5).
+
+## 15. Post-treatment Instructions
+- **Templates** (`instructionTemplates`, Settings → Care instructions): seeded defaults for extraction, filling, root canal, scaling, braces, dentures and whitening, shown in the UI language until the clinic edits them; each lists the procedure codes it is meant for.
+- **Giving** (patient → Instructions): the drawer suggests templates whose codes were performed for this patient today (clinic time), fills the title and text, and the dentist adjusts them. What was given is stored as a **snapshot** with who gave it and when; it can be printed on the letterhead.
+- **Portal → My documents** lists the account's certificates (`§14`) and instructions across its files and prints them through `/portal/*` endpoints limited to the account's own patients (others → 404).

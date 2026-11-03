@@ -1,5 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { getData, postData } from '@/lib/api/axios';
+import { resourceHooks, type Entity } from '@/shared/api/resource';
 
 /* ---------- medical certificates (07 §14) ---------- */
 
@@ -55,3 +56,58 @@ export function useVoidCertificate(patientId: string) {
 }
 
 export const fetchCertificatePrint = (id: string) => getData<CertificatePrint>(`/certificates/${id}/print`);
+
+/* ---------- post-treatment instructions (07 §15) ---------- */
+
+export type InstructionTemplate = {
+  id: string;
+  version: number;
+  name: string | null;
+  body: string | null;
+  systemKey?: string;
+  procedureCodes: string[];
+  isActive: boolean;
+};
+
+export type GivenInstruction = {
+  id: string;
+  patientId: string;
+  templateId?: string;
+  title: string;
+  body: string;
+  givenBy: string;
+  givenByName?: string;
+  givenAt: string;
+};
+
+export type InstructionPrint = {
+  instruction: GivenInstruction;
+  patient: { fullName: string; fileNumber: string };
+  clinic: { name: string; phone?: string; email?: string; addressLine1?: string } | null;
+};
+
+export const instructionTemplatesApi = resourceHooks<InstructionTemplate & Entity>('/instruction-templates');
+
+const insKey = (patientId: string) => ['/patients', patientId, 'instructions'];
+
+export function useInstructions(patientId: string) {
+  return useQuery({ queryKey: insKey(patientId), queryFn: () => getData<GivenInstruction[]>(`/patients/${patientId}/instructions`) });
+}
+
+export function useInstructionSuggestions(patientId: string, enabled: boolean) {
+  return useQuery({
+    queryKey: [...insKey(patientId), 'suggestions'],
+    enabled,
+    queryFn: () => getData<{ codes: string[]; templateIds: string[] }>(`/patients/${patientId}/instructions/suggestions`),
+  });
+}
+
+export function useGiveInstruction(patientId: string) {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (b: Record<string, unknown>) => postData<GivenInstruction>(`/patients/${patientId}/instructions`, b),
+    onSuccess: () => qc.invalidateQueries({ queryKey: insKey(patientId) }),
+  });
+}
+
+export const fetchInstructionPrint = (id: string) => getData<InstructionPrint>(`/patient-instructions/${id}/print`);

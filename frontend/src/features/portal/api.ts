@@ -1,6 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { getData, patchData, postData } from '@/lib/api/axios';
 import type { InvoicePrint, ReceiptPrint } from '@/features/billing/api';
+import type { CertificatePrint, CertificateType, InstructionPrint } from '@/features/clinical/documentsApi';
 
 /** Patient portal API (01 §4.10). Everything is limited server-side to the account's own files. */
 
@@ -258,3 +259,27 @@ export const fetchPortalInvoicePrint = (id: string) =>
   getData<InvoicePrint>(`/portal/invoices/${id}/print`);
 export const fetchPortalReceipt = (id: string) =>
   getData<ReceiptPrint>(`/portal/payments/${id}/receipt`);
+
+/* ---------- my documents (07 §14–15) ---------- */
+
+export type PortalDocuments = {
+  certificates: {
+    id: string;
+    number: string;
+    type: CertificateType;
+    from: string;
+    to: string;
+    days: number;
+    status: 'issued' | 'void';
+    issuedAt: string;
+    dentistName?: string;
+    clinic?: ClinicRef;
+    patient?: { id: string; fullName: string };
+  }[];
+  instructions: { id: string; title: string; givenAt: string; givenByName?: string; clinic?: ClinicRef; patient?: { id: string; fullName: string } }[];
+};
+
+export const usePortalDocuments = () =>
+  useQuery({ queryKey: ['portal', 'documents'], queryFn: () => getData<PortalDocuments>('/portal/documents') });
+export const fetchPortalCertificatePrint = (id: string) => getData<CertificatePrint>(`/portal/certificates/${id}/print`);
+export const fetchPortalInstructionPrint = (id: string) => getData<InstructionPrint>(`/portal/instructions/${id}`);

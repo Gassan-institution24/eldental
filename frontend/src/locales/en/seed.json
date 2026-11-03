@@ -225,5 +225,35 @@
     "maternity": "Maternity leave",
     "hajj": "Hajj leave",
     "unpaid": "Unpaid leave"
+  },
+  "instruction": {
+    "extraction": {
+      "name": "After a tooth extraction",
+      "body": "• Bite firmly on the gauze for 30–45 minutes.\n• Do not rinse, spit or use a straw for 24 hours.\n• Do not smoke for at least 48 hours.\n• Eat soft, cool food on the other side; avoid hot drinks today.\n• Take the pain relief as prescribed.\n• From tomorrow, rinse gently with warm salt water after meals.\n• Call us if bleeding does not stop, swelling grows after 3 days, or you have a fever."
+    },
+    "filling": {
+      "name": "After a filling",
+      "body": "• If you were numbed, do not eat until the numbness wears off.\n• Avoid very hard or sticky food on the filled tooth for 24 hours.\n• Some sensitivity to cold is normal for a few days.\n• Call us if the bite feels high or the pain gets worse."
+    },
+    "root_canal": {
+      "name": "After root canal treatment",
+      "body": "• Mild tenderness for a few days is normal; take pain relief as advised.\n• Do not chew on the treated tooth until it has its final filling or crown.\n• Keep brushing and flossing as usual.\n• Keep your next appointment to complete the tooth.\n• Call us if you notice swelling or severe pain."
+    },
+    "scaling": {
+      "name": "After scaling and cleaning",
+      "body": "• Gums may be sore and bleed slightly for a day or two.\n• Rinse with warm salt water twice a day.\n• Brush gently twice a day with a soft brush and clean between your teeth daily.\n• Avoid smoking and staining drinks (tea, coffee) for 24 hours."
+    },
+    "braces": {
+      "name": "Caring for your braces",
+      "body": "• Brush after every meal and use an interdental brush around the brackets.\n• Avoid hard, sticky and chewy food (nuts, gum, toffee); cut food into small pieces.\n• Some soreness after adjustments is normal for 2–3 days.\n• Use orthodontic wax on any wire or bracket that rubs.\n• Call us if a bracket or wire breaks."
+    },
+    "dentures": {
+      "name": "Caring for your dentures",
+      "body": "• Remove and rinse the dentures after meals.\n• Brush them daily with a soft brush and denture cleaner (not toothpaste).\n• Take them out at night and keep them in water.\n• Sore spots are common at first; come back for an adjustment, do not adjust them yourself."
+    },
+    "whitening": {
+      "name": "After teeth whitening",
+      "body": "• For 48 hours avoid coloured food and drinks (tea, coffee, cola, red sauces) and smoking.\n• Some sensitivity is normal; use a toothpaste for sensitive teeth.\n• Follow the home-tray instructions exactly as shown."
+    }
   }
 }

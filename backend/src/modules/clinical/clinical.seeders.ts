@@ -4,10 +4,31 @@ import type { AuthContext } from '@/core/auth/auth.types';
 import { ClinicProcedureModel } from '@/modules/clinic/clinic.models';
 import { PatientModel } from '@/modules/patients/patient.models';
 import { StaffModel } from '@/modules/staff/staff.model';
+import { registerClinicSeeder } from '@/modules/platform/onboarding.service';
 import { registerDemoSeeder } from '@/scripts/seedDemo';
 import { addEntry } from './chart.service';
 import { ToothChartModel } from './clinical.models';
+import { DEFAULT_INSTRUCTIONS, InstructionTemplateModel } from './instruction.model';
 import { createPlan, performProcedure, presentPlan } from './treatment.service';
+
+/** Default post-treatment instructions (text via `seed.instruction.<key>`, 07 §15). */
+registerClinicSeeder({
+  name: 'clinical.instructions',
+  run: async (_clinic, session) => {
+    await InstructionTemplateModel.insertMany(DEFAULT_INSTRUCTIONS.map((d) => ({ ...d, name: null, body: null, searchName: d.systemKey })), { session });
+  },
+});
+
+registerDemoSeeder({
+  name: 'clinical.instructions.demo',
+  order: 35,
+  run: async (clinicId) => {
+    await runInTenant(clinicId, async () => {
+      for (const d of DEFAULT_INSTRUCTIONS)
+        await InstructionTemplateModel.updateOne({ systemKey: d.systemKey }, { $setOnInsert: { ...d, name: null, body: null, searchName: d.systemKey, isActive: true } }, { upsert: true });
+    });
+  },
+});
 
 /** Demo clinic: a few charts with findings, a presented plan and some completed work. */
 registerDemoSeeder({

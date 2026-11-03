@@ -88,6 +88,10 @@ portalRouter.get('/portal/billing', requirePatient(), asyncHandler(async (req, r
 
 portalRouter.get('/portal/invoices/:id/print', requirePatient(), validate({ params: s.idParams }), asyncHandler(async (req, res) => ok(res, await svc.invoicePrint(uid(req), params(req, s.idParams).id))));
 
+portalRouter.get('/portal/documents', requirePatient(), asyncHandler(async (req, res) => ok(res, await svc.documents(uid(req)))));
+portalRouter.get('/portal/certificates/:id/print', requirePatient(), validate({ params: s.idParams }), asyncHandler(async (req, res) => ok(res, await svc.certificatePrint(uid(req), params(req, s.idParams).id))));
+portalRouter.get('/portal/instructions/:id', requirePatient(), validate({ params: s.idParams }), asyncHandler(async (req, res) => ok(res, await svc.instructionPrint(uid(req), params(req, s.idParams).id))));
+
 portalRouter.get('/portal/payments/:id/receipt', requirePatient(), validate({ params: s.idParams }), asyncHandler(async (req, res) => ok(res, await svc.receipt(uid(req), params(req, s.idParams).id))));
 
 registerPath({ method: 'get', path: '/portal/clinics', tags: ['patient portal'], summary: 'Clinics that take online bookings', isPublic: true });

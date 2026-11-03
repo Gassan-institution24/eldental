@@ -13,7 +13,8 @@
     "roles": "الأدوار والصلاحيات",
     "logs": "النشاط والسجلات",
     "noteTemplates": "قوالب الملاحظات",
-    "consents": "نماذج الموافقة"
+    "consents": "نماذج الموافقة",
+    "instructionTemplates": "تعليمات العناية"
   },
   "general": {
     "identity": "هوية العيادة",

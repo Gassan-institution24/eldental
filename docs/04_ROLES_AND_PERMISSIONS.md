@@ -74,6 +74,7 @@ Labels are i18n keys (`ar`/`en` in the locale files). There are no bilingual fie
 | | `clinical.note.read` / `.write` / `.sign` | own, all | |
 | | `clinical.perio.read` / `.write` | own, all | |
 | | `clinical.prescription.read` / `.write` | own, all | |
+| | `clinical.instruction.read` / `.give` | own, all | own = instructions I gave, for patients in my scope. Templates: dentist & hygienist own read/give; receptionist read all. Templates are managed with `clinic.settings.update` |
 | | `clinical.certificate.read` / `.issue` | own, all | own = certificates I issued, for patients in my scope. Templates: dentist own read/issue; receptionist read all; owner all |
 | | `clinical.labOrder.read` / `.manage` | own, all | |
 | | `clinical.imaging.read` / `.upload` | own, all | |

@@ -225,3 +225,29 @@ export const certificateBody = () =>
     });
 
 export const certificateVoidBody = () => z.object({ reason: requiredText(300) }).strict();
+
+/* ---------- post-treatment instructions (07 §15) ---------- */
+
+export const INSTRUCTION_SYSTEM_KEYS = ['extraction', 'filling', 'root_canal', 'scaling', 'braces', 'dentures', 'whitening'] as const;
+const procedureCode = () => z.string().trim().toUpperCase().regex(/^[A-Z0-9]{2,10}$/, { message: 'invalid_format' });
+
+export const instructionTemplateBody = () =>
+  z
+    .object({
+      name: entityName({ max: 120 }),
+      body: requiredText(4000),
+      procedureCodes: z.array(procedureCode()).max(40, { message: 'too_many' }).default([]),
+      isActive: z.boolean().default(true),
+    })
+    .strict();
+
+/** What the patient was given: a snapshot of the title and text at that moment. */
+export const instructionGiveBody = () =>
+  z
+    .object({
+      templateId: optional(objectId()),
+      appointmentId: optional(objectId()),
+      title: entityName({ max: 120 }),
+      body: requiredText(4000),
+    })
+    .strict();

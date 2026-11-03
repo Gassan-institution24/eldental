@@ -129,7 +129,8 @@
     "lab": "المختبر",
     "consents": "الموافقات",
     "communication": "التواصل",
-    "certificates": "الشهادات"
+    "certificates": "الشهادات",
+    "instructions": "التعليمات"
   },
   "overview": {
     "contact": "التواصل",
@@ -321,7 +322,9 @@
       "certificate.sick_leave": "صدرت إجازة مرضية",
       "certificate.medical_report": "صدر تقرير طبي",
       "certificate.attendance": "صدرت شهادة حضور",
-      "certificate.void": "أُلغيت شهادة"
+      "certificate.void": "أُلغيت شهادة",
+      "instruction": "تعليمات",
+      "instruction.given": "أُعطيت تعليمات"
     },
     "filter": "عرض",
     "groups": {
@@ -336,7 +339,8 @@
       "invoice": "الفواتير",
       "payment": "الدفعات",
       "communication": "التواصل",
-      "certificate": "الشهادات"
+      "certificate": "الشهادات",
+      "instruction": "التعليمات"
     }
   },
   "merge": {

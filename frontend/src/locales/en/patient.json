@@ -52,7 +52,8 @@
       "plans": "Treatment plans",
       "invoices": "Invoices & payments",
       "family": "Family members",
-      "profile": "My profile"
+      "profile": "My profile",
+      "documents": "My documents"
     },
     "linkTitle": "Connect your clinic file",
     "linkBody": "Already a patient at a clinic on ElDental? Link your file to see your appointments, plans and invoices here. The clinic will confirm it with a code sent to the phone they have on file.",
@@ -252,6 +253,15 @@
       "save": "Save",
       "saved": "Profile saved",
       "password": "Password"
+    },
+    "documents": {
+      "title": "My documents",
+      "subtitle": "Medical certificates and care instructions from your clinics.",
+      "certificates": "Certificates",
+      "instructions": "Instructions",
+      "emptyCertificates": "No certificates yet",
+      "emptyInstructions": "No instructions yet",
+      "print": "View & print"
     }
   }
 }

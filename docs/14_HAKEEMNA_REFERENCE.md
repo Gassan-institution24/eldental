@@ -33,6 +33,7 @@
 | Prescriptions, sick leave, medical reports | `models/patients/drugs_prescriptions.model.js`, `sick_leave.model.js`, `doctor_reports.model.js` | `prescriptions`; sick leave & medical reports → `medicalCertificates` (`07` §14, immutable, void only) |
 | Extra patient details (nationality, marital status, blood type, height/weight, old file number, photo, ID check, "referred by") | `models/patients/patients.model.js`, `unit_service_patients.model.js` | `patients` fields (`03` §4); one input per field, nationality as ISO code, flags as fixed codes |
 | Patient communication notes (`usp_communication`: date + free-text description per employee) | `models/patients/usp_communication.model.js` | `patientCommunications` (`03` §4): structured channel/outcome, follow-ups, own/all scope |
+| Patient instructions (`instructions` linked to an `adjustable_document`) | `models/shared/instructions.model.js` | `instructionTemplates` + `patientInstructions` (`07` §15): seeded per procedure, text snapshot, portal access |
 | Speciality questionnaires (per clinic activation, patient link) | `models/patients/questionnaires/*`, `utils/questionnaire.js` | medical history questionnaire (versioned) |
 | Attendance late/overtime against the schedule, GPS on check-out | `controller/companies/unitServices/attendance.controller.js` | `08_MODULE_HR.md` §3 (server-side) |
 | Patient per clinic (`unit_service_patients`) | `models/patients/unit_service_patients.model.js` | `patients` is tenant-scoped directly; a portal `users` record links to many clinic patients |

@@ -10,6 +10,7 @@ import {
   ReceiptText,
   User,
   Users,
+  FileHeart,
 } from 'lucide-react';
 import type { ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -32,6 +33,7 @@ const TILES: { key: string; to: string; icon: ReactNode; color: string }[] = [
   },
   { key: 'plans', to: '/portal/plans', icon: <ClipboardList size={22} />, color: '#7C3AED' },
   { key: 'invoices', to: '/portal/invoices', icon: <ReceiptText size={22} />, color: '#10B981' },
+  { key: 'documents', to: '/portal/documents', icon: <FileHeart size={22} />, color: '#E11D48' },
   { key: 'family', to: '/portal/family', icon: <Users size={22} />, color: '#F59E0B' },
   { key: 'profile', to: '/portal/profile', icon: <User size={22} />, color: '#0EA5E9' },
 ];

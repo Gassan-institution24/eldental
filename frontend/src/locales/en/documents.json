@@ -50,5 +50,36 @@
       "medical_report": "This report is issued at the request of {{name}} and describes their dental condition and treatment at our clinic.",
       "attendance": "This is to certify that {{name}} attended a dental appointment at our clinic on {{from}}."
     }
+  },
+  "instructions": {
+    "tabTitle": "Instructions",
+    "hint": "Care instructions given to the patient after treatment. The text is kept as it was given.",
+    "give": "Give instructions",
+    "giveHint": "Pick a template, adjust the text for this patient, then print it or let them read it in the portal.",
+    "giveAction": "Give",
+    "given": "Instructions saved",
+    "empty": "No instructions given yet",
+    "emptyHint": "Give post-treatment instructions after an extraction, filling, root canal…",
+    "template": "Template",
+    "noTemplate": "Write my own",
+    "suggestedHint": "Suggested for today’s treatment:",
+    "title": "Title",
+    "body": "Instructions",
+    "print": "Print",
+    "printTitle": "Post-treatment instructions",
+    "patient": "Patient",
+    "givenBy": "Given by {{name}} on {{date}}",
+    "templatesTitle": "Post-treatment instructions",
+    "templatesHint": "Templates the dentists give to patients. A template is suggested when one of its procedure codes was performed today.",
+    "templatesEmpty": "No templates yet",
+    "addTemplate": "Add template",
+    "editTemplate": "Edit template",
+    "seededHint": "A default template: saving it keeps your wording instead of the translated default.",
+    "templateName": "Name",
+    "procedureCodes": "Procedure codes",
+    "procedureCodesHint": "Type a code and press Enter, e.g. D7140.",
+    "active": "Active",
+    "status": "Status",
+    "templateSaved": "Template saved"
   }
 }

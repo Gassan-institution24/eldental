@@ -10,7 +10,11 @@ import { InvoiceModel, PaymentModel } from '@/modules/billing/billing.models';
 import { dues, toInvoiceDto } from '@/modules/billing/invoice.service';
 import { toPaymentDto } from '@/modules/billing/payment.service';
 import { AppointmentTypeModel, ClinicProcedureModel } from '@/modules/clinic/clinic.models';
+import { CertificateModel } from '@/modules/clinical/certificate.model';
+import { certificatePrintData } from '@/modules/clinical/certificate.routes';
 import { TreatmentPlanModel } from '@/modules/clinical/clinical.models';
+import { PatientInstructionModel } from '@/modules/clinical/instruction.model';
+import { instructionPrintData } from '@/modules/clinical/instruction.routes';
 import { acceptPlan as acceptPlanSvc, planDto } from '@/modules/clinical/treatment.service';
 import { sendOtpWhatsApp } from '@/modules/notifications/whatsapp.hooks';
 import { PatientModel } from '@/modules/patients/patient.models';
@@ -429,4 +433,64 @@ export async function receipt(userId: string, paymentId: string) {
   ]);
   const payment = toPaymentDto(p as never, { patient, invoices: new Map(invoices.map((i) => [String(i._id), i.number ?? ''])) });
   return { payment, clinic, balanceAfter: bal?.balance ?? null };
+}
+
+/* ---------- my documents: certificates and instructions (07 §14–15) ---------- */
+
+export async function documents(userId: string) {
+  const patients = await myPatients(userId);
+  if (!patients.length) return { certificates: [], instructions: [] };
+  const ids = patients.map((p) => p._id);
+  const [certs, given] = await runWithoutTenant(() =>
+    Promise.all([
+      CertificateModel.find({ patientId: { $in: ids } }).sort({ issuedAt: -1 }).limit(200).select('clinicId patientId number type from to days status issuedAt dentistId').lean(),
+      PatientInstructionModel.find({ patientId: { $in: ids } }).sort({ givenAt: -1 }).limit(200).select('clinicId patientId title givenAt givenBy').lean(),
+    ]),
+  );
+  const [clinics, staff] = await Promise.all([
+    clinicsById([...certs, ...given].map((r) => r.clinicId as Types.ObjectId)),
+    runWithoutTenant(() => StaffModel.find({ _id: { $in: [...certs.map((c) => c.dentistId), ...given.map((g) => g.givenBy)] } }).select('name').lean()),
+  ]);
+  const staffName = new Map(staff.map((s) => [String(s._id), s.name as string]));
+  const patient = new Map(patients.map((p) => [String(p._id), { id: String(p._id), fullName: p.fullName }]));
+  return {
+    certificates: certs.map((c) => ({
+      id: String(c._id),
+      number: c.number,
+      type: c.type,
+      from: c.from,
+      to: c.to,
+      days: c.days,
+      status: c.status,
+      issuedAt: c.issuedAt,
+      dentistName: staffName.get(String(c.dentistId)),
+      clinic: clinicRef(clinics.get(String(c.clinicId))),
+      patient: patient.get(String(c.patientId)),
+    })),
+    instructions: given.map((g) => ({
+      id: String(g._id),
+      title: g.title,
+      givenAt: g.givenAt,
+      givenByName: staffName.get(String(g.givenBy)),
+      clinic: clinicRef(clinics.get(String(g.clinicId))),
+      patient: patient.get(String(g.patientId)),
+    })),
+  };
+}
+
+/** Same shape as the clinic's `/certificates/:id/print`; only the account's own patients. */
+export async function certificatePrint(userId: string, id: string) {
+  const patients = await myPatients(userId);
+  const c = await runWithoutTenant(() => CertificateModel.findOne({ _id: id, patientId: { $in: patients.map((p) => p._id) } }).lean());
+  if (!c) throw ApiError.notFound();
+  const p = patients.find((x) => x._id.equals(c.patientId))!;
+  return runInTenant(String(c.clinicId), () => certificatePrintData(c as never, p));
+}
+
+export async function instructionPrint(userId: string, id: string) {
+  const patients = await myPatients(userId);
+  const i = await runWithoutTenant(() => PatientInstructionModel.findOne({ _id: id, patientId: { $in: patients.map((p) => p._id) } }).lean());
+  if (!i) throw ApiError.notFound();
+  const p = patients.find((x) => x._id.equals(i.patientId))!;
+  return runInTenant(String(i.clinicId), () => instructionPrintData(i as never, p));
 }
