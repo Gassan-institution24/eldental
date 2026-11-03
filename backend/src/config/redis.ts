@@ -3,6 +3,15 @@ import { env, isProd, isTest } from './env';
 import { logger } from './logger';
 
 let client: Redis | null = null;
+
+/** `family: 0` resolves IPv4 and IPv6 (Railway's private network may answer IPv6 only). */
+const BASE = { family: 0 } as const;
+
+/** The URL for log lines, without the password (15 §2: no secrets in logs). */
+export function safeRedisUrl(url: string = env.REDIS_URL): string {
+  return url.replace(/\/\/([^@/]*)@/, '//***@');
+}
+
 /** null = not probed yet. In dev, a missing Redis switches to in-memory fallbacks. */
 let available: boolean | null = isTest ? false : null;
 
@@ -12,20 +21,29 @@ let available: boolean | null = isTest ? false : null;
  */
 export async function probeRedis(): Promise<boolean> {
   if (isTest) return false;
-  const probe = new Redis(env.REDIS_URL, { lazyConnect: true, maxRetriesPerRequest: 0, connectTimeout: 1500, retryStrategy: () => null });
-  probe.on('error', () => undefined);
-  try {
-    await probe.connect();
-    await probe.ping();
-    available = true;
-  } catch {
-    available = false;
-    if (isProd) throw new Error(`Redis is required in production (${env.REDIS_URL})`);
-    logger.warn(`Redis not reachable at ${env.REDIS_URL} — using in-memory fallbacks (dev only). Start it with: docker compose up -d redis`);
-  } finally {
-    probe.disconnect();
+  // Production retries for a while: on a fresh container the private DNS can lag behind the boot.
+  const attempts = isProd ? 5 : 1;
+  let lastError: unknown;
+  for (let i = 0; i < attempts; i += 1) {
+    const probe = new Redis(env.REDIS_URL, { ...BASE, lazyConnect: true, maxRetriesPerRequest: 0, connectTimeout: isProd ? 5000 : 1500, retryStrategy: () => null });
+    probe.on('error', () => undefined);
+    try {
+      await probe.connect();
+      await probe.ping();
+      available = true;
+      return true;
+    } catch (err) {
+      lastError = err;
+      if (i < attempts - 1) await new Promise((r) => setTimeout(r, 2000));
+    } finally {
+      probe.disconnect();
+    }
   }
-  return available;
+  available = false;
+  const reason = lastError instanceof Error ? lastError.message.replace(env.REDIS_URL, safeRedisUrl()) : 'unknown error';
+  if (isProd) throw new Error(`Redis is required in production (${safeRedisUrl()}): ${reason}`);
+  logger.warn(`Redis not reachable at ${safeRedisUrl()} — using in-memory fallbacks (dev only). Start it with: docker compose up -d redis`);
+  return false;
 }
 
 export function isRedisAvailable(): boolean {
@@ -36,13 +54,13 @@ export function isRedisAvailable(): boolean {
 export function getRedis(): Redis | null {
   if (!available) return null;
   if (!client) {
-    client = new Redis(env.REDIS_URL, { maxRetriesPerRequest: null });
+    client = new Redis(env.REDIS_URL, { ...BASE, maxRetriesPerRequest: null });
     // If Redis drops after boot: warn once, use the in-memory fallbacks, recover when it's back.
     client.on('error', (err) => {
       if (available === false) return;
       available = false;
       if (isProd) logger.error({ err }, 'redis error');
-      else logger.warn(`Redis connection lost (${env.REDIS_URL}) — using in-memory fallbacks until it comes back`);
+      else logger.warn(`Redis connection lost (${safeRedisUrl()}) — using in-memory fallbacks until it comes back`);
     });
     client.on('ready', () => {
       if (available === false) logger.info('Redis connection restored');
@@ -54,7 +72,7 @@ export function getRedis(): Redis | null {
 
 /** A dedicated connection (BullMQ workers and the socket adapter need their own). */
 export function createRedisConnection(): Redis {
-  return new Redis(env.REDIS_URL, { maxRetriesPerRequest: null });
+  return new Redis(env.REDIS_URL, { ...BASE, maxRetriesPerRequest: null });
 }
 
 export async function pingRedis(): Promise<boolean> {

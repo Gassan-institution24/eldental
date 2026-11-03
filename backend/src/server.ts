@@ -37,6 +37,7 @@ async function main(): Promise<void> {
 }
 
 main().catch((err) => {
-  logger.fatal({ err }, 'failed to start');
+  // The reason goes in the message too: hosted log viewers often show only `msg`.
+  logger.fatal({ err }, `failed to start: ${err instanceof Error ? err.message : String(err)}`);
   process.exit(1);
 });
