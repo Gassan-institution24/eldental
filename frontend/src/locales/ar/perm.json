@@ -18,7 +18,7 @@
     "staff": { "member": "الموظفون", "role": "الأدوار والصلاحيات" },
     "patients": { "patient": "المرضى", "medicalHistory": "التاريخ الطبي", "document": "المستندات", "communication": "سجل التواصل" },
     "scheduling": { "appointment": "المواعيد", "schedule": "جداول الأطباء", "waitlist": "قائمة الانتظار", "recall": "التذكيرات الدورية" },
-    "clinical": { "chart": "مخطط الأسنان", "treatmentPlan": "خطط العلاج", "procedure": "الإجراءات المنفّذة", "note": "الملاحظات السريرية", "perio": "مخطط اللثة", "prescription": "الوصفات الطبية", "labOrder": "طلبات المختبر", "imaging": "الصور الشعاعية", "consent": "الإقرارات" },
+    "clinical": { "chart": "مخطط الأسنان", "treatmentPlan": "خطط العلاج", "procedure": "الإجراءات المنفّذة", "note": "الملاحظات السريرية", "perio": "مخطط اللثة", "prescription": "الوصفات الطبية", "certificate": "الشهادات الطبية", "labOrder": "طلبات المختبر", "imaging": "الصور الشعاعية", "consent": "الإقرارات" },
     "billing": { "invoice": "الفواتير", "payment": "الدفعات", "insurance": "التأمين", "cashSession": "جلسات الصندوق" },
     "accounting": { "account": "دليل الحسابات", "journal": "القيود اليومية", "period": "الفترات المالية", "supplier": "الموردون والفواتير", "expense": "المصروفات", "report": "التقارير المالية", "einvoice": "الفوترة الإلكترونية" },
     "hr": { "shift": "الورديات", "attendance": "الحضور", "leave": "الإجازات", "leaveType": "أنواع الإجازات", "compensation": "التعويضات", "payroll": "الرواتب والقسائم" },
@@ -86,6 +86,7 @@
     "note": { "read": "عرض الملاحظات السريرية", "write": "كتابة الملاحظات السريرية", "sign": "توقيع الملاحظات السريرية" },
     "perio": { "read": "عرض مخططات اللثة", "write": "تسجيل مخططات اللثة" },
     "prescription": { "read": "عرض الوصفات", "write": "كتابة الوصفات" },
+    "certificate": { "read": "عرض الشهادات الطبية", "issue": "إصدار الشهادات الطبية وإلغاؤها" },
     "labOrder": { "read": "عرض طلبات المختبر", "manage": "إدارة طلبات المختبر" },
     "imaging": { "read": "عرض الصور", "upload": "رفع الصور" },
     "consent": { "manage": "إدارة الإقرارات" }

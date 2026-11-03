@@ -80,7 +80,7 @@
 - [x] Slice 1 — details, flags & referral: nationality, marital status, occupation, blood type, height/weight + BMI, legacy file number (unique, searchable, duplicate check), profile photo, ID verification, non-medical flags, `referredBy` + referrals list and report (`03` §4)
 - [x] Slice 2 — richer medical history: structured medications (catalog autocomplete), surgeries, lifestyle, pregnancy weeks; version viewer and overview "Medical background" (`03` §4, `07` §11)
 - [x] Slice 3 — communication log with follow-ups: Communication tab, quick-add drawer, author edits within 24 h, "follow-up due" header chip, timeline source, moved on merge
-- [ ] Slice 4 — medical certificates (sick leave, report, attendance), immutable with void
+- [x] Slice 4 — medical certificates (sick leave, report, attendance), immutable with void: Certificates tab, issue drawer with suggested wording, letterhead print with signature line (`07` §14)
 - [ ] Slice 5 — post-treatment instructions (templates + given), portal "My documents"
 - [ ] Slice 6 — bulk CSV import with dry run and duplicate checks
 

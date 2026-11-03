@@ -336,6 +336,22 @@ The source of truth for production and billing.
 ### `prescriptions`
 `patientId`, `appointmentId?`, `dentistId`, `items: [{ medicineId?, name, dose, route, frequency, durationDays, instructions }]`, `printedAt`, `number`.
 
+### `medicalCertificates` (immutable; void only — `07` §14)
+| Field | Type | Notes |
+|---|---|---|
+| number | string | sequence `MC-2026-000001`, unique per clinic |
+| patientId | → patients | moved on merge |
+| type | `sick_leave|medical_report|attendance` | |
+| dentistId | → staff | the issuing dentist/hygienist (`403 DENTIST_REQUIRED` otherwise) |
+| appointmentId | → appointments | optional; must belong to the patient |
+| from, to, days | `YYYY-MM-DD`, int | `to` defaults to `from`; `days` derived (both ends included), ≤ 60 |
+| diagnosis, body, recommendations | string ≤ 300 / ≤ 3000 (required) / ≤ 1000 | |
+| issuedAt | Date | |
+| status, voidReason, voidedAt, voidedBy | `issued|void` … | voiding is the only change; a model guard rejects edits to anything else |
+| printedAt | Date | last print (audited) |
+
+Indexes: `{clinicId, number}` unique, `{clinicId, patientId, issuedAt: -1}`.
+
 ### `labOrders`
 `patientId`, `dentistId`, `labSupplierId` (→ suppliers), `items: [{ type: crown|bridge|denture|veneer|aligner|night_guard|other, toothNumbers[], material, shade, notes }]`, `status` (`draft`\|`sent`\|`in_progress`\|`received`\|`fitted`\|`remake`\|`cancelled`), `sentAt`, `dueDate`, `receivedAt`, `cost: Money` (posts a supplier bill), `attachments: FileRef[]`.
 

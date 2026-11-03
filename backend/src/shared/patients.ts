@@ -194,3 +194,34 @@ export const communicationPatch = () =>
     })
     .strict()
     .refine((v) => Object.keys(v).length > 0, { message: 'required' });
+
+/* ---------- medical certificates (07 §14) ---------- */
+
+export const CERTIFICATE_TYPES = ['sick_leave', 'medical_report', 'attendance'] as const;
+export const CERTIFICATE_MAX_DAYS = 60;
+
+/** Days covered, both ends included (`2026-05-01` → `2026-05-03` is 3 days). */
+export function certificateDays(from: string, to: string): number {
+  return Math.round((Date.parse(to) - Date.parse(from)) / 86_400_000) + 1;
+}
+
+export const certificateBody = () =>
+  z
+    .object({
+      type: enumOf([...CERTIFICATE_TYPES]),
+      appointmentId: optional(objectId()),
+      from: dateOnly(),
+      to: optional(dateOnly()),
+      diagnosis: optional(freeText(300)),
+      body: requiredText(3000),
+      recommendations: optional(freeText(1000)),
+    })
+    .strict()
+    .superRefine((v, ctx) => {
+      if (!v.to) return;
+      if (v.to < v.from) ctx.addIssue({ code: 'custom', path: ['to'], message: 'range_invalid' });
+      else if (certificateDays(v.from, v.to) > CERTIFICATE_MAX_DAYS)
+        ctx.addIssue({ code: 'custom', path: ['to'], message: 'range_too_long', params: { max: CERTIFICATE_MAX_DAYS } });
+    });
+
+export const certificateVoidBody = () => z.object({ reason: requiredText(300) }).strict();

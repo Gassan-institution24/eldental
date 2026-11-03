@@ -70,6 +70,7 @@ import {
   OverviewTab,
 } from '@/features/patients/pages/PatientTabs';
 import { CommunicationTab } from '@/features/patients/components/CommunicationLog';
+import { CertificatesTab } from '@/features/clinical/pages/CertificatesTab';
 import { page } from '../routeHelpers';
 
 /** Clinic route tree (10_FRONTEND.md §3). Modules replace placeholders as they land. */
@@ -223,6 +224,7 @@ function patientTabRoutes(): RouteObject[] {
     page(<PerioTab />, { perm: 'clinical.perio.read' }, 'perio'),
     page(<DocumentsTab imagingOnly />, { perm: 'clinical.imaging.read' }, 'imaging'),
     page(<PrescriptionsTab />, { perm: 'clinical.prescription.read' }, 'prescriptions'),
+    page(<CertificatesTab />, { perm: 'clinical.certificate.read' }, 'certificates'),
     page(<LabTab />, { perm: 'clinical.labOrder.read' }, 'lab'),
     page(<ConsentsTab />, { perm: 'clinical.chart.read' }, 'consents'),
     page(<PatientBillingTab />, { perm: 'billing.invoice.read' }, 'billing'),

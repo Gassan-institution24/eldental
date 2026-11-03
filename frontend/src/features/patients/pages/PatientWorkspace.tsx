@@ -41,6 +41,7 @@ export const PATIENT_TABS: WorkspaceTab[] = [
   { key: 'perio', path: 'perio', perm: 'clinical.perio.read' },
   { key: 'imaging', path: 'imaging', perm: 'clinical.imaging.read' },
   { key: 'prescriptions', path: 'prescriptions', perm: 'clinical.prescription.read' },
+  { key: 'certificates', path: 'certificates', perm: 'clinical.certificate.read' },
   { key: 'lab', path: 'lab', perm: 'clinical.labOrder.read' },
   { key: 'consents', path: 'consents', perm: 'clinical.chart.read' },
   { key: 'billing', path: 'billing', perm: 'billing.invoice.read' },

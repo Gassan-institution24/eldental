@@ -124,7 +124,8 @@
     "prescriptions": "Prescriptions",
     "lab": "Lab",
     "consents": "Consents",
-    "communication": "Communication"
+    "communication": "Communication",
+    "certificates": "Certificates"
   },
   "overview": {
     "contact": "Contact",
@@ -311,7 +312,12 @@
       "communication.whatsapp": "WhatsApp message",
       "communication.sms": "SMS",
       "communication.email": "Email",
-      "communication.in_person": "Talked in person"
+      "communication.in_person": "Talked in person",
+      "certificate": "Certificate",
+      "certificate.sick_leave": "Sick leave issued",
+      "certificate.medical_report": "Medical report issued",
+      "certificate.attendance": "Attendance certificate issued",
+      "certificate.void": "Certificate voided"
     },
     "filter": "Show",
     "groups": {
@@ -325,7 +331,8 @@
       "note": "Clinical notes",
       "invoice": "Invoices",
       "payment": "Payments",
-      "communication": "Communication"
+      "communication": "Communication",
+      "certificate": "Certificates"
     }
   },
   "merge": {

@@ -129,7 +129,7 @@ Responses of every resource are filtered by the caller's field rules (hidden fie
 | CRUD | `/recalls` · GET `/recalls/due` | |
 
 ### Clinical
-`/patients/:id/chart` (GET; POST `/chart/entries`) · `/patients/:id/perio-charts` · `/treatment-plans` (CRUD, `/:id/present`, `/:id/accept`, `/:id/items/:itemId/status`) · `/performed-procedures` (POST, `/:id/void`) · `/clinical-notes` (+ `/:id/sign`, `/:id/amend`) · `/note-templates` · `/prescriptions` (+ `/:id/pdf`) · `/lab-orders` (+ status transitions) · `/consent-templates` · `/consents` (+ signature upload).
+`/patients/:id/chart` (GET; POST `/chart/entries`) · `/patients/:id/perio-charts` · `/treatment-plans` (CRUD, `/:id/present`, `/:id/accept`, `/:id/items/:itemId/status`) · `/performed-procedures` (POST, `/:id/void`) · `/clinical-notes` (+ `/:id/sign`, `/:id/amend`) · `/note-templates` · `/prescriptions` (+ `/:id/pdf`) · `/patients/:id/certificates` (GET, POST issue) · `/certificates/:id/void` (POST `{ reason }`; `409 CERTIFICATE_VOID` twice) · `/certificates/:id/print` (letterhead data; no edit route — certificates are immutable) · `/lab-orders` (+ status transitions) · `/consent-templates` · `/consents` (+ signature upload).
 
 ### Billing
 | Path | Notes |

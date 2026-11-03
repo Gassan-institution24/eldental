@@ -22,7 +22,7 @@ import { useFormatMoney } from '@/shared/components/MoneyText';
 import { ErrorState, PageSkeleton } from '@/shared/components/States';
 import { fetchInvoicePrint, fetchReceipt, type InvoicePrint, type ReceiptPrint } from '../api';
 
-function Shell({
+export function PrintShell({
   title,
   onClose,
   ready,
@@ -62,7 +62,7 @@ function Shell({
   );
 }
 
-function Letterhead({
+export function Letterhead({
   clinic,
   title,
   number,
@@ -112,7 +112,7 @@ export function InvoicePrintDialog({
   const d = q.data;
   const inv = d?.invoice;
   return (
-    <Shell onClose={onClose} ready={Boolean(d)} error={q.error}>
+    <PrintShell onClose={onClose} ready={Boolean(d)} error={q.error}>
       {inv && (
         <>
           <Letterhead
@@ -203,7 +203,7 @@ export function InvoicePrintDialog({
           )}
         </>
       )}
-    </Shell>
+    </PrintShell>
   );
 }
 
@@ -222,7 +222,7 @@ export function ReceiptPrintDialog({
   const d = q.data;
   const p = d?.payment;
   return (
-    <Shell onClose={onClose} ready={Boolean(d)} error={q.error}>
+    <PrintShell onClose={onClose} ready={Boolean(d)} error={q.error}>
       {p && (
         <>
           <Letterhead
@@ -265,6 +265,6 @@ export function ReceiptPrintDialog({
           </Typography>
         </>
       )}
-    </Shell>
+    </PrintShell>
   );
 }

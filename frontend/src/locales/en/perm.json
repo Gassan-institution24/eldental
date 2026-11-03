@@ -18,7 +18,7 @@
     "staff": { "member": "Employees", "role": "Roles & permissions" },
     "patients": { "patient": "Patients", "medicalHistory": "Medical history", "document": "Documents", "communication": "Communication log" },
     "scheduling": { "appointment": "Appointments", "schedule": "Dentist schedules", "waitlist": "Waiting list", "recall": "Recalls" },
-    "clinical": { "chart": "Tooth chart", "treatmentPlan": "Treatment plans", "procedure": "Procedures performed", "note": "Clinical notes", "perio": "Perio chart", "prescription": "Prescriptions", "labOrder": "Lab orders", "imaging": "Imaging", "consent": "Consents" },
+    "clinical": { "chart": "Tooth chart", "treatmentPlan": "Treatment plans", "procedure": "Procedures performed", "note": "Clinical notes", "perio": "Perio chart", "prescription": "Prescriptions", "certificate": "Medical certificates", "labOrder": "Lab orders", "imaging": "Imaging", "consent": "Consents" },
     "billing": { "invoice": "Invoices", "payment": "Payments", "insurance": "Insurance", "cashSession": "Cash sessions" },
     "accounting": { "account": "Chart of accounts", "journal": "Journal entries", "period": "Fiscal periods", "supplier": "Suppliers & bills", "expense": "Expenses", "report": "Financial reports", "einvoice": "E-invoicing" },
     "hr": { "shift": "Shifts", "attendance": "Attendance", "leave": "Leave", "leaveType": "Leave types", "compensation": "Compensation", "payroll": "Payroll & payslips" },
@@ -86,6 +86,7 @@
     "note": { "read": "View clinical notes", "write": "Write clinical notes", "sign": "Sign clinical notes" },
     "perio": { "read": "View perio charts", "write": "Record perio charts" },
     "prescription": { "read": "View prescriptions", "write": "Write prescriptions" },
+    "certificate": { "read": "View medical certificates", "issue": "Issue & void medical certificates" },
     "labOrder": { "read": "View lab orders", "manage": "Manage lab orders" },
     "imaging": { "read": "View imaging", "upload": "Upload imaging" },
     "consent": { "manage": "Manage consents" }

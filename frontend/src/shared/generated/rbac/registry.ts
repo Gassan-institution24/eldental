@@ -43,6 +43,7 @@ const defs: [string, PermissionDef][] = [
   ...['read', 'write', 'sign'].map(p('clinical.note', OWN_ALL)),
   ...['read', 'write'].map(p('clinical.perio', OWN_ALL)),
   ...['read', 'write'].map(p('clinical.prescription', OWN_ALL)),
+  ...['read', 'issue'].map(p('clinical.certificate', OWN_ALL)),
   ...['read', 'manage'].map(p('clinical.labOrder', OWN_ALL)),
   ...['read', 'upload'].map(p('clinical.imaging', OWN_ALL)),
   p('clinical.consent', ALL)('manage'),

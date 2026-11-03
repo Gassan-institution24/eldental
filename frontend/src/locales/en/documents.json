@@ -1,0 +1,54 @@
+{
+  "certificates": {
+    "title": "Medical certificates",
+    "hint": "Sick leave, medical reports and attendance certificates. Issued certificates cannot be edited; void and issue a new one.",
+    "issue": "Issue certificate",
+    "issueHint": "The certificate is issued in your name with the next number.",
+    "issueAction": "Issue",
+    "issued": "Certificate {{number}} issued",
+    "empty": "No certificates yet",
+    "emptyHint": "Issue a sick leave, a medical report or an attendance certificate.",
+    "number": "No.",
+    "type": "Type",
+    "types": {
+      "sick_leave": "Sick leave",
+      "medical_report": "Medical report",
+      "attendance": "Attendance certificate"
+    },
+    "from": "From",
+    "to": "To",
+    "period": "Period",
+    "days_one": "{{count}} day",
+    "days_other": "{{count}} days",
+    "range_one": "{{from}} – {{to}} ({{count}} day)",
+    "range_other": "{{from}} – {{to}} ({{count}} days)",
+    "diagnosis": "Diagnosis",
+    "body": "Certificate text",
+    "recommendations": "Recommendations",
+    "dentist": "Dentist",
+    "status": "Status",
+    "statuses": {
+      "issued": "Issued",
+      "void": "Void"
+    },
+    "print": "Print",
+    "printTitle": "Medical certificate",
+    "patient": "Patient",
+    "license": "License no. {{number}}",
+    "signature": "Signature",
+    "stamp": "Stamp",
+    "void": "Void",
+    "voidTitle": "Void certificate {{number}}?",
+    "voidHint": "The certificate stays on file marked as void. This cannot be undone.",
+    "voidReason": "Reason",
+    "voided": "Certificate voided",
+    "voidBanner": "VOID — {{reason}}",
+    "immutableHint": "Once issued, a certificate cannot be changed. Check the dates and text before issuing.",
+    "templates": {
+      "sick_leave_one": "This is to certify that {{name}} was examined at our clinic and is advised to rest for {{count}} day, on {{from}}.",
+      "sick_leave_other": "This is to certify that {{name}} was examined at our clinic and is advised to rest for {{count}} days, from {{from}} to {{to}}.",
+      "medical_report": "This report is issued at the request of {{name}} and describes their dental condition and treatment at our clinic.",
+      "attendance": "This is to certify that {{name}} attended a dental appointment at our clinic on {{from}}."
+    }
+  }
+}

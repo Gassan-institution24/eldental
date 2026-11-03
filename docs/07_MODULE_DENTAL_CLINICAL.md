@@ -148,3 +148,10 @@ Seed a starter global catalog of about 80 common procedures and categories. Seed
 - **Used for:** doctor search (`GET /staff?specialty=`), availability (`GET /availability?specialty=`, ready for online booking), the doctor label in the booking drawer, prescriptions and treatment-plan prints (primary specialty), and future reports by specialty.
 - **Never** for permissions, and never to block a procedure: specialties guide, they don't restrict.
 - **Migration from the old free-text field:** `npm run migrate:specialties` (dry run: reports what maps and what doesn't), `-- --apply` (maps recognised English/Arabic wording, keeps the old text in `specialtyLegacy`, leaves unmapped values untouched for review), `-- --rollback` (restores the old text and removes the structured fields of migrated records; specialty edits made after the migration are lost).
+
+## 14. Medical Certificates
+- Types: **sick leave**, **medical report**, **attendance certificate**. A dentist or hygienist issues them in their own name with the next `MC` number; the period is `from`–`to` (one day when `to` is empty, at most 60) and the days are derived.
+- The drawer suggests wording per type (translated, with the patient's name and dates) until the dentist edits it.
+- **Immutable:** there is no edit route and the model rejects changes. A wrong certificate is **voided with a reason** and a new one is issued; voided certificates stay on file and print with a "VOID" banner.
+- Printed on the clinic letterhead with the patient, period, diagnosis, text, recommendations, the dentist's name/specialty/license and a signature line (signature and stamp images when on file). Prints are audited.
+- Permissions `clinical.certificate.read` / `.issue` (own = certificates I issued). Shown on the patient timeline and moved on merge. The patient sees them in the portal (`My documents`, slice 5).

@@ -128,7 +128,8 @@
     "prescriptions": "الوصفات",
     "lab": "المختبر",
     "consents": "الموافقات",
-    "communication": "التواصل"
+    "communication": "التواصل",
+    "certificates": "الشهادات"
   },
   "overview": {
     "contact": "التواصل",
@@ -315,7 +316,12 @@
       "communication.whatsapp": "رسالة واتساب",
       "communication.sms": "رسالة نصية",
       "communication.email": "بريد إلكتروني",
-      "communication.in_person": "تواصل حضوري"
+      "communication.in_person": "تواصل حضوري",
+      "certificate": "شهادة",
+      "certificate.sick_leave": "صدرت إجازة مرضية",
+      "certificate.medical_report": "صدر تقرير طبي",
+      "certificate.attendance": "صدرت شهادة حضور",
+      "certificate.void": "أُلغيت شهادة"
     },
     "filter": "عرض",
     "groups": {
@@ -329,7 +335,8 @@
       "note": "الملاحظات السريرية",
       "invoice": "الفواتير",
       "payment": "الدفعات",
-      "communication": "التواصل"
+      "communication": "التواصل",
+      "certificate": "الشهادات"
     }
   },
   "merge": {

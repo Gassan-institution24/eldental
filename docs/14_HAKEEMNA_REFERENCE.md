@@ -30,7 +30,7 @@
 | JoFotara UBL 2.1 e-invoice (types 011 / 021) | `controller/companies/invoicing/invoicing.controller.js` | `modules/accounting/einvoice/*` |
 | Dental chart & diagnoses | `models/patients/dental_chart.model.js`, `models/patients/dental_diagnoses.model.js`, FE `src/sections/dental` | `07_MODULE_DENTAL_CLINICAL.md` |
 | Dental lab requests | `models/patients/lab_request.model.js`, `routes/patients/lab_requests.routes.js` | `labOrders` |
-| Prescriptions, sick leave, medical reports | `models/patients/drugs_prescriptions.model.js`, `sick_leave.model.js`, `doctor_reports.model.js` | `prescriptions`, clinical notes / documents |
+| Prescriptions, sick leave, medical reports | `models/patients/drugs_prescriptions.model.js`, `sick_leave.model.js`, `doctor_reports.model.js` | `prescriptions`; sick leave & medical reports → `medicalCertificates` (`07` §14, immutable, void only) |
 | Extra patient details (nationality, marital status, blood type, height/weight, old file number, photo, ID check, "referred by") | `models/patients/patients.model.js`, `unit_service_patients.model.js` | `patients` fields (`03` §4); one input per field, nationality as ISO code, flags as fixed codes |
 | Patient communication notes (`usp_communication`: date + free-text description per employee) | `models/patients/usp_communication.model.js` | `patientCommunications` (`03` §4): structured channel/outcome, follow-ups, own/all scope |
 | Speciality questionnaires (per clinic activation, patient link) | `models/patients/questionnaires/*`, `utils/questionnaire.js` | medical history questionnaire (versioned) |
