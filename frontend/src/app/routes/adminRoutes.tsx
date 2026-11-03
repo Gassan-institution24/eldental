@@ -1,24 +1,85 @@
+import { lazy } from 'react';
 import type { RouteObject } from 'react-router-dom';
 import { page, placeholder } from '../routeHelpers';
-import { PlaceholderPage } from '@/shared/components/PlaceholderPage';
 
-/** Superadmin route tree. */
+const AdminDashboardPage = lazy(() =>
+  import('@/features/admin/pages/AdminDashboardPage').then((m) => ({
+    default: m.AdminDashboardPage,
+  })),
+);
+const ClinicsListPage = lazy(() =>
+  import('@/features/admin/pages/ClinicsPages').then((m) => ({ default: m.ClinicsListPage })),
+);
+const ClinicDetailPage = lazy(() =>
+  import('@/features/admin/pages/ClinicsPages').then((m) => ({ default: m.ClinicDetailPage })),
+);
+const SubscriptionsPage = lazy(() =>
+  import('@/features/admin/pages/ClinicsPages').then((m) => ({ default: m.SubscriptionsPage })),
+);
+const PlansPage = lazy(() =>
+  import('@/features/admin/pages/CatalogPages').then((m) => ({ default: m.PlansPage })),
+);
+const CatalogPage = lazy(() =>
+  import('@/features/admin/pages/CatalogPages').then((m) => ({ default: m.CatalogPage })),
+);
+const RoleTemplatesPage = lazy(() =>
+  import('@/features/admin/pages/CatalogPages').then((m) => ({ default: m.RoleTemplatesPage })),
+);
+const UsersPage = lazy(() =>
+  import('@/features/admin/pages/AccessPages').then((m) => ({ default: m.UsersPage })),
+);
+const SuperadminsPage = lazy(() =>
+  import('@/features/admin/pages/AccessPages').then((m) => ({ default: m.SuperadminsPage })),
+);
+const LogsPage = lazy(() =>
+  import('@/features/admin/pages/LogsPage').then((m) => ({ default: m.LogsPage })),
+);
+
+/** Superadmin route tree (04 §8). Settings/integrations, announcements and tickets come later (Part C). */
 export const adminRoutes: RouteObject[] = [
   page(
-    <PlaceholderPage titleKey="nav:admin.dashboard" />,
-    { perm: 'platform.stats.read' },
+    <AdminDashboardPage />,
+    { perm: 'platform.stats.read', title: 'nav:admin.dashboard' },
     undefined,
     true,
   ),
-  placeholder('clinics/*', 'nav:admin.clinics', 'platform.clinic.read'),
-  placeholder('plans', 'nav:admin.plans', 'platform.plan.manage'),
-  placeholder('subscriptions', 'nav:admin.subscriptions', 'platform.subscription.manage'),
-  placeholder('catalog/*', 'nav:admin.catalog', 'platform.catalog.manage'),
-  placeholder('role-templates', 'nav:admin.roleTemplates', 'platform.catalog.manage'),
-  placeholder('users', 'nav:admin.users', 'platform.user.read'),
-  placeholder('superadmins', 'nav:admin.superadmins', 'platform.superadmin.manage'),
+  page(
+    <ClinicsListPage />,
+    { perm: 'platform.clinic.read|platform.subscription.manage', title: 'nav:admin.clinics' },
+    'clinics',
+  ),
+  page(
+    <ClinicDetailPage />,
+    { perm: 'platform.clinic.read|platform.subscription.manage', title: 'nav:admin.clinics' },
+    'clinics/:id',
+  ),
+  page(<PlansPage />, { perm: 'platform.plan.manage', title: 'nav:admin.plans' }, 'plans'),
+  page(
+    <SubscriptionsPage />,
+    { perm: 'platform.subscription.manage', title: 'nav:admin.subscriptions' },
+    'subscriptions',
+  ),
+  page(<CatalogPage />, { perm: 'platform.catalog.manage', title: 'nav:admin.catalog' }, 'catalog'),
+  page(
+    <RoleTemplatesPage />,
+    { perm: 'platform.catalog.manage', title: 'nav:admin.roleTemplates' },
+    'role-templates',
+  ),
+  page(<UsersPage />, { perm: 'platform.user.read', title: 'nav:admin.users' }, 'users'),
+  page(
+    <SuperadminsPage />,
+    { perm: 'platform.superadmin.manage', title: 'nav:admin.superadmins' },
+    'superadmins',
+  ),
+  page(
+    <LogsPage />,
+    {
+      perm: 'platform.logs.audit.read|platform.logs.activity.read|platform.logs.issues.read|platform.logs.errors.read|platform.logs.requests.read',
+      title: 'nav:admin.logs',
+    },
+    'logs',
+  ),
   placeholder('settings/*', 'nav:admin.settings', 'platform.settings.manage'),
-  placeholder('logs/*', 'nav:admin.logs', 'platform.logs.audit.read'),
   placeholder('announcements', 'nav:admin.announcements', 'platform.announcement.manage'),
   placeholder('tickets', 'nav:admin.tickets', 'platform.ticket.manage'),
 ];

@@ -12,10 +12,12 @@ import { makeFieldAccess, type FieldAccessApi } from './fieldAccess';
 /** Owner and root superadmin see everything; others need the grant (04 §1). */
 export function usePermission() {
   const session = useSessionData();
-  const can = useCallback(
+  const can: (perm?: string, scope?: 'own' | 'all') => boolean = useCallback(
     (perm?: string, scope?: 'own' | 'all'): boolean => {
       if (!perm) return true;
       if (!session) return false;
+      // 'a|b' = any of them (routes and menu items shared by several permissions).
+      if (perm.includes('|')) return perm.split('|').some((p) => can(p, scope));
       if (session.isOwner || session.user.isRootSuperadmin) return true;
       const g = session.grants[perm];
       if (!g) return false;

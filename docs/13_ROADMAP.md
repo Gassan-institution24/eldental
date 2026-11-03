@@ -48,13 +48,15 @@
 **Accept:** each seeded user logs in and sees only permitted menu items; refresh rotation works; reuse detection test passes; field tests pass (hidden/masked/write-forbidden); a 500 appears in `systemErrors` and a frontend crash appears in `clientIssues`.
 
 ## Phase 2 — Superadmin & Clinic Setup
-- [ ] Admin: clinics CRUD/suspend/activate, plans, subscriptions, catalog (procedures seed of ~80 codes, tooth conditions, medicines, countries/cities/currencies), role templates, system errors view, impersonation (read-only)
+- [x] Admin: dashboard, clinics (create + owner invite, edit, suspend/activate), plans, subscriptions, catalog (procedures, tooth conditions, medicines, countries/cities/currencies), role templates (edit/reset), users (disable/enable/unlock), system errors view
+- [ ] Admin: impersonation (read-only) and cross-tenant data explorer
 - [ ] Clinic onboarding service: creates the clinic, then seeds roles, chart of accounts, fiscal year, tax rates, leave types, salary components, default appointment types, counters, and invites the owner
 - [ ] Clinic settings: profile, working hours, chairs, appointment types, clinic procedures (import from catalog + prices), integrations (JoFotara creds encrypted), taxes
 - [ ] Staff & roles: invite staff, edit, deactivate, assign roles, **role editor** (module → resource → actions with own/all → fields hidden/masked/read/write, presets, search, "preview as role", diff before save), per-staff overrides tab
-- [ ] Superadmin management (`/admin/superadmins`): invite/disable superadmins, grant platform permissions with the same editor, escalation rule enforced
+- [x] Superadmin management (`/admin/superadmins`): invite/disable superadmins, grant platform permissions, escalation rule enforced (grant and remove)
 - [ ] Platform settings → Integrations: WhatsApp (Mazbot) credentials + template ids entered here (encrypted, never returned, "Send test message"); SMTP override
-- [ ] Logs UI (`/admin/logs` + `/clinic/settings/logs`): Audit, Activity, User issues (grouped board with status), System errors, Requests, **user session timeline**, dashboard widgets, filters, CSV export
+- [x] Logs UI (`/admin/logs`): Audit, Activity, User issues and System errors (status + notes), Requests, **user session timeline**, filters, CSV export
+- [ ] Logs UI for clinics (`/clinic/settings/logs`) and log dashboard widgets
 - [ ] Clinic onboarding wizard UI (`16` §6)
 - [ ] Frontend for all the above (Admin + Clinic Settings + Staff/Roles)
 

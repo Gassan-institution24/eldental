@@ -38,7 +38,7 @@ export const ADMIN_NAV = [
         key: 'admin.clinics',
         to: '/admin/clinics',
         icon: <Building2 size={I} />,
-        perm: 'platform.clinic.read',
+        perm: 'platform.clinic.read|platform.subscription.manage',
       },
       {
         key: 'admin.plans',
@@ -96,7 +96,7 @@ export const ADMIN_NAV = [
         key: 'admin.logs',
         to: '/admin/logs',
         icon: <Activity size={I} />,
-        perm: 'platform.logs.audit.read',
+        perm: 'platform.logs.audit.read|platform.logs.activity.read|platform.logs.issues.read|platform.logs.errors.read|platform.logs.requests.read',
       },
       {
         key: 'admin.announcements',

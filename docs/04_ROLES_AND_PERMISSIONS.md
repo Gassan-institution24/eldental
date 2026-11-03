@@ -294,9 +294,12 @@ export const appointmentScope: ScopeRule = {
 
 - **Escalation rule:** a non-root superadmin with `platform.superadmin.manage` can grant only permissions they hold themselves, with field rules no wider than their own. They cannot modify the root or themselves.
 - **Superadmin management UI** (`/admin/superadmins`):
-  - list, invite, disable;
-  - the same tree and field editor as §7;
-  - "last active" and a link to their activity log.
+  - list, invite (email invitation; 2-step verification is set up on first sign-in), disable/enable;
+  - a grouped checklist of platform permissions; permissions the editor doesn't hold are disabled, and the server rejects granting **or removing** them (`ESCALATION_FORBIDDEN`);
+  - the main superadmin and your own row show no actions (`ROOT_PROTECTED`, `SELF_PERMISSION_CHANGE`);
+  - "last active" and a link to their activity timeline.
+- **Clinic user accounts** (`/admin/users`, `platform.user.manage`): disable (signs out every session), enable, unlock. Platform accounts are managed only on the superadmins page.
+- `platform.clinicData.*` (cross-tenant explorer) and `platform.impersonate` are defined but not implemented yet.
 
 ### 8.3 Cross-tenant access
 - Superadmin requests to clinic data go through `/admin/clinics/:clinicId/...` endpoints. These set the tenant context explicitly (`skipTenant` is never used implicitly).

@@ -33,6 +33,8 @@ export const RoleModel = model('Role', roleSchema);
 
 /** Global role templates (`clinicId: null` in the spec), editable by `platform.catalog.manage`. */
 const roleTemplateSchema = new Schema(roleFields, { timestamps: true, collection: 'roleTemplates' });
+// Set when the platform edits a template; the seed then stops overwriting it from code.
+roleTemplateSchema.add({ customizedAt: Date });
 applyBase(roleTemplateSchema, { tenant: false });
 roleTemplateSchema.index({ key: 1 }, { unique: true });
 export const RoleTemplateModel = model('RoleTemplate', roleTemplateSchema);

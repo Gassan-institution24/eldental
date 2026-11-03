@@ -10,7 +10,9 @@ export default defineConfig({
     globalSetup: ['test/global-setup.ts'],
     testTimeout: 30000,
     hookTimeout: 120000,
-    pool: 'forks',
-    poolOptions: { forks: { singleFork: true } },
+    // One worker thread for every file (same sharing as one fork). On Windows the child processes of the
+    // forks pool were occasionally terminated mid-run ("Worker exited unexpectedly"); threads are not.
+    pool: 'threads',
+    poolOptions: { threads: { singleThread: true } },
   },
 });

@@ -31,7 +31,7 @@ export const roleBody = z
 export const roleUpdateBody = roleBody.partial().extend({ version: z.number().int().min(0) }).strict();
 export type RoleBody = z.infer<typeof roleBody>;
 
-function normaliseGrants(grants: Grant[]): Grant[] {
+export function normaliseGrants(grants: Grant[]): Grant[] {
   const out = new Map<string, Grant>();
   for (const g of grants) {
     const def = PERMISSIONS[g.permission];
@@ -62,7 +62,10 @@ export async function seedClinicRoles(session?: ClientSession) {
 /** Seeds/refreshes the global templates from code (seed script). */
 export async function syncRoleTemplates() {
   for (const t of ROLE_TEMPLATES) {
-    await RoleTemplateModel.updateOne({ key: t.key }, { $set: { systemKey: t.systemKey, permissions: t.permissions, isSystem: true, status: 'active' }, $setOnInsert: { name: null } }, { upsert: true });
+    // Templates edited by the platform keep their permissions (reset restores the code version).
+    await RoleTemplateModel.updateOne({ key: t.key, customizedAt: null }, { $set: { systemKey: t.systemKey, permissions: t.permissions, isSystem: true, status: 'active' }, $setOnInsert: { name: null } }, { upsert: true }).catch((err: { code?: number }) => {
+      if (err.code !== 11000) throw err;
+    });
   }
 }
 
@@ -204,4 +207,41 @@ export function permissionRegistry() {
 
 export function platformRegistry() {
   return { permissions: Object.entries(PLATFORM_PERMISSIONS).map(([key, def]) => ({ key, resource: def.resource })), clinicResources: RESOURCE_FIELDS };
+}
+
+/* ---------- global role templates (platform, 04 §5) ---------- */
+
+/** Templates new clinics are created with. Existing clinics keep their own copies. */
+export async function listRoleTemplates() {
+  const rows = await runWithoutTenant(() => RoleTemplateModel.find({}).sort({ createdAt: 1 }).lean());
+  return rows.map((t) => ({
+    key: t.key,
+    systemKey: t.systemKey ?? null,
+    name: t.name ?? null,
+    permissions: (t.permissions ?? []) as Grant[],
+    customized: Boolean((t as { customizedAt?: Date | null }).customizedAt),
+    version: t.__v ?? 0,
+  }));
+}
+
+export async function updateRoleTemplate(key: string, body: { version: number; permissions: Grant[] }) {
+  const t = await runWithoutTenant(() => RoleTemplateModel.findOne({ key }));
+  if (!t) throw ApiError.notFound();
+  if (key === 'owner') throw ApiError.conflict('TEMPLATE_LOCKED', 'The Full access template always has every permission');
+  if ((t.__v ?? 0) !== body.version) throw ApiError.conflict('VERSION_CONFLICT', 'The template was changed by someone else.');
+  const before = t.permissions;
+  t.permissions = normaliseGrants(body.permissions) as never;
+  t.set('customizedAt', new Date());
+  t.increment();
+  await runWithoutTenant(() => t.save());
+  await recordAudit({ action: 'permission_change', entity: 'roleTemplate', entityId: key, clinicId: null, before: { permissions: before }, after: { permissions: t.permissions } });
+  return (await listRoleTemplates()).find((x) => x.key === key)!;
+}
+
+export async function resetRoleTemplate(key: string) {
+  const code = ROLE_TEMPLATES.find((x) => x.key === key);
+  if (!code) throw ApiError.notFound();
+  await runWithoutTenant(() => RoleTemplateModel.updateOne({ key }, { $set: { permissions: code.permissions }, $unset: { customizedAt: 1 }, $inc: { __v: 1 } }));
+  await recordAudit({ action: 'permission_change', entity: 'roleTemplate', entityId: key, clinicId: null, summary: 'reset to default' });
+  return (await listRoleTemplates()).find((x) => x.key === key)!;
 }

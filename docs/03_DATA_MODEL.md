@@ -51,7 +51,9 @@ type FileRef = ObjectId;                                  // → fileAssets
 Indexes: `slug` unique, `status`.
 
 ### `plans`
-`code` (unique), `name` (string), `priceMonthly`, `priceYearly` (Money), `currency`, `limits { chairs, staff, patients, monthlyMessages, storageGb }`, `features: string[]`, `isActive`.
+`code` (unique), `name` (string), `description`, `priceMonthly`, `priceYearly` (Money, in `currency`), `currency`, `trialDays` (used when a clinic is created on this plan), `limits { chairs, staff, patients, monthlyMessages, storageGb }` (0 = unlimited; shown, not enforced yet), `features: string[]` (feature keys), `isActive`, `sortOrder`. A plan used by any clinic can't be deleted (`409 PLAN_IN_USE`); deactivate it instead.
+
+Clinic subscription fields live on `clinics`: `planId`, `subscription { status: trialing|active|past_due|suspended|cancelled, trialEndsAt, currentPeriodEnd }`. Past due, suspended and cancelled make the clinic read-only, as does `clinics.status = suspended`.
 
 ### `subscriptionInvoices`
 Platform → clinic billing history: `clinicId`, `planId`, `period {from,to}`, `amount`, `status`, `paidAt`, `reference`.
@@ -122,7 +124,12 @@ One document per (user, clinic).
 
 Indexes: `{clinicId, userId}` unique; `{clinicId, staffType, status}`.
 
+### Global catalogs (G)
+`procedureCatalog` and `toothConditionsCatalog` (name `null` → shown from i18n by `code`), `medicines`, and the reference lists `countries { code ISO-3166 alpha-2 (unique), name, dialCode, currency, isActive }`, `cities { countryCode, name, isActive }`, `currencies { code ISO-4217 (unique), name, symbol, decimals, isActive }`. Managed in Admin → Catalogs (`platform.catalog.manage`).
+
 ### `roles` (T) and `roleTemplates` (G)
+Role templates edited by the platform (Admin → Role templates) get `customizedAt`; the seed then stops overwriting them, and "reset" restores the built-in version. The Full access template (`owner`) can't be edited. Templates apply to clinics created afterwards; existing clinics keep their own roles.
+
 Global templates live in their own `roleTemplates` collection (same shape, no `clinicId`) so every document in `roles` is tenant-scoped by the `tenantPlugin`. Clinic roles: `clinicId`, `key` (e.g. `dentist`, unique per clinic), `name` string, `description`, `permissions: Grant[]`, `isSystem` (templates cannot be edited; clinics clone them), `status`.
 
 ```ts

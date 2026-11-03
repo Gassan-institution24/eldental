@@ -36,6 +36,8 @@
   "OWNER_ONLY": "Only the clinic owner can do this.",
   "SELF_PERMISSION_CHANGE": "You can't change your own roles, permissions or status.",
   "FULL_ACCESS_OWNER_ONLY": "Only the clinic owner can grant or remove Full access or the right to manage access.",
+  "TEMPLATE_LOCKED": "The Full access template always has every permission and can't be edited.",
+  "PLAN_IN_USE": "Clinics are on this plan. Deactivate it instead of deleting it.",
   "NOT_FOUND": "We couldn't find what you're looking for.",
   "ROUTE_NOT_FOUND": "This page or action doesn't exist.",
   "DUPLICATE": "A record with the same value already exists.",

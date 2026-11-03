@@ -149,7 +149,8 @@ describe('invoice doctor column', () => {
     const { result } = renderHook(() => useInvoiceColumns());
     const col = result.current.find((c) => c.field === 'dentist');
     expect(col).toMatchObject({ headerName: 'Doctor', fieldKey: 'dentist' });
-  });
+    // The first test pays for loading the invoice pages module.
+  }, 30_000);
 
   it('shows the doctor and a "Multiple doctors" marker, in English and Arabic, light and dark', async () => {
     const { InvoiceDoctorCell } = await import('../components/InvoiceDoctors');
@@ -190,6 +191,20 @@ describe('doctor filter', () => {
       .getAllByRole('option')
       .map((o) => o.textContent);
     expect(options).toEqual(['All doctors', 'Dr Ahmad', 'Dr Lina']);
+  });
+
+  it('selecting a doctor updates the URL filter and the list query', async () => {
+    const user = userEvent.setup();
+    const { InvoicesPage } = await import('../pages/InvoicePages');
+    wrap(<InvoicesPage />);
+    await user.click(screen.getByRole('combobox', { name: 'Doctor' }));
+    await user.click(
+      within(await screen.findByRole('listbox')).getByRole('option', { name: 'Dr Lina' }),
+    );
+    await waitFor(() =>
+      expect(calls.list.at(-1)).toMatchObject({ dentistId: doctors.list[1]!.id }),
+    );
+    expect(screen.getByRole('combobox', { name: 'Doctor' })).toHaveTextContent('Dr Lina');
   });
 
   it('is hidden for doctors who only see their own invoices', async () => {

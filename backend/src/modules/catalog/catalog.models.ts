@@ -59,3 +59,48 @@ const medicineSchema = new Schema(
 applyBase(medicineSchema, { tenant: false });
 medicineSchema.index({ searchName: 1 });
 export const MedicineModel = model('Medicine', medicineSchema);
+
+/** Countries (G), managed by the platform (13 Phase 2). `code` is ISO 3166-1 alpha-2. */
+const countrySchema = new Schema(
+  {
+    code: { type: String, required: true, uppercase: true, trim: true },
+    name: { type: String, required: true, trim: true },
+    searchName: String,
+    dialCode: { type: String, default: '' },
+    currency: { type: String, uppercase: true, default: '' },
+    isActive: { type: Boolean, default: true },
+  },
+  { timestamps: true, collection: 'countries' },
+);
+applyBase(countrySchema, { tenant: false });
+countrySchema.index({ code: 1 }, { unique: true });
+export const CountryModel = model('Country', countrySchema);
+
+const citySchema = new Schema(
+  {
+    countryCode: { type: String, required: true, uppercase: true },
+    name: { type: String, required: true, trim: true },
+    searchName: String,
+    isActive: { type: Boolean, default: true },
+  },
+  { timestamps: true, collection: 'cities' },
+);
+applyBase(citySchema, { tenant: false });
+citySchema.index({ countryCode: 1, searchName: 1 });
+export const CityModel = model('City', citySchema);
+
+/** Currencies (G). `decimals` drives money input and display (JOD = 3). */
+const currencySchema = new Schema(
+  {
+    code: { type: String, required: true, uppercase: true, trim: true },
+    name: { type: String, required: true, trim: true },
+    searchName: String,
+    symbol: { type: String, default: '' },
+    decimals: { type: Number, min: 0, max: 4, default: 2 },
+    isActive: { type: Boolean, default: true },
+  },
+  { timestamps: true, collection: 'currencies' },
+);
+applyBase(currencySchema, { tenant: false });
+currencySchema.index({ code: 1 }, { unique: true });
+export const CurrencyModel = model('Currency', currencySchema);
