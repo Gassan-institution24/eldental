@@ -168,4 +168,5 @@
 - [ ] Playwright e2e for the critical journeys
 - [ ] Performance: indexes verified, slow-query check with a 100k-patient seed
 - [ ] Dockerfiles (backend API, worker, frontend static via nginx/caddy), production compose, backup script (encrypted) + restore doc
-- [ ] `docs/DEPLOYMENT.md` written
+- [ ] `docs/DEPLOYMENT.md` written (Railway single-service section done; Docker/self-hosted part pending)
+- [x] Single-origin hosting: the API serves the built frontend (`FRONTEND_DIST_DIR`), root `package.json` builds both apps

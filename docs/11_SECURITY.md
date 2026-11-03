@@ -32,6 +32,7 @@
 
 ## 4. HTTP Hardening
 - `helmet()` with a strict CSP for the API (JSON only). The frontend host sets its own CSP (default-src 'self', no inline scripts).
+- **Single-origin hosting.** The refresh cookie is `SameSite=Strict`, so the app and the API must be the same site. Without a custom domain (e.g. two `*.up.railway.app` hosts, which browsers treat as different sites) the API process serves the built frontend itself (`FRONTEND_DIST_DIR`, `core/http/spa.ts`). Those responses get the page CSP: `default-src 'self'`, `script-src 'self'` (no inline scripts), `style-src 'self' 'unsafe-inline'` (MUI/Emotion), `img-src 'self' data: blob:`, `connect-src 'self'` + the API's `ws(s)://`, `frame-ancestors 'none'`. API, `/socket.io`, `/health` and `/ready` paths never fall back to the page. Never loosen the cookie to `SameSite=None` to work around two hosts.
 - CORS: an allow-list from `CORS_ORIGINS`, `credentials: true`. **Never `*`**, including Socket.IO.
 - Rate limits (Redis store):
   - global 300/min/IP;

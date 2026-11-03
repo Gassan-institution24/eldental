@@ -123,7 +123,9 @@ appointments/
 ## 4. Request Pipeline
 
 ```
-helmet → cors(allow-list, credentials) → requestId → pino-http
+helmet → cors(allow-list, credentials) → requestId
+→ [built frontend: static files + index.html fallback, only when FRONTEND_DIST_DIR is set; see DEPLOYMENT.md]
+→ pino-http
 → rate-limit (global; stricter on /auth/*) → express.json({limit:'1mb'}) → cookieParser
 → mongoSanitize → hpp
 → /api/v1 router:

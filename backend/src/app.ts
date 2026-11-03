@@ -6,6 +6,7 @@ import swaggerUi from 'swagger-ui-express';
 import { env, isProd } from '@/config/env';
 import { errorHandler, notFound } from '@/core/http/errorHandler';
 import { requestId } from '@/core/http/requestId';
+import { frontendRouter } from '@/core/http/spa';
 import {
   corsMiddleware,
   globalRateLimit,
@@ -28,6 +29,9 @@ export function createApp(): Express {
   app.use(helmetMiddleware);
   app.use(corsMiddleware);
   app.use(requestId);
+  // The built frontend, when this process also hosts it (one origin, no custom domain).
+  const frontend = frontendRouter();
+  if (frontend) app.use(frontend);
   app.use(requestLogger);
   app.use(globalRateLimit);
   // Telemetry may carry a user-confirmed screenshot; everything else is capped at 1 MB (11 §4).

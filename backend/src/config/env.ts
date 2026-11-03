@@ -32,6 +32,8 @@ const schema = z
     APP_VERSION: z.string().default('0.1.0'),
     API_PUBLIC_URL: z.string().url(),
     FRONTEND_URL: z.string().url(),
+    /** A frontend `dist` folder this process serves (single-origin hosting); empty = API only. */
+    FRONTEND_DIST_DIR: z.string().default(''),
     CORS_ORIGINS: csv,
     LOG_LEVEL: z.enum(['fatal', 'error', 'warn', 'info', 'debug', 'trace', 'silent']).default('info'),
     TRUST_PROXY_HOPS: z.coerce.number().int().min(0).default(0),
