@@ -45,6 +45,7 @@ export const PATIENT_TABS: WorkspaceTab[] = [
   { key: 'consents', path: 'consents', perm: 'clinical.chart.read' },
   { key: 'billing', path: 'billing', perm: 'billing.invoice.read' },
   { key: 'medical', path: 'medical', perm: 'patients.medicalHistory.read' },
+  { key: 'communication', path: 'communication', perm: 'patients.communication.read' },
   { key: 'insurance', path: 'insurance' },
   { key: 'documents', path: 'documents', perm: 'patients.document.read' },
   { key: 'history', path: 'history' },

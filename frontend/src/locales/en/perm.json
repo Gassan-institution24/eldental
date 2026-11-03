@@ -16,7 +16,7 @@
   "resources": {
     "clinic": { "settings": "Clinic settings", "chair": "Chairs & rooms", "appointmentType": "Appointment types", "procedure": "Procedures & prices" },
     "staff": { "member": "Employees", "role": "Roles & permissions" },
-    "patients": { "patient": "Patients", "medicalHistory": "Medical history", "document": "Documents" },
+    "patients": { "patient": "Patients", "medicalHistory": "Medical history", "document": "Documents", "communication": "Communication log" },
     "scheduling": { "appointment": "Appointments", "schedule": "Dentist schedules", "waitlist": "Waiting list", "recall": "Recalls" },
     "clinical": { "chart": "Tooth chart", "treatmentPlan": "Treatment plans", "procedure": "Procedures performed", "note": "Clinical notes", "perio": "Perio chart", "prescription": "Prescriptions", "labOrder": "Lab orders", "imaging": "Imaging", "consent": "Consents" },
     "billing": { "invoice": "Invoices", "payment": "Payments", "insurance": "Insurance", "cashSession": "Cash sessions" },
@@ -70,7 +70,8 @@
   "patients": {
     "patient": { "read": "View patients", "create": "Register patients", "update": "Edit patients", "delete": "Delete / merge patients", "export": "Export patients", "print": "Print patient records" },
     "medicalHistory": { "read": "View medical history", "update": "Update medical history" },
-    "document": { "read": "View documents", "upload": "Upload documents", "delete": "Delete documents" }
+    "document": { "read": "View documents", "upload": "Upload documents", "delete": "Delete documents" },
+    "communication": { "read": "View the communication log", "write": "Log communication & close follow-ups" }
   },
   "scheduling": {
     "appointment": { "read": "View appointments", "book": "Book appointments", "update": "Reschedule appointments", "cancel": "Cancel appointments", "checkin": "Check in & change status" },

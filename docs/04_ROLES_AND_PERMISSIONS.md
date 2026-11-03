@@ -58,6 +58,7 @@ Labels are i18n keys (`ar`/`en` in the locale files). There are no bilingual fie
 | | `patients.patient.delete` | all | Soft delete / merge |
 | | `patients.medicalHistory.read` / `.update` | own, all | |
 | | `patients.document.read` / `.upload` / `.delete` | own, all | |
+| | `patients.communication.read` / `.write` | own, all | own = patients in my patient scope. Templates: owner & receptionist all; dentist own read/write; hygienist own read |
 | | `patients.patient.export` / `.print` | all | Export / print (audited) |
 | **scheduling** | `scheduling.appointment.read` | own, all | own = I am the dentist or assistant |
 | | `scheduling.appointment.book` | own, all | own = only into my own calendar |

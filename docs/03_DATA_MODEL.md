@@ -216,6 +216,21 @@ Structured fields (rules in `shared/patients.ts`, used by the editor and the API
 | lifestyle | `{ smoking?: none|former|light|heavy, alcohol?: none|light|heavy }` | |
 | pregnancyWeeks | int 1–42 | only when the `pregnancy` condition is ticked (`pregnancy_required`) |
 
+### `patientCommunications`
+| Field | Type | Notes |
+|---|---|---|
+| patientId | → patients | moved on merge |
+| at | Date | when it happened; defaults to now, not in the future |
+| channel | `call|whatsapp|sms|email|in_person|other` | |
+| direction | `in|out` | from / to the patient |
+| summary | string ≤ 1000 | required |
+| outcome | `reached|no_answer|left_message|resolved|other` | |
+| followUpAt | Date | optional; due when ≤ now and not done (UI picks a day, sent as 09:00) |
+| followUpDoneAt, followUpDoneBy | Date, → staff | anyone with write marks it done / reopens it |
+| staffId | → staff | the author; only the author edits the content, within 24 h (`403 COMMUNICATION_LOCKED`) |
+
+Indexes: `{clinicId, patientId, at: -1}`, `{clinicId, followUpAt}`. Audit entries carry channel/direction/outcome only, never the summary.
+
 ### `insurancePolicies`
 `patientId`, `insuranceCompanyId`, `planName`, `memberNumber`, `relationToSubscriber`, `validFrom`, `validTo`, `coveragePercentOverride?`, `annualMax?: Money`, `usedThisYear: Money`, `isPrimary`.
 

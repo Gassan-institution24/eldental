@@ -108,5 +108,6 @@
   "CANCEL_WINDOW_PASSED": "It is too close to the appointment to cancel online ({{hours}} hours notice). Please call the clinic.",
   "PATIENT_ALREADY_LINKED": "This clinic file is already linked to another account. Please contact the clinic.",
   "PLAN_EXPIRED": "This treatment plan has expired. Please contact the clinic for an updated plan.",
-  "ID_DOCUMENT_REQUIRED": "Upload an identity document (category \"ID\") before marking the ID as verified."
+  "ID_DOCUMENT_REQUIRED": "Upload an identity document (category \"ID\") before marking the ID as verified.",
+  "COMMUNICATION_LOCKED": "Only the person who logged this entry can change it, within 24 hours."
 }

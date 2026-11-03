@@ -127,7 +127,8 @@
     "history": "السجل",
     "prescriptions": "الوصفات",
     "lab": "المختبر",
-    "consents": "الموافقات"
+    "consents": "الموافقات",
+    "communication": "التواصل"
   },
   "overview": {
     "contact": "التواصل",
@@ -308,7 +309,13 @@
       "invoice.paid": "سُددت فاتورة",
       "invoice.void": "أُلغيت فاتورة",
       "invoice.credit_note": "إشعار دائن",
-      "payment.refunded": "استُردّت دفعة"
+      "payment.refunded": "استُردّت دفعة",
+      "communication": "تواصل",
+      "communication.call": "مكالمة هاتفية",
+      "communication.whatsapp": "رسالة واتساب",
+      "communication.sms": "رسالة نصية",
+      "communication.email": "بريد إلكتروني",
+      "communication.in_person": "تواصل حضوري"
     },
     "filter": "عرض",
     "groups": {
@@ -321,7 +328,8 @@
       "plan": "خطط العلاج",
       "note": "الملاحظات السريرية",
       "invoice": "الفواتير",
-      "payment": "الدفعات"
+      "payment": "الدفعات",
+      "communication": "التواصل"
     }
   },
   "merge": {
@@ -421,5 +429,59 @@
     "source": "كيف عرفوا بنا",
     "count": "المرضى",
     "unknownSource": "غير مسجّل"
+  },
+  "communication": {
+    "title": "سجل التواصل",
+    "hint": "المكالمات والرسائل والزيارات المتعلقة بهذا المريض.",
+    "add": "تسجيل تواصل",
+    "edit": "تعديل السجل",
+    "editHint": "يمكنك تصحيح ما سجلته خلال 24 ساعة.",
+    "saved": "تم الحفظ",
+    "empty": "لم يُسجَّل أي تواصل بعد",
+    "emptyHint": "سجّل المكالمات ورسائل واتساب والزيارات ليعرف الفريق كله ما قيل.",
+    "channel": "الوسيلة",
+    "direction": "الاتجاه",
+    "summary": "ما الذي قيل",
+    "outcome": "النتيجة",
+    "followUpOn": "المتابعة بتاريخ",
+    "followUpHint": "اختياري. يظهر تنبيه ابتداءً من هذا اليوم.",
+    "followUpOnValue": "متابعة بتاريخ {{date}}",
+    "followUpDue": "متابعة مستحقة منذ {{date}}",
+    "followUpDone": "تمت المتابعة {{date}} · {{name}}",
+    "markDone": "تمت",
+    "reopen": "إعادة فتح",
+    "doneToast": "تم تسجيل المتابعة",
+    "reopenedToast": "أُعيد فتح المتابعة",
+    "dueCount_zero": "لا متابعات مستحقة",
+    "dueCount_one": "متابعة واحدة مستحقة",
+    "dueCount_two": "متابعتان مستحقتان",
+    "dueCount_few": "{{count}} متابعات مستحقة",
+    "dueCount_many": "{{count}} متابعة مستحقة",
+    "dueCount_other": "{{count}} متابعة مستحقة",
+    "more_zero": "عرض المزيد",
+    "more_one": "عرض واحد آخر",
+    "more_two": "عرض اثنين آخرين",
+    "more_few": "عرض {{count}} أخرى",
+    "more_many": "عرض {{count}} أخرى",
+    "more_other": "عرض {{count}} أخرى",
+    "channels": {
+      "call": "مكالمة هاتفية",
+      "whatsapp": "واتساب",
+      "sms": "رسالة نصية",
+      "email": "بريد إلكتروني",
+      "in_person": "حضوريًا",
+      "other": "أخرى"
+    },
+    "directions": {
+      "in": "من المريض",
+      "out": "إلى المريض"
+    },
+    "outcomes": {
+      "reached": "تم الوصول",
+      "no_answer": "لا رد",
+      "left_message": "تُركت رسالة",
+      "resolved": "تم الحل",
+      "other": "أخرى"
+    }
   }
 }

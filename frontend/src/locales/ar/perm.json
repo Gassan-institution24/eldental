@@ -16,7 +16,7 @@
   "resources": {
     "clinic": { "settings": "إعدادات العيادة", "chair": "الكراسي والغرف", "appointmentType": "أنواع المواعيد", "procedure": "الإجراءات والأسعار" },
     "staff": { "member": "الموظفون", "role": "الأدوار والصلاحيات" },
-    "patients": { "patient": "المرضى", "medicalHistory": "التاريخ الطبي", "document": "المستندات" },
+    "patients": { "patient": "المرضى", "medicalHistory": "التاريخ الطبي", "document": "المستندات", "communication": "سجل التواصل" },
     "scheduling": { "appointment": "المواعيد", "schedule": "جداول الأطباء", "waitlist": "قائمة الانتظار", "recall": "التذكيرات الدورية" },
     "clinical": { "chart": "مخطط الأسنان", "treatmentPlan": "خطط العلاج", "procedure": "الإجراءات المنفّذة", "note": "الملاحظات السريرية", "perio": "مخطط اللثة", "prescription": "الوصفات الطبية", "labOrder": "طلبات المختبر", "imaging": "الصور الشعاعية", "consent": "الإقرارات" },
     "billing": { "invoice": "الفواتير", "payment": "الدفعات", "insurance": "التأمين", "cashSession": "جلسات الصندوق" },
@@ -70,7 +70,8 @@
   "patients": {
     "patient": { "read": "عرض المرضى", "create": "تسجيل المرضى", "update": "تعديل المرضى", "delete": "حذف / دمج المرضى", "export": "تصدير المرضى", "print": "طباعة سجلات المرضى" },
     "medicalHistory": { "read": "عرض التاريخ الطبي", "update": "تحديث التاريخ الطبي" },
-    "document": { "read": "عرض المستندات", "upload": "رفع المستندات", "delete": "حذف المستندات" }
+    "document": { "read": "عرض المستندات", "upload": "رفع المستندات", "delete": "حذف المستندات" },
+    "communication": { "read": "عرض سجل التواصل", "write": "تسجيل التواصل وإغلاق المتابعات" }
   },
   "scheduling": {
     "appointment": { "read": "عرض المواعيد", "book": "حجز المواعيد", "update": "تغيير المواعيد", "cancel": "إلغاء المواعيد", "checkin": "تسجيل الوصول وتغيير الحالة" },

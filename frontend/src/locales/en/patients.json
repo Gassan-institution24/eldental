@@ -123,7 +123,8 @@
     "history": "History",
     "prescriptions": "Prescriptions",
     "lab": "Lab",
-    "consents": "Consents"
+    "consents": "Consents",
+    "communication": "Communication"
   },
   "overview": {
     "contact": "Contact",
@@ -304,7 +305,13 @@
       "invoice.paid": "Invoice paid",
       "invoice.void": "Invoice voided",
       "invoice.credit_note": "Credit note",
-      "payment.refunded": "Payment refunded"
+      "payment.refunded": "Payment refunded",
+      "communication": "Communication",
+      "communication.call": "Phone call",
+      "communication.whatsapp": "WhatsApp message",
+      "communication.sms": "SMS",
+      "communication.email": "Email",
+      "communication.in_person": "Talked in person"
     },
     "filter": "Show",
     "groups": {
@@ -317,7 +324,8 @@
       "plan": "Treatment plans",
       "note": "Clinical notes",
       "invoice": "Invoices",
-      "payment": "Payments"
+      "payment": "Payments",
+      "communication": "Communication"
     }
   },
   "merge": {
@@ -409,5 +417,51 @@
     "source": "How they heard about us",
     "count": "Patients",
     "unknownSource": "Not recorded"
+  },
+  "communication": {
+    "title": "Communication log",
+    "hint": "Calls, messages and visits about this patient.",
+    "add": "Log communication",
+    "edit": "Edit entry",
+    "editHint": "You can correct your own entry for 24 hours.",
+    "saved": "Saved",
+    "empty": "Nothing logged yet",
+    "emptyHint": "Log calls, WhatsApp messages and visits so the whole team knows what was said.",
+    "channel": "Channel",
+    "direction": "Direction",
+    "summary": "What was said",
+    "outcome": "Outcome",
+    "followUpOn": "Follow up on",
+    "followUpHint": "Optional. A reminder chip shows from this day.",
+    "followUpOnValue": "Follow up on {{date}}",
+    "followUpDue": "Follow-up due since {{date}}",
+    "followUpDone": "Followed up {{date}} · {{name}}",
+    "markDone": "Mark done",
+    "reopen": "Reopen",
+    "doneToast": "Follow-up marked as done",
+    "reopenedToast": "Follow-up reopened",
+    "dueCount_one": "{{count}} follow-up due",
+    "dueCount_other": "{{count}} follow-ups due",
+    "more_one": "Show {{count}} more",
+    "more_other": "Show {{count}} more",
+    "channels": {
+      "call": "Phone call",
+      "whatsapp": "WhatsApp",
+      "sms": "SMS",
+      "email": "Email",
+      "in_person": "In person",
+      "other": "Other"
+    },
+    "directions": {
+      "in": "From the patient",
+      "out": "To the patient"
+    },
+    "outcomes": {
+      "reached": "Reached",
+      "no_answer": "No answer",
+      "left_message": "Left a message",
+      "resolved": "Resolved",
+      "other": "Other"
+    }
   }
 }

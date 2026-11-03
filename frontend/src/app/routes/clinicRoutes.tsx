@@ -69,6 +69,7 @@ import {
   MedicalTab,
   OverviewTab,
 } from '@/features/patients/pages/PatientTabs';
+import { CommunicationTab } from '@/features/patients/components/CommunicationLog';
 import { page } from '../routeHelpers';
 
 /** Clinic route tree (10_FRONTEND.md §3). Modules replace placeholders as they land. */
@@ -226,6 +227,7 @@ function patientTabRoutes(): RouteObject[] {
     page(<ConsentsTab />, { perm: 'clinical.chart.read' }, 'consents'),
     page(<PatientBillingTab />, { perm: 'billing.invoice.read' }, 'billing'),
     page(<MedicalTab />, { perm: 'patients.medicalHistory.read' }, 'medical'),
+    page(<CommunicationTab />, { perm: 'patients.communication.read' }, 'communication'),
     page(<InsuranceTab />, {}, 'insurance'),
     page(<DocumentsTab />, { perm: 'patients.document.read' }, 'documents'),
     page(<HistoryTab />, {}, 'history'),

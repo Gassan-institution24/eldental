@@ -61,5 +61,6 @@
   "summary_other": "{{count}} fields need attention",
   "requiredLegend": "* required",
   "optional": "(optional)",
-  "pregnancy_required": "Tick “Pregnant” in the conditions to record the weeks"
+  "pregnancy_required": "Tick “Pregnant” in the conditions to record the weeks",
+  "date_in_past": "Pick today or a later date"
 }

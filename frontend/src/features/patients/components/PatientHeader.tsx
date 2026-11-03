@@ -21,6 +21,7 @@ import { useFieldScope } from '@/shared/rbac/fieldAccess';
 import { usePermission } from '@/shared/rbac/usePermission';
 import type { Patient } from '../api/patients';
 import { ageOf, useAlertLabel, useNextAppointment } from '../utils';
+import { FollowUpDueChip } from './CommunicationLog';
 import { IdVerifiedBadge, PatientAvatar, PatientFlags } from './PatientDetailsCards';
 
 /** Height of the clinic AppBar toolbar (AppShell); the strip sticks right below it. */
@@ -122,6 +123,7 @@ export function PatientHeader({ patient: p, onMerge, onDelete, children }: Props
                   <Chip key={tag} size="small" label={<span dir="auto">{tag}</span>} />
                 ))}
                 <PatientFlags patient={p} />
+                <FollowUpDueChip patient={p} />
               </Stack>
             </Box>
           </Stack>

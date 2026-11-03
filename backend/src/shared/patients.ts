@@ -1,7 +1,7 @@
 // SHARED FILE — synced to the frontend (src/shared/generated/patients.ts). Patient record rules used
 // by both the API and the forms, so client and server validate the same way (16 §5).
 import { z } from 'zod';
-import { dateOnly, entityName, enumOf, freeText, objectId, optional } from './validation/fields';
+import { dateOnly, entityName, enumOf, freeText, instant, nullable, objectId, optional, requiredText } from './validation/fields';
 
 /** Non-medical flags shown as chips in the patient header (03 §4). */
 export const PATIENT_FLAGS = ['anxious', 'gag_reflex', 'wheelchair', 'hearing_impaired', 'interpreter', 'vip', 'payment_issue', 'often_late', 'other'] as const;
@@ -157,3 +157,40 @@ export const medicalHistoryBody = () =>
       if (v.pregnancyWeeks !== undefined && !v.conditions.includes('pregnancy'))
         ctx.addIssue({ code: 'custom', path: ['pregnancyWeeks'], message: 'pregnancy_required' });
     });
+
+/* ---------- communication log (03 §4) ---------- */
+
+export const COMM_CHANNELS = ['call', 'whatsapp', 'sms', 'email', 'in_person', 'other'] as const;
+export const COMM_DIRECTIONS = ['in', 'out'] as const;
+export const COMM_OUTCOMES = ['reached', 'no_answer', 'left_message', 'resolved', 'other'] as const;
+/** The author may correct an entry for this long; after that it is part of the record. */
+export const COMM_EDIT_WINDOW_MS = 24 * 3600_000;
+
+const notAhead = (d: Date) => d.getTime() <= Date.now() + 5 * 60_000;
+/** A follow-up can be today or later (a day of slack for clinics ahead of UTC). */
+const notPastDay = (d: Date) => d.getTime() >= Date.now() - 86_400_000;
+
+export const communicationBody = () =>
+  z
+    .object({
+      at: optional(instant().refine(notAhead, { message: 'date_in_future' })),
+      channel: enumOf([...COMM_CHANNELS]),
+      direction: enumOf([...COMM_DIRECTIONS]),
+      summary: requiredText(1000),
+      outcome: enumOf([...COMM_OUTCOMES]),
+      followUpAt: optional(instant().refine(notPastDay, { message: 'date_in_past' })),
+    })
+    .strict();
+
+export const communicationPatch = () =>
+  z
+    .object({
+      channel: optional(enumOf([...COMM_CHANNELS])),
+      direction: optional(enumOf([...COMM_DIRECTIONS])),
+      summary: optional(requiredText(1000)),
+      outcome: optional(enumOf([...COMM_OUTCOMES])),
+      followUpAt: nullable(instant().refine(notPastDay, { message: 'date_in_past' })),
+      followUpDone: z.boolean().optional(),
+    })
+    .strict()
+    .refine((v) => Object.keys(v).length > 0, { message: 'required' });

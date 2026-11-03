@@ -365,3 +365,39 @@ export function useReferralReport(from: string, to: string) {
     queryFn: () => getData<ReferralReport>('/reports/referrals', { params: { from, to } }),
   });
 }
+
+/* ---------- communication log ---------- */
+
+export type Communication = Entity & {
+  patientId: string;
+  at: string;
+  channel: 'call' | 'whatsapp' | 'sms' | 'email' | 'in_person' | 'other';
+  direction: 'in' | 'out';
+  summary: string;
+  outcome: 'reached' | 'no_answer' | 'left_message' | 'resolved' | 'other';
+  followUpAt?: string;
+  followUpDoneAt?: string;
+  followUpDoneByName?: string;
+  staffId: string;
+  staffName?: string;
+  createdAt: string;
+  editable: boolean;
+};
+export type CommunicationPage = { data: Communication[]; meta: { total: number; page: number; pages: number; dueCount: number } };
+
+export function useCommunications(patientId: string, enabled: boolean, limit = 50) {
+  return useQuery({
+    queryKey: ['/patients', patientId, 'communications', limit],
+    enabled,
+    queryFn: async () => (await api.get<CommunicationPage>(`/patients/${patientId}/communications`, { params: { limit } })).data,
+  });
+}
+
+export function useSaveCommunication(patientId: string) {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({ id, ...b }: Record<string, unknown> & { id?: string }) =>
+      id ? patchData<Communication>(`/patient-communications/${id}`, b) : postData<Communication>(`/patients/${patientId}/communications`, b),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['/patients', patientId] }),
+  });
+}
