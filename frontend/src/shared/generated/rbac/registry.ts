@@ -25,7 +25,7 @@ const defs: [string, PermissionDef][] = [
   p('staff.role', ALL)('manage'),
   // patients
   ...['read', 'update'].map(p('patients.patient', OWN_ALL)),
-  ...['create', 'delete', 'export', 'print'].map(p('patients.patient', ALL)),
+  ...['create', 'delete', 'export', 'print', 'import'].map(p('patients.patient', ALL)),
   ...['read', 'update'].map(p('patients.medicalHistory', OWN_ALL)),
   ...['read', 'upload', 'delete'].map(p('patients.document', OWN_ALL)),
   ...['read', 'write'].map(p('patients.communication', OWN_ALL)),

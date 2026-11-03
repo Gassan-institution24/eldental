@@ -14,7 +14,8 @@ import { bmiOf } from '@/shared/patients';
 import { normalizePhone } from '@/shared/validation/fields';
 import { escapeRegex, toSearchName } from '@/shared/validation/normalize';
 import { InsurancePolicyModel, MedicalHistoryModel, PatientModel, type Patient } from './patient.models';
-import type { PatientCreate, PatientListQuery } from './patient.schemas';
+import { zodErrorToFields } from '@/core/validation/zodIssues';
+import { patientCreateBody, type PatientCreate, type PatientListQuery } from './patient.schemas';
 
 const RESOURCE = 'patients.patient';
 const SORTABLE = ['fileNumber', 'name', 'createdAt', 'lastVisitAt', 'balance', 'dateOfBirth'] as const;
@@ -229,14 +230,19 @@ function fieldBody(b: Record<string, unknown>) {
 
 export async function createPatient(auth: AuthContext, b: PatientCreate) {
   assertWritable(fieldBody(b), fieldPolicyOf(auth, RESOURCE, `${RESOURCE}.create`));
+  const doc = await insertPatient(b);
+  await recordAudit({ action: 'create', entity: 'patient', entityId: doc._id, after: { fileNumber: doc.fileNumber }, resource: RESOURCE });
+  return getPatient({ ...auth, scope: 'all' }, String(doc._id));
+}
+
+/** Validated create without audit or DTO; the bulk import audits once for the whole file. */
+async function insertPatient(b: PatientCreate) {
   await assertReferences(b);
-  const doc = await withTransaction(async (session) => {
+  return withTransaction(async (session) => {
     const fileNumber = await nextNumber('patient', 'P', { pad: 6, session });
     const [created] = await PatientModel.create([{ ...toModel(b), fileNumber, status: 'active', ...(b.guardian?.patientId ? { familyGroupId: await familyOf(b.guardian.patientId) } : {}) }], { session });
     return created!;
   });
-  await recordAudit({ action: 'create', entity: 'patient', entityId: doc._id, after: { fileNumber: doc.fileNumber }, resource: RESOURCE });
-  return getPatient({ ...auth, scope: 'all' }, String(doc._id));
 }
 
 /**
@@ -470,4 +476,114 @@ export async function mergePatients(auth: AuthContext, targetId: string, sourceI
   });
   await recordAudit({ action: 'update', entity: 'patient', entityId: targetId, summary: `merged ${source.fileNumber} into ${target.fileNumber}`, reason });
   return getPatient(auth, targetId);
+}
+
+/* ---------- bulk import (03 §4, Phase 3b slice 6) ---------- */
+
+type ImportField = { path: string; code: string; params?: Record<string, unknown> };
+type ImportRow =
+  | { index: number; status: 'ok' }
+  | { index: number; status: 'error'; errors: ImportField[] }
+  | { index: number; status: 'duplicate'; fields: string[]; duplicateOfRow?: number; duplicateOf?: { id: string; fileNumber: string; fullName: string } };
+type Committed =
+  | { index: number; status: 'created'; id: string; fileNumber: string }
+  | { index: number; status: 'skipped' | 'error'; reason?: string; errors?: unknown };
+
+/**
+ * Validates every row with the create rules and flags duplicates against the clinic (phone,
+ * national ID) and within the file. A dry run only reports; a commit creates the rows that
+ * passed (and duplicates when allowed). Legacy file numbers stay unique regardless.
+ */
+export async function importPatients(auth: AuthContext, input: { rows: Record<string, unknown>[]; dryRun: boolean; allowDuplicates: boolean }) {
+  const policy = fieldPolicyOf(auth, RESOURCE, `${RESOURCE}.create`);
+  const parsed = input.rows.map((r) => patientCreateBody.safeParse(r));
+  const valid = parsed.flatMap((p) => (p.success ? [p.data] : []));
+  // One 403 for the whole file when it carries a field this user may not write.
+  const keys: Record<string, unknown> = {};
+  for (const v of valid) for (const k of Object.keys(v)) keys[k] = true;
+  assertWritable(fieldBody(keys), policy);
+
+  const phoneOf = (v: PatientCreate) => (v.phone ? normalizePhone(v.phone) : null);
+  const nidOf = (v: PatientCreate) => (v.nationalId && /^\d{10}$/.test(v.nationalId) ? searchHash(v.nationalId) : null);
+  const phones = valid.map(phoneOf).filter((x): x is string => Boolean(x));
+  const nids = valid.map(nidOf).filter((x): x is string => Boolean(x));
+  const legacies = valid.map((v) => v.legacyFileNumber).filter((x): x is string => Boolean(x));
+  const existing =
+    phones.length || nids.length || legacies.length
+      ? await PatientModel.find({
+          status: { $ne: 'merged' },
+          $or: [{ 'phone.e164': { $in: phones } }, { nationalIdHash: { $in: nids } }, { legacyFileNumber: { $in: legacies } }],
+        })
+          .select('fileNumber fullName phone nationalIdHash legacyFileNumber')
+          .lean()
+      : [];
+  const byPhone = new Map(existing.filter((p) => p.phone?.e164).map((p) => [p.phone!.e164!, p]));
+  const byNid = new Map(existing.filter((p) => p.nationalIdHash).map((p) => [p.nationalIdHash!, p]));
+  const legacyTaken = new Set(existing.map((p) => p.legacyFileNumber).filter(Boolean));
+  const seen = { phone: new Map<string, number>(), nid: new Map<string, number>(), legacy: new Set<string>() };
+
+  const rows: ImportRow[] = parsed.map((p, index) => {
+    if (!p.success) return { index, status: 'error', errors: zodErrorToFields(p.error) };
+    const v = p.data;
+    const phone = phoneOf(v);
+    const nid = nidOf(v);
+    const legacy = v.legacyFileNumber ?? null;
+    if (legacy && (legacyTaken.has(legacy) || seen.legacy.has(legacy))) return { index, status: 'error', errors: [{ path: 'legacyFileNumber', code: 'duplicate' }] };
+    if (legacy) seen.legacy.add(legacy);
+    const fields: string[] = [];
+    let match: (typeof existing)[number] | undefined;
+    let row: number | undefined;
+    if (phone && (byPhone.has(phone) || seen.phone.has(phone))) {
+      fields.push('phone');
+      match ??= byPhone.get(phone);
+      row ??= seen.phone.get(phone);
+    }
+    if (nid && (byNid.has(nid) || seen.nid.has(nid))) {
+      fields.push('nationalId');
+      match ??= byNid.get(nid);
+      row ??= seen.nid.get(nid);
+    }
+    if (phone && !seen.phone.has(phone)) seen.phone.set(phone, index);
+    if (nid && !seen.nid.has(nid)) seen.nid.set(nid, index);
+    if (!fields.length) return { index, status: 'ok' };
+    return {
+      index,
+      status: 'duplicate',
+      fields,
+      ...(match ? { duplicateOf: { id: String(match._id), fileNumber: match.fileNumber, fullName: match.fullName } } : { duplicateOfRow: row }),
+    };
+  });
+  const count = (st: ImportRow['status']) => rows.filter((r) => r.status === st).length;
+  const summary = { total: rows.length, ok: count('ok'), duplicate: count('duplicate'), error: count('error') };
+  if (input.dryRun) return { dryRun: true, summary, rows };
+
+  const results: Committed[] = [];
+  for (const r of rows) {
+    const take = r.status === 'ok' || (r.status === 'duplicate' && input.allowDuplicates);
+    if (!take) {
+      results.push({ index: r.index, status: r.status === 'error' ? 'error' : 'skipped', reason: r.status });
+      continue;
+    }
+    try {
+      const doc = await insertPatient((parsed[r.index] as { data: PatientCreate }).data);
+      results.push({ index: r.index, status: 'created', id: String(doc._id), fileNumber: doc.fileNumber });
+    } catch (err) {
+      results.push({ index: r.index, status: 'error', reason: err instanceof ApiError ? err.code : 'INTERNAL_ERROR', errors: err instanceof ApiError ? err.details : undefined });
+    }
+  }
+  const created = results.filter((x) => x.status === 'created').length;
+  await recordAudit({
+    action: 'create',
+    entity: 'patientImport',
+    summary: `${created} of ${rows.length} patients imported`,
+    after: {
+      total: rows.length,
+      created,
+      skipped: results.filter((x) => x.status === 'skipped').length,
+      errors: results.filter((x) => x.status === 'error').length,
+      allowDuplicates: input.allowDuplicates,
+    },
+    resource: RESOURCE,
+  });
+  return { dryRun: false, summary: { ...summary, created }, rows: results };
 }

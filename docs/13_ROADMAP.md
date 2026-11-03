@@ -82,7 +82,7 @@
 - [x] Slice 3 — communication log with follow-ups: Communication tab, quick-add drawer, author edits within 24 h, "follow-up due" header chip, timeline source, moved on merge
 - [x] Slice 4 — medical certificates (sick leave, report, attendance), immutable with void: Certificates tab, issue drawer with suggested wording, letterhead print with signature line (`07` §14)
 - [x] Slice 5 — post-treatment instructions (seeded templates, suggestions from today's procedures, snapshot, print), portal "My documents" with certificate and instruction prints (`07` §15)
-- [ ] Slice 6 — bulk CSV import with dry run and duplicate checks
+- [x] Slice 6 — bulk CSV import with dry run and duplicate checks: `/clinic/patients/import` wizard (UTF-8 BOM, `,`/`;`/tab), ar/en header auto-mapping, preview with translated errors, template download
 
 **Accept:** a receptionist registers a patient with flags and a referral, verifies the ID after uploading it; an accountant cannot see the blood type or vitals; the referrals report counts new patients by type.
 

@@ -60,6 +60,7 @@ Labels are i18n keys (`ar`/`en` in the locale files). There are no bilingual fie
 | | `patients.document.read` / `.upload` / `.delete` | own, all | |
 | | `patients.communication.read` / `.write` | own, all | own = patients in my patient scope. Templates: owner & receptionist all; dentist own read/write; hygienist own read |
 | | `patients.patient.export` / `.print` | all | Export / print (audited) |
+| | `patients.patient.import` | all | CSV import (owner & receptionist templates); the file is also checked against the user's `create` field access |
 | **scheduling** | `scheduling.appointment.read` | own, all | own = I am the dentist or assistant |
 | | `scheduling.appointment.book` | own, all | own = only into my own calendar |
 | | `scheduling.appointment.update` / `.cancel` | own, all | Reschedule, cancel |

@@ -9,7 +9,7 @@ import {
   Tooltip,
   Typography,
 } from '@mui/material';
-import { AlertTriangle, Download, FilterX, UserPlus } from 'lucide-react';
+import { AlertTriangle, Download, FileUp, FilterX, UserPlus } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
@@ -90,15 +90,26 @@ export function PatientListPage() {
           </Can>
         }
         actions={
-          <Can perm="patients.patient.export">
-            <Button
-              variant="outlined"
-              startIcon={<Download size={18} />}
-              onClick={() => void exportCsv()}
-            >
-              {t('export')}
-            </Button>
-          </Can>
+          <>
+            <Can perm="patients.patient.import">
+              <Button
+                variant="outlined"
+                startIcon={<FileUp size={18} />}
+                onClick={() => navigate('/clinic/patients/import')}
+              >
+                {t('import.action')}
+              </Button>
+            </Can>
+            <Can perm="patients.patient.export">
+              <Button
+                variant="outlined"
+                startIcon={<Download size={18} />}
+                onClick={() => void exportCsv()}
+              >
+                {t('export')}
+              </Button>
+            </Can>
+          </>
         }
       />
       <DataTable<Patient>

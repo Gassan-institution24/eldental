@@ -32,6 +32,8 @@ export function createApp(): Express {
   app.use(globalRateLimit);
   // Telemetry may carry a user-confirmed screenshot; everything else is capped at 1 MB (11 §4).
   app.use(`${env.API_PREFIX}/telemetry`, express.json({ limit: '2mb' }));
+  // A bulk patient import carries up to 2000 rows.
+  app.use(`${env.API_PREFIX}/patients/import`, express.json({ limit: '5mb' }));
   app.use(express.json({ limit: '1mb' }));
   // sendBeacon posts text/plain; telemetry parses it as JSON.
   app.use(`${env.API_PREFIX}/telemetry`, express.text({ type: 'text/plain', limit: '2mb' }));

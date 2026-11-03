@@ -68,7 +68,7 @@
     "role": { "manage": "Manage roles & permissions" }
   },
   "patients": {
-    "patient": { "read": "View patients", "create": "Register patients", "update": "Edit patients", "delete": "Delete / merge patients", "export": "Export patients", "print": "Print patient records" },
+    "patient": { "read": "View patients", "create": "Register patients", "update": "Edit patients", "delete": "Delete / merge patients", "export": "Export patients", "print": "Print patient records", "import": "Import patients from a file" },
     "medicalHistory": { "read": "View medical history", "update": "Update medical history" },
     "document": { "read": "View documents", "upload": "Upload documents", "delete": "Delete documents" },
     "communication": { "read": "View the communication log", "write": "Log communication & close follow-ups" }

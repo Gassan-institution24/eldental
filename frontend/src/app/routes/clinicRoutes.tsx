@@ -18,6 +18,7 @@ import { StaffListPage } from '@/features/staff/pages/StaffListPage';
 import { MyProfileRedirect, StaffProfilePage } from '@/features/staff/pages/StaffProfilePage';
 import { PatientListPage } from '@/features/patients/pages/PatientListPage';
 import { PatientCreatePage, PatientEditPage } from '@/features/patients/pages/PatientFormPage';
+import { PatientImportPage } from '@/features/patients/pages/PatientImportPage';
 import { PatientWorkspace } from '@/features/patients/pages/PatientWorkspace';
 import { PATIENT_EXTRA_ROUTES } from './patientExtraRoutes';
 import {
@@ -93,6 +94,7 @@ export const clinicRoutes: RouteObject[] = [
   page(<RecallsPage />, { perm: 'scheduling.recall.manage', title: 'nav:recalls' }, 'recalls'),
   page(<PatientListPage />, { perm: 'patients.patient.read' }, 'patients'),
   page(<PatientCreatePage />, { perm: 'patients.patient.create' }, 'patients/new'),
+  page(<PatientImportPage />, { perm: 'patients.patient.import' }, 'patients/import'),
   page(<PatientEditPage />, { perm: 'patients.patient.update' }, 'patients/:id/edit'),
   {
     path: 'patients/:id',

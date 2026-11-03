@@ -14,5 +14,7 @@ export default defineConfig({
     setupFiles: ['./src/test/setup.ts'],
     include: ['src/**/*.test.{ts,tsx}'],
     css: false,
+    // Form tests type into MUI inputs; with the whole suite in parallel 5 s is too tight.
+    testTimeout: 15_000,
   },
 });

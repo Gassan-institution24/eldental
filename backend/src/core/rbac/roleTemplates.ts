@@ -158,6 +158,7 @@ const receptionist: RoleTemplate = {
     g('patients.patient.update', 'all', fieldsAll('patients.patient', 'write', { nationalId: 'masked', balance: 'read', medicalAlerts: 'read' })),
     g('patients.patient.delete'),
     g('patients.patient.print'),
+    g('patients.patient.import'),
     g('patients.medicalHistory.read', 'all'),
     g('patients.medicalHistory.update', 'all'),
     g('patients.document.read', 'all'),

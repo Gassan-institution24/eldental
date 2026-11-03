@@ -42,6 +42,15 @@ patientRouter.get(
   asyncHandler(async (req, res) => ok(res, await svc.findDuplicates(req.auth!, query(req, s.duplicateQuery)))),
 );
 
+/** Bulk import (≤ 2000 rows): `dryRun` reports per-row ok/error/duplicate; a commit creates them. */
+patientRouter.post(
+  '/patients/import',
+  authorize('patients.patient.import'),
+  validate({ body: s.importBody }),
+  asyncHandler(async (req, res) => ok(res, await svc.importPatients(req.auth!, body(req, s.importBody)))),
+);
+registerPath({ method: 'post', path: '/patients/import', tags: ['patients'], summary: 'Bulk import with dry run and duplicate checks', body: s.importBody });
+
 patientRouter.get(
   '/patients/export',
   authorize('patients.patient.export'),

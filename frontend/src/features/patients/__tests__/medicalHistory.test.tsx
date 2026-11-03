@@ -100,8 +100,7 @@ describe('medical history', () => {
     // Unticking "Pregnant" hides and clears the weeks.
     await userEvent.click(screen.getByLabelText('Pregnant'));
     expect(screen.queryByLabelText('Pregnancy (weeks)')).not.toBeInTheDocument();
-    // Many typed interactions; the default 5 s is tight when the whole suite runs in parallel.
-  }, 15_000);
+  });
 
   it('saves structured entries', async () => {
     const { MedicalTab } = await import('../components/MedicalHistory');

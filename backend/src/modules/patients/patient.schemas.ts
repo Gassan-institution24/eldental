@@ -98,6 +98,14 @@ export type PatientListQuery = z.infer<typeof patientListQuery>;
 export const searchQuery = z.object({ q: z.string().trim().min(1).max(60), limit: z.coerce.number().int().min(1).max(20).default(8) }).strict();
 export const duplicateQuery = z.object({ phone: z.string().max(30).optional(), nationalId: z.string().max(20).optional(), legacyFileNumber: z.string().max(30).optional(), excludeId: objectId().optional() }).strict();
 export const idParams = z.object({ id: objectId() });
+/** Rows are validated one by one in the service, so one bad row doesn't reject the file. */
+export const importBody = z
+  .object({
+    rows: z.array(z.record(z.unknown())).min(1, { message: 'too_few' }).max(2000, { message: 'too_many' }),
+    dryRun: z.boolean().default(true),
+    allowDuplicates: z.boolean().default(false),
+  })
+  .strict();
 export const familyLinkBody = z.object({ patientId: objectId() }).strict();
 export const mergeBody =z.object({ sourceId: objectId(), reason: freeText(500) }).strict();
 

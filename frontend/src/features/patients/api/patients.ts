@@ -401,3 +401,26 @@ export function useSaveCommunication(patientId: string) {
     onSuccess: () => qc.invalidateQueries({ queryKey: ['/patients', patientId] }),
   });
 }
+
+/* ---------- bulk import ---------- */
+
+export type ImportFieldError = { path: string; code: string; params?: Record<string, unknown> };
+export type ImportCheckRow =
+  | { index: number; status: 'ok' }
+  | { index: number; status: 'error'; errors: ImportFieldError[] }
+  | { index: number; status: 'duplicate'; fields: string[]; duplicateOfRow?: number; duplicateOf?: { id: string; fileNumber: string; fullName: string } };
+export type ImportCommitRow =
+  | { index: number; status: 'created'; id: string; fileNumber: string }
+  | { index: number; status: 'skipped' | 'error'; reason?: string };
+export type ImportResult<R> = { dryRun: boolean; summary: { total: number; ok: number; duplicate: number; error: number; created?: number }; rows: R[] };
+
+export function usePatientImport() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (b: { rows: Record<string, unknown>[]; dryRun: boolean; allowDuplicates?: boolean }) =>
+      postData<ImportResult<ImportCheckRow | ImportCommitRow>>('/patients/import', b),
+    onSuccess: (_d, v) => {
+      if (!v.dryRun) void qc.invalidateQueries({ queryKey: ['/patients'] });
+    },
+  });
+}

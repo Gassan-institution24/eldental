@@ -205,6 +205,8 @@ Indexes:
 - `{clinicId, legacyFileNumber}` unique, partial (only when set);
 - `{clinicId, 'referredBy.patientId'}` (referrals list and report).
 
+**Bulk import** (`POST /patients/import`): each row is validated with the same `patientCreateBody`; a row is a possible duplicate when its phone or national ID matches a clinic patient or an earlier row; a taken legacy file number is a row error. Commits create the passing rows (duplicates only with `allowDuplicates`) and write one `patientImport` audit entry for the file.
+
 ### `medicalHistories`
 `patientId`, `version`, `answers` (structured questionnaire: conditions, medications, pregnancy, smoker, bleeding disorders, …), `allergies: [{ substance, reaction, severity }]`, `reviewedBy`, `reviewedAt`, `signedFileId`. A new version is created on every update and history is kept.
 Structured fields (rules in `shared/patients.ts`, used by the editor and the API):
