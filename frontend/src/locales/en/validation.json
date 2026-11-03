@@ -60,5 +60,6 @@
   "summary_one": "1 field needs attention",
   "summary_other": "{{count}} fields need attention",
   "requiredLegend": "* required",
-  "optional": "(optional)"
+  "optional": "(optional)",
+  "pregnancy_required": "Tick “Pregnant” in the conditions to record the weeks"
 }

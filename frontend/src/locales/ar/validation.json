@@ -64,5 +64,6 @@
   "summary_many": "{{count}} حقلًا تحتاج إلى مراجعة",
   "summary_other": "{{count}} حقل تحتاج إلى مراجعة",
   "requiredLegend": "* حقل مطلوب",
-  "optional": "(اختياري)"
+  "optional": "(اختياري)",
+  "pregnancy_required": "اختر «حامل» من الحالات لتسجيل أسابيع الحمل"
 }

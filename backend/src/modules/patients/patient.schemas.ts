@@ -17,7 +17,7 @@ import {
   personName,
   phone,
 } from '@/shared/validation/fields';
-import { BLOOD_TYPES, countryCode, heightCm, legacyFileNumber, MARITAL_STATUSES, patientFlags, referredBy, weightKg } from '@/shared/patients';
+import { ALERT_CONDITIONS as ALERT_LIST, BLOOD_TYPES, countryCode, medicalHistoryBody as medicalHistory, heightCm, legacyFileNumber, MARITAL_STATUSES, patientFlags, referredBy, weightKg } from '@/shared/patients';
 
 const contact = z.object({ name: personName({ max: 120 }), relation: optional(freeText(40)), phone: phone() }).strict();
 
@@ -101,37 +101,10 @@ export const idParams = z.object({ id: objectId() });
 export const familyLinkBody = z.object({ patientId: objectId() }).strict();
 export const mergeBody =z.object({ sourceId: objectId(), reason: freeText(500) }).strict();
 
-const allergy = z.object({ substance: z.string().trim().min(1, { message: 'required' }).max(80), reaction: optional(freeText(120)), severity: enumOf(['mild', 'moderate', 'severe']) }).strict();
-export const MEDICAL_CONDITIONS = [
-  'heart_disease',
-  'hypertension',
-  'diabetes',
-  'asthma',
-  'epilepsy',
-  'bleeding_disorder',
-  'anticoagulants',
-  'bisphosphonates',
-  'hepatitis',
-  'hiv',
-  'kidney_disease',
-  'thyroid',
-  'cancer_treatment',
-  'pregnancy',
-  'smoker',
-  'pacemaker',
-] as const;
+export { MEDICAL_CONDITIONS } from '@/shared/patients';
 /** Conditions that raise a red alert banner on every clinical screen (07 §11). */
-export const ALERT_CONDITIONS = new Set(['heart_disease', 'bleeding_disorder', 'anticoagulants', 'bisphosphonates', 'pregnancy', 'diabetes', 'pacemaker', 'epilepsy']);
-
-export const medicalHistoryBody = z
-  .object({
-    conditions: z.array(z.enum(MEDICAL_CONDITIONS)).max(MEDICAL_CONDITIONS.length).default([]),
-    medications: optional(freeText(1000)),
-    allergies: z.array(allergy).max(20).default([]),
-    notes: optional(freeText(2000)),
-    reviewed: z.boolean().default(false),
-  })
-  .strict();
+export const ALERT_CONDITIONS: ReadonlySet<string> = new Set(ALERT_LIST);
+export const medicalHistoryBody = medicalHistory();
 
 export const policyBody = z
   .object({

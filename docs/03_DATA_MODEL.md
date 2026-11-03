@@ -207,6 +207,14 @@ Indexes:
 
 ### `medicalHistories`
 `patientId`, `version`, `answers` (structured questionnaire: conditions, medications, pregnancy, smoker, bleeding disorders, …), `allergies: [{ substance, reaction, severity }]`, `reviewedBy`, `reviewedAt`, `signedFileId`. A new version is created on every update and history is kept.
+Structured fields (rules in `shared/patients.ts`, used by the editor and the API):
+| Field | Type | Notes |
+|---|---|---|
+| medicationsList | `{ name, medicineId?, dose?, frequency?, since? }[]` ≤ 30 | `medicineId` → global `medicines` (must exist; `422 not_found`); the name is kept as typed; `since` not in the future |
+| medications | string ≤ 1000 | free-text "other notes about medicines" (first form version) |
+| surgeries | `{ name, year?, note? }[]` ≤ 20 | year 1900 – this year |
+| lifestyle | `{ smoking?: none|former|light|heavy, alcohol?: none|light|heavy }` | |
+| pregnancyWeeks | int 1–42 | only when the `pregnancy` condition is ticked (`pregnancy_required`) |
 
 ### `insurancePolicies`
 `patientId`, `insuranceCompanyId`, `planName`, `memberNumber`, `relationToSubscriber`, `validFrom`, `validTo`, `coveragePercentOverride?`, `annualMax?: Money`, `usedThisYear: Money`, `isPrimary`.

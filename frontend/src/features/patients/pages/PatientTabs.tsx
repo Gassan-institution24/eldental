@@ -4,14 +4,11 @@ import {
   Button,
   Card,
   CardActionArea,
-  Checkbox,
   Chip,
-  Collapse,
   Dialog,
   DialogActions,
   DialogContent,
   DialogTitle,
-  FormControlLabel,
   Grid,
   IconButton,
   LinearProgress,
@@ -26,9 +23,7 @@ import {
 import { alpha } from '@mui/material/styles';
 import {
   Check,
-  ChevronDown,
   FileText,
-  History,
   Pencil,
   Plus,
   ShieldCheck,
@@ -38,7 +33,6 @@ import {
   X,
 } from 'lucide-react';
 import { useRef, useState, type DragEvent } from 'react';
-import { useFieldArray } from 'react-hook-form';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import { z } from 'zod';
@@ -75,18 +69,16 @@ import {
   useFamily,
   useLinkFamily,
   useMedicalHistory,
-  useMedicalVersions,
   usePolicies,
-  useSaveMedicalHistory,
   useSavePolicy,
   useTimeline,
   useUnlinkFamily,
   useUploadDocument,
   type FileItem,
-  type MedicalHistory,
   type Policy,
   type TimelineEvent,
 } from '../api/patients';
+import { MedicalBackgroundCard } from '../components/MedicalHistory';
 import { IdentityHealthCard, ReferralsCard } from '../components/PatientDetailsCards';
 import { PatientPicker } from '../components/PatientPicker';
 import { ageOf, useAlertLabel, useNextAppointment } from '../utils';
@@ -512,6 +504,7 @@ export function OverviewTab() {
               )}
             </SectionCard>
           )}
+          {canMedical && <MedicalBackgroundCard patientId={p.id} />}
           <IdentityHealthCard patient={p} />
           <ReferralsCard patient={p} />
           <FamilyCard />
@@ -541,339 +534,7 @@ export function OverviewTab() {
 
 /* ---------------- medical history ---------------- */
 
-const CONDITIONS = [
-  'heart_disease',
-  'hypertension',
-  'diabetes',
-  'asthma',
-  'epilepsy',
-  'bleeding_disorder',
-  'anticoagulants',
-  'bisphosphonates',
-  'hepatitis',
-  'hiv',
-  'kidney_disease',
-  'thyroid',
-  'cancer_treatment',
-  'pregnancy',
-  'smoker',
-  'pacemaker',
-] as const;
-const medSchema = z.object({
-  conditions: z.array(z.string()),
-  medications: optional(freeText(1000)),
-  allergies: z.array(
-    z.object({
-      substance: z.string().trim().min(1, { message: 'required' }).max(80, { message: 'too_long' }),
-      reaction: optional(freeText(120)),
-      severity: enumOf(['mild', 'moderate', 'severe']),
-    }),
-  ),
-  notes: optional(freeText(2000)),
-  reviewed: z.boolean(),
-});
-type Med = z.input<typeof medSchema>;
-
-/** Every saved version, newest first; expand one to read exactly what was recorded then. */
-function MedicalVersions({ patientId }: { patientId: string }) {
-  const { t, i18n } = useTranslation('patients');
-  const q = useMedicalVersions(patientId, true);
-  const [open, setOpen] = useState<string | null>(null);
-  const lang = i18n.resolvedLanguage ?? 'ar';
-  const sep = lang === 'ar' ? '، ' : ', ';
-  if (q.isLoading) return <PageSkeleton rows={2} />;
-  if (q.isError) return <ErrorState error={q.error} onRetry={() => void q.refetch()} compact />;
-  return (
-    <Box>
-      <Typography fontWeight={700} sx={{ mb: 2 }}>
-        {t('medical.versions')}
-      </Typography>
-      <Stack spacing={1}>
-        {(q.data ?? []).map((v: MedicalHistory) => (
-          <Card variant="outlined" key={v.id}>
-            <CardActionArea
-              onClick={() => setOpen((o) => (o === v.id ? null : v.id))}
-              aria-expanded={open === v.id}
-              sx={{ px: 4, py: 2 }}
-            >
-              <Stack direction="row" spacing={2} alignItems="center">
-                <Typography fontWeight={650}>{t('medical.version', { n: v.version })}</Typography>
-                <Typography variant="body2" color="text.secondary" sx={{ flex: 1 }}>
-                  {formatDateTime(v.createdAt, lang)}
-                </Typography>
-                {v.reviewedAt && (
-                  <Chip
-                    size="small"
-                    color="success"
-                    variant="outlined"
-                    label={t('medical.reviewedShort')}
-                  />
-                )}
-                <ChevronDown
-                  size={16}
-                  style={{ transform: open === v.id ? 'rotate(180deg)' : undefined }}
-                />
-              </Stack>
-            </CardActionArea>
-            <Collapse in={open === v.id} unmountOnExit>
-              <Box sx={{ px: 4, pb: 3 }}>
-                <Info
-                  label={t('medical.conditions')}
-                  value={v.conditions.map((c) => t(`medical.condition.${c}`)).join(sep)}
-                />
-                <Info
-                  label={t('medical.allergies')}
-                  value={v.allergies
-                    .map((a) => `${a.substance} (${t(`medical.severities.${a.severity}`)})`)
-                    .join(sep)}
-                />
-                {v.medications && <Info label={t('medical.medications')} value={v.medications} />}
-                {v.notes && <Info label={t('medical.notes')} value={v.notes} />}
-              </Box>
-            </Collapse>
-          </Card>
-        ))}
-      </Stack>
-    </Box>
-  );
-}
-
-export function MedicalTab() {
-  const { t, i18n } = useTranslation('patients');
-  const { patient: p } = usePatientContext();
-  const { can } = usePermission();
-  const q = useMedicalHistory(p.id);
-  const [editing, setEditing] = useState(false);
-  const [showVersions, setShowVersions] = useState(false);
-  const save = useSaveMedicalHistory(p.id);
-  const notify = useNotify();
-  const h = q.data;
-  const form = useAppForm<Med>({
-    schema: medSchema,
-    values: {
-      conditions: h?.conditions ?? [],
-      medications: h?.medications ?? '',
-      allergies: h?.allergies ?? [],
-      notes: h?.notes ?? '',
-      reviewed: false,
-    },
-    defaultValues: { conditions: [], allergies: [], reviewed: false },
-  });
-  const allergies = useFieldArray({ control: form.control, name: 'allergies' });
-
-  if (q.isLoading) return <PageSkeleton rows={4} />;
-  if (q.isError) return <ErrorState error={q.error} onRetry={() => void q.refetch()} />;
-
-  const onSubmit = async (v: Med) => {
-    const saved = await save.mutateAsync(v as unknown as Record<string, unknown>);
-    notify.success(t('medical.saved', { n: saved.version }));
-    setEditing(false);
-  };
-
-  if (editing) {
-    return (
-      <Form form={form} name="patient.medicalHistory" onSubmit={onSubmit} guardUnsaved>
-        <SectionCard title={t('medical.conditions')}>
-          <Grid container>
-            {CONDITIONS.map((c) => (
-              <Grid item xs={12} sm={6} md={4} key={c}>
-                <FormControlLabel
-                  control={
-                    <Checkbox
-                      checked={form.watch('conditions').includes(c)}
-                      onChange={(e) => {
-                        const cur = form.getValues('conditions');
-                        form.setValue(
-                          'conditions',
-                          e.target.checked ? [...cur, c] : cur.filter((x) => x !== c),
-                          { shouldDirty: true },
-                        );
-                      }}
-                    />
-                  }
-                  label={t(`medical.condition.${c}`)}
-                />
-              </Grid>
-            ))}
-          </Grid>
-        </SectionCard>
-        <SectionCard
-          title={t('medical.allergies')}
-          actions={
-            <Button
-              startIcon={<Plus size={16} />}
-              onClick={() =>
-                allergies.append({ substance: '', reaction: '', severity: 'moderate' })
-              }
-            >
-              {t('medical.addAllergy')}
-            </Button>
-          }
-        >
-          {allergies.fields.length === 0 && (
-            <Typography color="text.secondary">{t('medical.noAllergies')}</Typography>
-          )}
-          {allergies.fields.map((f, i) => (
-            <Grid container spacing={3} key={f.id} sx={{ mb: 3 }} alignItems="flex-start">
-              <Grid item xs={12} sm={4}>
-                <RHFTextField
-                  name={`allergies.${i}.substance`}
-                  label={t('medical.substance')}
-                  required
-                />
-              </Grid>
-              <Grid item xs={12} sm={4}>
-                <RHFTextField name={`allergies.${i}.reaction`} label={t('medical.reaction')} />
-              </Grid>
-              <Grid item xs={10} sm={3}>
-                <RHFSelect
-                  name={`allergies.${i}.severity`}
-                  label={t('medical.severity')}
-                  options={(['mild', 'moderate', 'severe'] as const).map((s) => ({
-                    value: s,
-                    label: t(`medical.severities.${s}`),
-                  }))}
-                />
-              </Grid>
-              <Grid item xs={2} sm={1}>
-                <IconButton
-                  onClick={() => allergies.remove(i)}
-                  aria-label={t('common:actions.remove')}
-                >
-                  <X size={18} />
-                </IconButton>
-              </Grid>
-            </Grid>
-          ))}
-        </SectionCard>
-        <SectionCard
-          title={t('medical.medications')}
-          footer={
-            <>
-              <Button onClick={() => setEditing(false)}>{t('common:actions.cancel')}</Button>
-              <Button type="submit" variant="contained" disabled={form.formState.isSubmitting}>
-                {t('common:actions.save')}
-              </Button>
-            </>
-          }
-        >
-          <Stack spacing={4}>
-            <RHFTextField
-              name="medications"
-              label={t('medical.medications')}
-              multiline
-              minRows={2}
-              maxLength={1000}
-            />
-            <RHFTextField
-              name="notes"
-              label={t('medical.notes')}
-              multiline
-              minRows={2}
-              maxLength={2000}
-            />
-            <RHFCheckbox name="reviewed" label={t('medical.reviewed')} />
-          </Stack>
-        </SectionCard>
-      </Form>
-    );
-  }
-
-  return (
-    <SectionCard
-      title={t('medical.title')}
-      subtitle={
-        h
-          ? `${t('medical.version', { n: h.version })} · ${t('medical.updatedBy', { date: formatDateTime(h.createdAt, i18n.resolvedLanguage ?? 'ar') })}`
-          : undefined
-      }
-      actions={
-        <Stack direction="row" spacing={1}>
-          {h && (
-            <Button startIcon={<History size={16} />} onClick={() => setShowVersions((v) => !v)}>
-              {t('medical.versions')}
-            </Button>
-          )}
-          {can('patients.medicalHistory.update') && (
-            <Button
-              variant="contained"
-              startIcon={<Pencil size={16} />}
-              onClick={() => setEditing(true)}
-            >
-              {t('medical.edit')}
-            </Button>
-          )}
-        </Stack>
-      }
-    >
-      {!h ? (
-        <EmptyState title={t('medical.none')} description={t('medical.noneHint')} compact />
-      ) : (
-        <Stack spacing={5}>
-          <Typography variant="body2" color={h.reviewedAt ? 'success.main' : 'warning.main'}>
-            {h.reviewedAt
-              ? t('medical.reviewedAt', {
-                  date: formatDate(h.reviewedAt, i18n.resolvedLanguage ?? 'ar'),
-                })
-              : t('medical.notReviewed')}
-          </Typography>
-          <Box>
-            <Typography fontWeight={700} sx={{ mb: 2 }}>
-              {t('medical.conditions')}
-            </Typography>
-            {h.conditions.length ? (
-              <Stack direction="row" sx={{ flexWrap: 'wrap', gap: 1 }}>
-                {h.conditions.map((c) => (
-                  <Chip key={c} label={t(`medical.condition.${c}`)} />
-                ))}
-              </Stack>
-            ) : (
-              <Typography color="text.secondary">{t('medical.noConditions')}</Typography>
-            )}
-          </Box>
-          <Box>
-            <Typography fontWeight={700} sx={{ mb: 2 }}>
-              {t('medical.allergies')}
-            </Typography>
-            {h.allergies.length ? (
-              <Stack spacing={1}>
-                {h.allergies.map((a, i) => (
-                  <Stack
-                    key={`${a.substance}-${i}`}
-                    direction="row"
-                    spacing={2}
-                    alignItems="center"
-                  >
-                    <Chip
-                      size="small"
-                      color={
-                        a.severity === 'severe'
-                          ? 'error'
-                          : a.severity === 'moderate'
-                            ? 'warning'
-                            : 'default'
-                      }
-                      label={t(`medical.severities.${a.severity}`)}
-                    />
-                    <Typography dir="auto">
-                      {a.substance}
-                      {a.reaction ? ` — ${a.reaction}` : ''}
-                    </Typography>
-                  </Stack>
-                ))}
-              </Stack>
-            ) : (
-              <Typography color="text.secondary">{t('medical.noAllergies')}</Typography>
-            )}
-          </Box>
-          {h.medications && <Info label={t('medical.medications')} value={h.medications} />}
-          {h.notes && <Info label={t('medical.notes')} value={h.notes} />}
-          {showVersions && <MedicalVersions patientId={p.id} />}
-        </Stack>
-      )}
-    </SectionCard>
-  );
-}
+export { MedicalTab } from '../components/MedicalHistory';
 
 /* ---------------- insurance ---------------- */
 

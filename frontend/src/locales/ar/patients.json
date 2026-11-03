@@ -192,7 +192,41 @@
       "smoker": "مدخن",
       "pacemaker": "منظم ضربات القلب"
     },
-    "reviewedShort": "تمت المراجعة"
+    "reviewedShort": "تمت المراجعة",
+    "medicationsList": "الأدوية المنتظمة",
+    "medicationsHint": "اختر من القائمة أو اكتب الاسم كما يذكره المريض.",
+    "medicineName": "الدواء",
+    "dose": "الجرعة",
+    "frequency": "عدد المرات",
+    "since": "منذ",
+    "sinceValue": "منذ {{date}}",
+    "addMedication": "إضافة دواء",
+    "noMedications": "لا أدوية منتظمة",
+    "otherMedications": "ملاحظات أخرى عن الأدوية",
+    "surgeries": "العمليات الجراحية السابقة",
+    "surgeryName": "العملية",
+    "year": "السنة",
+    "surgeryNote": "ملاحظة",
+    "addSurgery": "إضافة عملية",
+    "noSurgeries": "لا عمليات سابقة",
+    "lifestyle": "نمط الحياة",
+    "smoking": "التدخين",
+    "alcohol": "الكحول",
+    "smokingLevels": {
+      "none": "غير مدخن",
+      "former": "مدخن سابق",
+      "light": "مدخن خفيف",
+      "heavy": "مدخن شره"
+    },
+    "alcoholLevels": {
+      "none": "لا يتناول",
+      "light": "أحيانًا",
+      "heavy": "بكثرة"
+    },
+    "pregnancyWeeks": "الحمل (بالأسابيع)",
+    "pregnancyValue": "حامل — الأسبوع {{n}}",
+    "background": "الخلفية الطبية",
+    "backgroundEmpty": "لم تُسجّل أدوية أو عمليات أو نمط حياة"
   },
   "insurance": {
     "title": "وثائق التأمين",

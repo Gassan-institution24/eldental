@@ -1,7 +1,7 @@
 // SHARED FILE — synced to the frontend (src/shared/generated/patients.ts). Patient record rules used
 // by both the API and the forms, so client and server validate the same way (16 §5).
 import { z } from 'zod';
-import { entityName, freeText, objectId, optional } from './validation/fields';
+import { dateOnly, entityName, enumOf, freeText, objectId, optional } from './validation/fields';
 
 /** Non-medical flags shown as chips in the patient header (03 §4). */
 export const PATIENT_FLAGS = ['anxious', 'gag_reflex', 'wheelchair', 'hearing_impaired', 'interpreter', 'vip', 'payment_issue', 'often_late', 'other'] as const;
@@ -64,3 +64,96 @@ export function bmiOf(heightCm?: number | null, weightKg?: number | null): numbe
   if (!heightCm || !weightKg) return undefined;
   return Math.round((weightKg / (heightCm / 100) ** 2) * 10) / 10;
 }
+
+/* ---------- medical history (versioned; 03 §4, 07 §11) ---------- */
+
+export const MEDICAL_CONDITIONS = [
+  'heart_disease',
+  'hypertension',
+  'diabetes',
+  'asthma',
+  'epilepsy',
+  'bleeding_disorder',
+  'anticoagulants',
+  'bisphosphonates',
+  'hepatitis',
+  'hiv',
+  'kidney_disease',
+  'thyroid',
+  'cancer_treatment',
+  'pregnancy',
+  'smoker',
+  'pacemaker',
+] as const;
+/** Conditions that raise a red alert banner on every clinical screen (07 §11). */
+export const ALERT_CONDITIONS = ['heart_disease', 'bleeding_disorder', 'anticoagulants', 'bisphosphonates', 'pregnancy', 'diabetes', 'pacemaker', 'epilepsy'] as const;
+export const SMOKING_LEVELS = ['none', 'former', 'light', 'heavy'] as const;
+export const ALCOHOL_LEVELS = ['none', 'light', 'heavy'] as const;
+export const MAX_MEDICATIONS = 30;
+export const MAX_SURGERIES = 20;
+export const ALLERGY_SEVERITIES = ['mild', 'moderate', 'severe'] as const;
+
+/** A day of slack so a clinic ahead of UTC can still pick its own "today". */
+const notFuture = (v: string) => v <= new Date(Date.now() + 86_400_000).toISOString().slice(0, 10);
+
+export const medicationItem = () =>
+  z
+    .object({
+      name: entityName({ min: 1, max: 120 }),
+      medicineId: optional(objectId()),
+      dose: optional(freeText(60)),
+      frequency: optional(freeText(60)),
+      since: optional(dateOnly().refine(notFuture, { message: 'date_in_future' })),
+    })
+    .strict();
+
+export const surgeryItem = () =>
+  z
+    .object({
+      name: entityName({ min: 1, max: 120 }),
+      year: optional(
+        z.coerce
+          .number({ invalid_type_error: 'invalid_type' })
+          .int({ message: 'invalid' })
+          .min(1900, { message: 'too_small' })
+          .refine((y) => y <= new Date().getFullYear(), { message: 'date_in_future' }),
+      ),
+      note: optional(freeText(300)),
+    })
+    .strict();
+
+export const allergyItem = () =>
+  z
+    .object({
+      substance: z.string().trim().min(1, { message: 'required' }).max(80, { message: 'too_long' }),
+      reaction: optional(freeText(120)),
+      severity: enumOf([...ALLERGY_SEVERITIES]),
+    })
+    .strict();
+
+export const pregnancyWeeks = () =>
+  z.coerce.number({ invalid_type_error: 'invalid_type' }).int({ message: 'invalid' }).min(1, { message: 'too_small' }).max(42, { message: 'too_big' });
+
+/** One version of the medical history; the same rules in the editor and the API. */
+export const medicalHistoryBody = () =>
+  z
+    .object({
+      conditions: z.array(z.enum(MEDICAL_CONDITIONS)).max(MEDICAL_CONDITIONS.length).default([]),
+      medicationsList: z.array(medicationItem()).max(MAX_MEDICATIONS, { message: 'too_many' }).default([]),
+      /** Free-text "other notes" about medicines, kept from the first version of the form. */
+      medications: optional(freeText(1000)),
+      surgeries: z.array(surgeryItem()).max(MAX_SURGERIES, { message: 'too_many' }).default([]),
+      lifestyle: z
+        .object({ smoking: optional(enumOf([...SMOKING_LEVELS])), alcohol: optional(enumOf([...ALCOHOL_LEVELS])) })
+        .strict()
+        .default({}),
+      pregnancyWeeks: optional(pregnancyWeeks()),
+      allergies: z.array(allergyItem()).max(20, { message: 'too_many' }).default([]),
+      notes: optional(freeText(2000)),
+      reviewed: z.boolean().default(false),
+    })
+    .strict()
+    .superRefine((v, ctx) => {
+      if (v.pregnancyWeeks !== undefined && !v.conditions.includes('pregnancy'))
+        ctx.addIssue({ code: 'custom', path: ['pregnancyWeeks'], message: 'pregnancy_required' });
+    });

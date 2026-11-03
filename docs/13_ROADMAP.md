@@ -78,7 +78,7 @@
 
 ## Phase 3b — Patient record parity
 - [x] Slice 1 — details, flags & referral: nationality, marital status, occupation, blood type, height/weight + BMI, legacy file number (unique, searchable, duplicate check), profile photo, ID verification, non-medical flags, `referredBy` + referrals list and report (`03` §4)
-- [ ] Slice 2 — richer medical history: structured medications, surgeries, lifestyle, pregnancy weeks
+- [x] Slice 2 — richer medical history: structured medications (catalog autocomplete), surgeries, lifestyle, pregnancy weeks; version viewer and overview "Medical background" (`03` §4, `07` §11)
 - [ ] Slice 3 — communication log with follow-ups
 - [ ] Slice 4 — medical certificates (sick leave, report, attendance), immutable with void
 - [ ] Slice 5 — post-treatment instructions (templates + given), portal "My documents"

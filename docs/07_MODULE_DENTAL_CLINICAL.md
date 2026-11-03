@@ -115,6 +115,7 @@ Void: `POST /:id/void { reason }`. Allowed only if the linked invoice line is st
 
 ## 11. Medical History & Alerts
 - A structured questionnaire, versioned, reviewed by the dentist at least every 6 months (a reminder badge when overdue).
+- Each version records conditions, regular medicines (autocomplete from the global medicine catalog, or typed), previous surgeries, smoking/alcohol, pregnancy weeks (only when pregnant), allergies and notes. The version viewer shows exactly what each version recorded; the overview shows a "Medical background" card.
 - Allergies and critical conditions (anticoagulants, bisphosphonates, pregnancy, heart conditions, diabetes) are denormalised into `patients.medicalAlerts`. They appear as a red banner on every clinical screen and on the appointment card.
 
 ## 12. Dental Procedure Catalog (seed)

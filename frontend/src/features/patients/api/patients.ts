@@ -116,6 +116,10 @@ export type MedicalHistory = Entity & {
   version: number;
   conditions: string[];
   medications: string;
+  medicationsList: { name: string; medicineId?: string; dose?: string; frequency?: string; since?: string }[];
+  surgeries: { name: string; year?: number; note?: string }[];
+  lifestyle: { smoking?: 'none' | 'former' | 'light' | 'heavy'; alcohol?: 'none' | 'light' | 'heavy' };
+  pregnancyWeeks?: number;
   allergies: { substance: string; reaction?: string; severity: 'mild' | 'moderate' | 'severe' }[];
   notes: string;
   reviewedAt?: string;
@@ -135,6 +139,16 @@ export function useMedicalVersions(patientId: string, enabled: boolean) {
     queryKey: ['/patients', patientId, 'medical', 'versions'],
     queryFn: () => getData<MedicalHistory[]>(`/patients/${patientId}/medical-history/versions`),
     enabled,
+  });
+}
+
+/** Medicine names for the history editor's autocomplete (global catalog). */
+export function useMedicineSearch(q: string, enabled: boolean) {
+  return useQuery({
+    queryKey: ['medicines', q],
+    staleTime: 300_000,
+    enabled,
+    queryFn: () => getData<{ id: string; name: string; dose?: string; frequency?: string }[]>('/catalog/medicines', { params: q ? { q } : {} }),
   });
 }
 

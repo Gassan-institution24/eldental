@@ -94,6 +94,13 @@ const medicalHistorySchema = new Schema(
     version: { type: Number, required: true },
     answers: { type: Schema.Types.Mixed, default: {} },
     medications: { type: String, default: '' },
+    medicationsList: {
+      type: [{ name: String, medicineId: { type: Schema.Types.ObjectId, ref: 'Medicine' }, dose: String, frequency: String, since: String, _id: false }],
+      default: [],
+    },
+    surgeries: { type: [{ name: String, year: Number, note: String, _id: false }], default: [] },
+    lifestyle: { smoking: { type: String, enum: ['none', 'former', 'light', 'heavy'] }, alcohol: { type: String, enum: ['none', 'light', 'heavy'] } },
+    pregnancyWeeks: Number,
     allergies: { type: [{ substance: String, reaction: String, severity: { type: String, enum: ['mild', 'moderate', 'severe'] }, _id: false }], default: [] },
     notes: { type: String, default: '' },
     reviewedBy: { type: Schema.Types.ObjectId, ref: 'Staff' },

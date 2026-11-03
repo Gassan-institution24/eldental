@@ -372,7 +372,7 @@ clinicRouter.get(
 const medQuery = z.object({ q: z.string().trim().max(60).optional() }).strict();
 clinicRouter.get(
   '/catalog/medicines',
-  authorize('clinical.prescription.write', 'clinical.prescription.read'),
+  authorize('clinical.prescription.write', 'clinical.prescription.read', 'patients.medicalHistory.update'),
   validate({ query: medQuery }),
   asyncHandler(async (req, res) => {
     const q = query(req, medQuery);

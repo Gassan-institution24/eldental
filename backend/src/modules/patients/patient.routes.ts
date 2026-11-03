@@ -17,6 +17,7 @@ import { FileAssetModel, saveFile, storage } from '@/core/storage/storage';
 import { body, params, query, validate } from '@/core/validation/validate';
 import { toCsv } from '@/shared/csv';
 import { dateOnly, entityName, freeText, optional, percent, phone, email } from '@/shared/validation/fields';
+import { MedicineModel } from '@/modules/catalog/catalog.models';
 import { InsuranceCompanyModel, InsurancePolicyModel, MedicalHistoryModel } from './patient.models';
 import * as s from './patient.schemas';
 import * as svc from './patient.service';
@@ -152,7 +153,24 @@ patientRouter.get(
 /* ---------- medical history (versioned) ---------- */
 
 function historyDto(h: Record<string, unknown> & { _id: Types.ObjectId }) {
-  return { ...defaultDto(h as never), version: h.version, conditions: ((h.answers as { conditions?: string[] }) ?? {}).conditions ?? [] };
+  const { answers, ...rest } = h;
+  return {
+    ...defaultDto(rest as never),
+    version: h.version,
+    conditions: ((answers as { conditions?: string[] }) ?? {}).conditions ?? [],
+    medicationsList: ((h.medicationsList as { medicineId?: Types.ObjectId }[] | undefined) ?? []).map((m) => ({ ...m, medicineId: m.medicineId ? String(m.medicineId) : undefined })),
+    surgeries: h.surgeries ?? [],
+    lifestyle: h.lifestyle ?? {},
+  };
+}
+
+/** Catalog medicines picked from the autocomplete must still exist (the name is kept as typed). */
+async function assertMedicines(list: { medicineId?: string }[]) {
+  const ids = [...new Set(list.map((m) => m.medicineId).filter((x): x is string => Boolean(x)))];
+  if (!ids.length) return;
+  const found = new Set((await MedicineModel.find({ _id: { $in: ids } }).select('_id').lean()).map((m) => String(m._id)));
+  const missing = list.flatMap((m, i) => (m.medicineId && !found.has(m.medicineId) ? [{ path: `medicationsList.${i}.medicineId`, code: 'not_found' }] : []));
+  if (missing.length) throw ApiError.validation(missing);
 }
 
 patientRouter.get(
@@ -185,12 +203,17 @@ patientRouter.post(
   asyncHandler(async (req, res) => {
     const p = await svc.loadScopedPatient(req.auth!, params(req, s.idParams).id);
     const b = body(req, s.medicalHistoryBody);
+    await assertMedicines(b.medicationsList);
     const last = await MedicalHistoryModel.findOne({ patientId: p._id }).sort({ version: -1 }).select('version').lean();
     const h = await MedicalHistoryModel.create({
       patientId: p._id,
       version: (last?.version ?? 0) + 1,
       answers: { conditions: b.conditions },
       medications: b.medications ?? '',
+      medicationsList: b.medicationsList,
+      surgeries: b.surgeries,
+      lifestyle: b.lifestyle,
+      ...(b.pregnancyWeeks ? { pregnancyWeeks: b.pregnancyWeeks } : {}),
       allergies: b.allergies,
       notes: b.notes ?? '',
       ...(b.reviewed ? { reviewedBy: req.auth!.staffId, reviewedAt: new Date() } : {}),
@@ -198,7 +221,7 @@ patientRouter.post(
     const alerts = [...b.conditions.filter((c) => s.ALERT_CONDITIONS.has(c)).map((c) => `condition:${c}`), ...b.allergies.map((a) => `allergy:${a.substance}`)];
     p.medicalAlerts = alerts.slice(0, 20);
     await p.save();
-    await recordAudit({ action: 'create', entity: 'medicalHistory', entityId: h._id, summary: `version ${h.version}`, after: { patientId: String(p._id), conditions: b.conditions.length, allergies: b.allergies.length } });
+    await recordAudit({ action: 'create', entity: 'medicalHistory', entityId: h._id, summary: `version ${h.version}`, after: { patientId: String(p._id), conditions: b.conditions.length, allergies: b.allergies.length, medications: b.medicationsList.length, surgeries: b.surgeries.length } });
     created(res, historyDto(h.toObject() as never));
   }),
 );

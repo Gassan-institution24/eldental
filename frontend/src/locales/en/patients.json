@@ -188,7 +188,41 @@
       "smoker": "Smoker",
       "pacemaker": "Pacemaker"
     },
-    "reviewedShort": "Reviewed"
+    "reviewedShort": "Reviewed",
+    "medicationsList": "Regular medicines",
+    "medicationsHint": "Pick from the list or type the name as the patient says it.",
+    "medicineName": "Medicine",
+    "dose": "Dose",
+    "frequency": "How often",
+    "since": "Since",
+    "sinceValue": "since {{date}}",
+    "addMedication": "Add medicine",
+    "noMedications": "No regular medicines",
+    "otherMedications": "Other notes about medicines",
+    "surgeries": "Previous surgeries",
+    "surgeryName": "Operation",
+    "year": "Year",
+    "surgeryNote": "Note",
+    "addSurgery": "Add surgery",
+    "noSurgeries": "No previous surgeries",
+    "lifestyle": "Lifestyle",
+    "smoking": "Smoking",
+    "alcohol": "Alcohol",
+    "smokingLevels": {
+      "none": "Non-smoker",
+      "former": "Former smoker",
+      "light": "Light smoker",
+      "heavy": "Heavy smoker"
+    },
+    "alcoholLevels": {
+      "none": "None",
+      "light": "Occasional",
+      "heavy": "Heavy"
+    },
+    "pregnancyWeeks": "Pregnancy (weeks)",
+    "pregnancyValue": "Pregnant — week {{n}}",
+    "background": "Medical background",
+    "backgroundEmpty": "No medicines, surgeries or lifestyle recorded"
   },
   "insurance": {
     "title": "Insurance policies",
