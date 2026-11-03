@@ -34,7 +34,11 @@
     "guardianHint": "مطلوب للمرضى دون 18 عامًا.",
     "emergency": "جهة اتصال للطوارئ",
     "preferences": "التفضيلات",
-    "notes": "ملاحظات"
+    "notes": "ملاحظات",
+    "identityHealth": "الهوية والصحة",
+    "identityHealthHint": "الجنسية والحالة الاجتماعية وفصيلة الدم والطول والوزن ورقم الملف الورقي القديم.",
+    "flagsReferral": "التنبيهات والإحالة",
+    "flagsReferralHint": "ملاحظات عملية للفريق، ومن أحال المريض إلينا."
   },
   "fields": {
     "fileNumber": "رقم الملف",
@@ -71,7 +75,24 @@
     "balance": "الرصيد",
     "lastVisit": "آخر زيارة",
     "status": "الحالة",
-    "alerts": "التنبيهات"
+    "alerts": "التنبيهات",
+    "nationality": "الجنسية",
+    "maritalStatus": "الحالة الاجتماعية",
+    "occupation": "المهنة",
+    "bloodType": "فصيلة الدم",
+    "heightCm": "الطول (سم)",
+    "weightKg": "الوزن (كغ)",
+    "bmiValue": "مؤشر كتلة الجسم {{bmi}}",
+    "legacyFileNumber": "رقم الملف القديم",
+    "legacyFileNumberHint": "رقم الملف الورقي إن وُجد، ولا يتكرر في العيادة.",
+    "flags": "التنبيهات",
+    "flagsOtherNote": "صف التنبيه «أخرى»",
+    "referredBy": "محال من",
+    "referringPatient": "المريض المحيل",
+    "campaignName": "الحملة",
+    "referringDoctor": "الطبيب المحيل",
+    "referrerName": "الاسم",
+    "referralNote": "ملاحظة الإحالة"
   },
   "genders": {
     "male": "ذكر",
@@ -302,5 +323,69 @@
   },
   "noMatches": "لا يوجد مرضى يطابقون عوامل التصفية",
   "allDentists": "كل الأطباء",
-  "statusHint": "المرضى غير النشطين والمتوفون لا يظهرون في الحجز والتذكيرات."
+  "statusHint": "المرضى غير النشطين والمتوفون لا يظهرون في الحجز والتذكيرات.",
+  "maritalStatuses": {
+    "single": "أعزب/عزباء",
+    "married": "متزوج/ة",
+    "divorced": "مطلّق/ة",
+    "widowed": "أرمل/ة"
+  },
+  "flags": {
+    "anxious": "مريض قلق",
+    "gag_reflex": "منعكس تقيؤ قوي",
+    "wheelchair": "يستخدم كرسيًا متحركًا",
+    "hearing_impaired": "ضعيف السمع",
+    "interpreter": "يحتاج مترجمًا",
+    "vip": "مهم",
+    "payment_issue": "مشكلة في الدفع",
+    "often_late": "يتأخر غالبًا",
+    "other": "أخرى"
+  },
+  "referralTypes": {
+    "patient": "مريض",
+    "doctor": "طبيب",
+    "campaign": "حملة",
+    "other": "أخرى"
+  },
+  "identity": {
+    "title": "الهوية والصحة",
+    "vitals": "الطول · الوزن",
+    "heightValue": "{{v}} سم",
+    "weightValue": "{{v}} كغ",
+    "addPhoto": "إضافة صورة",
+    "changePhoto": "تغيير الصورة",
+    "removePhoto": "إزالة",
+    "removePhotoTitle": "إزالة الصورة الشخصية؟",
+    "photoSaved": "تم حفظ الصورة",
+    "photoRemoved": "تمت إزالة الصورة",
+    "verified": "تم التحقق من الهوية",
+    "notVerified": "لم يُتحقق من الهوية",
+    "verify": "تأكيد التحقق من الهوية",
+    "verifiedToast": "تم تسجيل التحقق من الهوية",
+    "verifiedBy": "تحقق منها {{name}} بتاريخ {{date}}"
+  },
+  "referrals": {
+    "title": "الإحالات",
+    "referredByThem_zero": "لم يُحِل أي مريض",
+    "referredByThem_one": "أحال مريضًا واحدًا",
+    "referredByThem_two": "أحال مريضين",
+    "referredByThem_few": "أحال {{count}} مرضى",
+    "referredByThem_many": "أحال {{count}} مريضًا",
+    "referredByThem_other": "أحال {{count}} مريض",
+    "none": "لم يُحِل أحدًا بعد",
+    "reportTitle": "الإحالات",
+    "reportHint_zero": "لا مرضى جدد في هذه الفترة",
+    "reportHint_one": "مريض جديد واحد في هذه الفترة",
+    "reportHint_two": "مريضان جديدان في هذه الفترة",
+    "reportHint_few": "{{count}} مرضى جدد في هذه الفترة",
+    "reportHint_many": "{{count}} مريضًا جديدًا في هذه الفترة",
+    "reportHint_other": "{{count}} مريض جديد في هذه الفترة",
+    "reportEmpty": "لا مرضى جدد في هذه الفترة",
+    "byType": "حسب نوع الإحالة",
+    "noReferral": "بدون إحالة",
+    "topReferrers": "أكثر المرضى إحالةً",
+    "source": "كيف عرفوا بنا",
+    "count": "المرضى",
+    "unknownSource": "غير مسجّل"
+  }
 }

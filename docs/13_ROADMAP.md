@@ -76,6 +76,16 @@
 
 **Accept:** a receptionist registers a patient, uploads an ID and records history; a dentist with `own` scope cannot see untreated patients (404).
 
+## Phase 3b — Patient record parity
+- [x] Slice 1 — details, flags & referral: nationality, marital status, occupation, blood type, height/weight + BMI, legacy file number (unique, searchable, duplicate check), profile photo, ID verification, non-medical flags, `referredBy` + referrals list and report (`03` §4)
+- [ ] Slice 2 — richer medical history: structured medications, surgeries, lifestyle, pregnancy weeks
+- [ ] Slice 3 — communication log with follow-ups
+- [ ] Slice 4 — medical certificates (sick leave, report, attendance), immutable with void
+- [ ] Slice 5 — post-treatment instructions (templates + given), portal "My documents"
+- [ ] Slice 6 — bulk CSV import with dry run and duplicate checks
+
+**Accept:** a receptionist registers a patient with flags and a referral, verifies the ID after uploading it; an accountant cannot see the blood type or vitals; the referrals report counts new patients by type.
+
 ## Phase 4 — Scheduling & Appointments
 - [x] Dentist schedules, schedule exceptions, availability engine (pure + tests)
 - [x] Appointments: book with slotLocks in a transaction, reschedule, state machine, cancel/no-show, bulk shift, today board

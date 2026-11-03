@@ -15,6 +15,20 @@ import { useTranslation } from 'react-i18next';
 import { Link as RouterLink, useNavigate, useParams } from 'react-router-dom';
 import { z } from 'zod';
 import { staffApi } from '@/features/staff/api';
+import { useCountries } from '@/lib/countries';
+import {
+  bmiOf,
+  BLOOD_TYPES,
+  countryCode,
+  heightCm,
+  legacyFileNumber,
+  MARITAL_STATUSES,
+  PATIENT_FLAGS,
+  patientFlags,
+  REFERRAL_TYPES,
+  referredBy,
+  weightKg,
+} from '@/shared/generated/patients';
 import {
   dateOfBirth,
   email,
@@ -39,6 +53,7 @@ import { useNotify } from '@/shared/hooks/useNotify';
 import { FieldScope } from '@/shared/rbac/fieldAccess';
 import { useFieldAccess, usePermission } from '@/shared/rbac/usePermission';
 import { patientsApi, useDuplicateCheck, type Patient } from '../api/patients';
+import { PatientPicker } from '../components/PatientPicker';
 
 const opt = <T extends z.ZodTypeAny>(s: T) => optional(s);
 
@@ -70,6 +85,19 @@ const schema = z
       phone: opt(phone()),
     }),
     referralSource: opt(freeText(80)),
+    nationality: opt(countryCode()),
+    maritalStatus: opt(enumOf([...MARITAL_STATUSES])),
+    occupation: opt(freeText(80)),
+    bloodType: opt(enumOf([...BLOOD_TYPES])),
+    heightCm: opt(heightCm()),
+    weightKg: opt(weightKg()),
+    legacyFileNumber: opt(legacyFileNumber()),
+    flags: z.array(z.enum(PATIENT_FLAGS)).max(PATIENT_FLAGS.length),
+    flagsOtherNote: opt(freeText(200)),
+    referredByType: opt(enumOf([...REFERRAL_TYPES])),
+    referredByPatient: z.object({ id: z.string(), fullName: z.string() }).nullable(),
+    referredByName: z.string(),
+    referredByNote: opt(freeText(300)),
     preferredDentistId: opt(z.string()),
     preferredLanguage: enumOf(['ar', 'en']),
     communicationPrefs: z.object({
@@ -93,7 +121,34 @@ const schema = z
       ctx.addIssue({ code: 'custom', path: ['guardian', 'phone'], message: 'required' });
     if (v.emergencyContact.name && !v.emergencyContact.phone)
       ctx.addIssue({ code: 'custom', path: ['emergencyContact', 'phone'], message: 'required' });
+    // Flags and referral use the server's own rules (shared/patients), mapped to the form inputs.
+    const flags = patientFlags().safeParse(flagList(v.flags, v.flagsOtherNote));
+    if (!flags.success && flags.error.issues.some((i) => i.path.at(-1) === 'note'))
+      ctx.addIssue({ code: 'custom', path: ['flagsOtherNote'], message: 'required' });
+    const ref = referralOf(v);
+    if (ref) {
+      const r = referredBy().safeParse(ref);
+      if (!r.success)
+        for (const issue of r.error.issues) {
+          const field = { patientId: 'referredByPatient', name: 'referredByName', note: 'referredByNote' }[String(issue.path[0])];
+          if (field) ctx.addIssue({ code: 'custom', path: [field], message: issue.message });
+        }
+    }
   });
+
+function flagList(codes: readonly string[], otherNote?: string) {
+  return codes.map((code) => (code === 'other' ? { code, note: otherNote ?? '' } : { code }));
+}
+
+function referralOf(v: { referredByType?: string; referredByPatient: { id: string } | null; referredByName: string; referredByNote?: string }) {
+  if (!v.referredByType) return null;
+  return {
+    type: v.referredByType,
+    ...(v.referredByType === 'patient' && v.referredByPatient ? { patientId: v.referredByPatient.id } : {}),
+    ...(v.referredByType !== 'patient' && v.referredByName.trim() ? { name: v.referredByName.trim() } : {}),
+    ...(v.referredByNote ? { note: v.referredByNote } : {}),
+  };
+}
 type Values = z.input<typeof schema>;
 type Output = z.output<typeof schema>;
 
@@ -127,6 +182,19 @@ function toForm(p?: Patient): Values {
       phone: p?.emergencyContact?.phone ?? '',
     },
     referralSource: p?.referralSource ?? '',
+    nationality: p?.nationality ?? '',
+    maritalStatus: p?.maritalStatus ?? '',
+    occupation: p?.occupation ?? '',
+    bloodType: p?.bloodType ?? '',
+    heightCm: p?.heightCm ?? '',
+    weightKg: p?.weightKg ?? '',
+    legacyFileNumber: p?.legacyFileNumber ?? '',
+    flags: (p?.flags ?? []).map((f) => f.code) as Values['flags'],
+    flagsOtherNote: p?.flags?.find((f) => f.code === 'other')?.note ?? '',
+    referredByType: p?.referredBy?.type ?? '',
+    referredByPatient: p?.referredBy?.patientId ? { id: p.referredBy.patientId, fullName: p.referredBy.patientName ?? '' } : null,
+    referredByName: p?.referredBy?.name ?? '',
+    referredByNote: p?.referredBy?.note ?? '',
     preferredDentistId: p?.preferredDentist ?? '',
     preferredLanguage: p?.preferredLanguage ?? 'ar',
     communicationPrefs: {
@@ -142,6 +210,8 @@ function toForm(p?: Patient): Values {
 }
 
 /** Body for the API: drop empty sub-objects and (on edit) untouched fields. */
+const CLEARABLE = ['nationality', 'maritalStatus', 'occupation', 'bloodType', 'heightCm', 'weightKg', 'legacyFileNumber', 'referredBy'];
+
 function toBody(v: Output, dirty: Record<string, unknown> | undefined) {
   const body: Record<string, unknown> = {
     name: {
@@ -161,6 +231,15 @@ function toBody(v: Output, dirty: Record<string, unknown> | undefined) {
     guardian: v.guardian.name ? v.guardian : undefined,
     emergencyContact: v.emergencyContact.name ? v.emergencyContact : undefined,
     referralSource: v.referralSource,
+    nationality: v.nationality,
+    maritalStatus: v.maritalStatus,
+    occupation: v.occupation,
+    bloodType: v.bloodType,
+    heightCm: v.heightCm,
+    weightKg: v.weightKg,
+    legacyFileNumber: v.legacyFileNumber,
+    flags: dirty || v.flags.length ? flagList(v.flags, v.flagsOtherNote) : undefined,
+    referredBy: referralOf(v) ?? undefined,
     preferredDentistId: v.preferredDentistId || undefined,
     preferredLanguage: v.preferredLanguage,
     communicationPrefs: v.communicationPrefs,
@@ -173,11 +252,13 @@ function toBody(v: Output, dirty: Record<string, unknown> | undefined) {
     Object.entries(body).filter(([, x]) => x !== undefined && x !== ''),
   );
   if (!dirty) return cleaned;
-  return Object.fromEntries(
-    Object.entries(cleaned).filter(
-      ([k]) => k in dirty || (k === 'preferredDentistId' && 'preferredDentistId' in dirty),
-    ),
-  );
+  // Fields edited to empty are cleared with null; the form keys behind flags and referral differ.
+  const touched = (k: string) =>
+    k in dirty ||
+    (k === 'flags' && 'flagsOtherNote' in dirty) ||
+    (k === 'referredBy' && ['referredByType', 'referredByPatient', 'referredByName', 'referredByNote'].some((x) => x in dirty));
+  for (const k of CLEARABLE) if (touched(k) && !(k in cleaned)) cleaned[k] = null;
+  return Object.fromEntries(Object.entries(cleaned).filter(([k]) => touched(k)));
 }
 
 function PatientForm({ patient }: { patient?: Patient }) {
@@ -193,6 +274,12 @@ function PatientForm({ patient }: { patient?: Patient }) {
     { enabled: can('staff.member.read', 'all') },
   );
   const form = useAppForm<Values>({ schema, defaultValues: toForm(patient) });
+  const countries = useCountries();
+  const height: unknown = useWatch({ control: form.control, name: 'heightCm' });
+  const weight: unknown = useWatch({ control: form.control, name: 'weightKg' });
+  const flagsNow = useWatch({ control: form.control, name: 'flags' });
+  const refType: unknown = useWatch({ control: form.control, name: 'referredByType' });
+  const bmi = bmiOf(Number(height) || undefined, Number(weight) || undefined);
   const dobRaw: unknown = useWatch({ control: form.control, name: 'dateOfBirth' });
   const phoneRaw: unknown = useWatch({ control: form.control, name: 'phone' });
   const dob = typeof dobRaw === 'string' ? dobRaw : '';
@@ -303,6 +390,57 @@ function PatientForm({ patient }: { patient?: Patient }) {
                 fieldKey="nationalId"
                 helperText={patient?.nationalId?.includes('•') ? patient.nationalId : undefined}
                 inputProps={{ dir: 'ltr', inputMode: 'numeric', maxLength: 10 }}
+              />
+            </Grid>
+          </Grid>
+        </SectionCard>
+
+        <SectionCard title={t('sections.identityHealth')} subtitle={t('sections.identityHealthHint')}>
+          <Grid container spacing={4}>
+            <Grid item xs={12} sm={6} md={4}>
+              <RHFSelect name="nationality" label={t('fields.nationality')} fieldKey="nationality" clearable options={countries.options} />
+            </Grid>
+            <Grid item xs={12} sm={6} md={4}>
+              <RHFSelect
+                name="maritalStatus"
+                label={t('fields.maritalStatus')}
+                fieldKey="maritalStatus"
+                clearable
+                options={MARITAL_STATUSES.map((m) => ({ value: m, label: t(`maritalStatuses.${m}`) }))}
+              />
+            </Grid>
+            <Grid item xs={12} sm={6} md={4}>
+              <RHFTextField name="occupation" label={t('fields.occupation')} fieldKey="occupation" maxLength={80} />
+            </Grid>
+            <Grid item xs={12} sm={6} md={3}>
+              <RHFSelect
+                name="bloodType"
+                label={t('fields.bloodType')}
+                fieldKey="bloodType"
+                clearable
+                options={BLOOD_TYPES.map((b) => ({ value: b, label: b }))}
+              />
+            </Grid>
+            <Grid item xs={6} sm={4} md={3}>
+              <RHFTextField name="heightCm" label={t('fields.heightCm')} fieldKey="vitals" type="number" inputProps={{ dir: 'ltr', min: 30, max: 250 }} />
+            </Grid>
+            <Grid item xs={6} sm={4} md={3}>
+              <RHFTextField
+                name="weightKg"
+                label={t('fields.weightKg')}
+                fieldKey="vitals"
+                type="number"
+                inputProps={{ dir: 'ltr', min: 1, max: 400, step: 0.1 }}
+                helperText={bmi ? t('fields.bmiValue', { bmi }) : undefined}
+              />
+            </Grid>
+            <Grid item xs={12} sm={4} md={3}>
+              <RHFTextField
+                name="legacyFileNumber"
+                label={t('fields.legacyFileNumber')}
+                fieldKey="legacyFileNumber"
+                helperText={t('fields.legacyFileNumberHint')}
+                inputProps={{ dir: 'ltr', maxLength: 30 }}
               />
             </Grid>
           </Grid>
@@ -522,6 +660,99 @@ function PatientForm({ patient }: { patient?: Patient }) {
                   )}
                 />
               </Grid>
+            )}
+          </Grid>
+        </SectionCard>
+
+        <SectionCard title={t('sections.flagsReferral')} subtitle={t('sections.flagsReferralHint')}>
+          <Grid container spacing={4}>
+            {access.canSee('flags') && (
+              <Grid item xs={12} md={flagsNow?.includes('other') ? 7 : 12}>
+                <Controller
+                  name="flags"
+                  control={form.control}
+                  render={({ field }) => (
+                    <Autocomplete
+                      multiple
+                      options={[...PATIENT_FLAGS]}
+                      value={field.value as string[]}
+                      disabled={!access.canEdit('flags')}
+                      getOptionLabel={(o) => t(`flags.${o}`)}
+                      onChange={(_e, v) => field.onChange(v)}
+                      filterSelectedOptions
+                      renderTags={(value, getTagProps) =>
+                        value.map((o, i) => {
+                          const { key, ...rest } = getTagProps({ index: i });
+                          return <Chip key={key} {...rest} size="small" label={t(`flags.${o}`)} />;
+                        })
+                      }
+                      renderInput={(params) => (
+                        <TextField
+                          {...params}
+                          label={t('fields.flags')}
+                          inputProps={{ ...params.inputProps, 'data-testid': 'flags-input' }}
+                        />
+                      )}
+                    />
+                  )}
+                />
+              </Grid>
+            )}
+            {access.canSee('flags') && flagsNow?.includes('other') && (
+              <Grid item xs={12} md={5}>
+                <RHFTextField name="flagsOtherNote" label={t('fields.flagsOtherNote')} fieldKey="flags" required maxLength={200} />
+              </Grid>
+            )}
+            {access.canSee('referredBy') && (
+              <>
+                <Grid item xs={12} md={4}>
+                  <RHFSelect
+                    name="referredByType"
+                    label={t('fields.referredBy')}
+                    fieldKey="referredBy"
+                    clearable
+                    options={REFERRAL_TYPES.map((r) => ({ value: r, label: t(`referralTypes.${r}`) }))}
+                  />
+                </Grid>
+                {refType === 'patient' && (
+                  <Grid item xs={12} md={4}>
+                    <Controller
+                      name="referredByPatient"
+                      control={form.control}
+                      render={({ field, fieldState }) => (
+                        <Box data-field="referredByPatient">
+                          <PatientPicker
+                            name="referredByPatient"
+                            label={t('fields.referringPatient')}
+                            excludeId={patient?.id}
+                            value={field.value ?? null}
+                            onChange={field.onChange}
+                            required
+                            error={Boolean(fieldState.error)}
+                            helperText={fieldState.error ? t('validation:required', { field: t('fields.referringPatient') }) : undefined}
+                          />
+                        </Box>
+                      )}
+                    />
+                  </Grid>
+                )}
+                {(refType === 'doctor' || refType === 'campaign' || refType === 'other') && (
+                  <Grid item xs={12} md={4}>
+                    <RHFTextField
+                      name="referredByName"
+                      label={t(refType === 'campaign' ? 'fields.campaignName' : refType === 'doctor' ? 'fields.referringDoctor' : 'fields.referrerName')}
+                      fieldKey="referredBy"
+                      required={refType !== 'other'}
+                      maxLength={120}
+                    />
+                  </Grid>
+                )}
+                {Boolean(refType) && (
+                  <Grid item xs={12} md={4}>
+                    <RHFTextField name="referredByNote" label={t('fields.referralNote')} fieldKey="referredBy" maxLength={300} />
+                  </Grid>
+                )}
+              </>
             )}
           </Grid>
         </SectionCard>

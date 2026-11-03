@@ -17,6 +17,7 @@ import {
   personName,
   phone,
 } from '@/shared/validation/fields';
+import { BLOOD_TYPES, countryCode, heightCm, legacyFileNumber, MARITAL_STATUSES, patientFlags, referredBy, weightKg } from '@/shared/patients';
 
 const contact = z.object({ name: personName({ max: 120 }), relation: optional(freeText(40)), phone: phone() }).strict();
 
@@ -41,6 +42,15 @@ const patientShape = {
   guardian: z.object({ patientId: optional(objectId()), name: personName({ max: 120 }), relation: freeText(40), phone: phone() }).strict().optional(),
   emergencyContact: contact.optional(),
   referralSource: optional(freeText(80)),
+  referredBy: referredBy().optional(),
+  nationality: optional(countryCode()),
+  maritalStatus: optional(enumOf([...MARITAL_STATUSES])),
+  occupation: optional(freeText(80)),
+  bloodType: optional(enumOf([...BLOOD_TYPES])),
+  heightCm: optional(heightCm()),
+  weightKg: optional(weightKg()),
+  legacyFileNumber: optional(legacyFileNumber()),
+  flags: patientFlags().optional(),
   preferredDentistId: optional(objectId()),
   preferredLanguage: optional(enumOf(['ar', 'en'])),
   communicationPrefs: z.object({ whatsapp: z.boolean(), sms: z.boolean(), email: z.boolean(), marketing: z.boolean() }).partial().strict().optional(),
@@ -62,6 +72,14 @@ export const patientUpdateBody = z
     ...Object.fromEntries(Object.entries(patientShape).map(([k, v]) => [k, (v as z.ZodTypeAny).optional()])),
     phone: phone({ mobile: true }).optional(),
     nationalId: nullable(nationalId()),
+    // Cleared with null on edit.
+    referredBy: referredBy().nullable().optional(),
+    nationality: nullable(countryCode()),
+    maritalStatus: nullable(enumOf([...MARITAL_STATUSES])),
+    bloodType: nullable(enumOf([...BLOOD_TYPES])),
+    heightCm: nullable(heightCm()),
+    weightKg: nullable(weightKg()),
+    legacyFileNumber: nullable(legacyFileNumber()),
     status: enumOf(['active', 'inactive', 'deceased']).optional(),
     version: z.number().int().min(0),
   })
@@ -78,7 +96,7 @@ export const patientListQuery = z
 export type PatientListQuery = z.infer<typeof patientListQuery>;
 
 export const searchQuery = z.object({ q: z.string().trim().min(1).max(60), limit: z.coerce.number().int().min(1).max(20).default(8) }).strict();
-export const duplicateQuery = z.object({ phone: z.string().max(30).optional(), nationalId: z.string().max(20).optional(), excludeId: objectId().optional() }).strict();
+export const duplicateQuery = z.object({ phone: z.string().max(30).optional(), nationalId: z.string().max(20).optional(), legacyFileNumber: z.string().max(30).optional(), excludeId: objectId().optional() }).strict();
 export const idParams = z.object({ id: objectId() });
 export const familyLinkBody = z.object({ patientId: objectId() }).strict();
 export const mergeBody =z.object({ sourceId: objectId(), reason: freeText(500) }).strict();

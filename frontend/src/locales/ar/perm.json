@@ -51,6 +51,7 @@
     "bookableOnline": "متاح للحجز الإلكتروني", "employment": "تفاصيل التوظيف", "shift": "الوردية", "basicSalary": "الراتب الأساسي", "allowances": "العلاوات والاقتطاعات",
     "commission": "العمولة", "bank": "الحساب البنكي", "roles": "الأدوار", "tags": "الوسوم", "preferredDentist": "الطبيب المفضل", "preferredLanguage": "اللغة المفضلة",
     "communicationPrefs": "تفضيلات التواصل", "guardian": "ولي الأمر", "emergencyContact": "جهة اتصال الطوارئ", "referralSource": "مصدر الإحالة",
+    "referredBy": "محال من", "legacyFileNumber": "رقم الملف القديم", "flags": "التنبيهات", "maritalStatus": "الحالة الاجتماعية", "occupation": "المهنة", "idVerification": "التحقق من الهوية", "bloodType": "فصيلة الدم", "vitals": "الطول والوزن",
     "insurance": "التأمين", "balance": "الرصيد", "medicalAlerts": "التنبيهات الطبية", "notes": "ملاحظات", "patient": "المريض", "dentist": "الطبيب", "lines": "البنود",
     "prices": "الأسعار والضريبة", "discounts": "الخصومات", "totals": "الإجماليات", "balanceDue": "الرصيد المستحق", "insuranceShare": "حصة التأمين", "amount": "المبلغ",
     "method": "طريقة الدفع", "reference": "المرجع", "basic": "الراتب الأساسي", "earnings": "المستحقات والعمل الإضافي", "deductions": "الاقتطاعات", "socialSecurity": "الضمان الاجتماعي",

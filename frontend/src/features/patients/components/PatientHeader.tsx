@@ -1,4 +1,4 @@
-import { Avatar, Box, Button, Card, Chip, Link, Skeleton, Stack, Typography } from '@mui/material';
+import { Box, Button, Card, Chip, Link, Skeleton, Stack, Typography } from '@mui/material';
 import { alpha } from '@mui/material/styles';
 import {
   AlertTriangle,
@@ -21,6 +21,7 @@ import { useFieldScope } from '@/shared/rbac/fieldAccess';
 import { usePermission } from '@/shared/rbac/usePermission';
 import type { Patient } from '../api/patients';
 import { ageOf, useAlertLabel, useNextAppointment } from '../utils';
+import { IdVerifiedBadge, PatientAvatar, PatientFlags } from './PatientDetailsCards';
 
 /** Height of the clinic AppBar toolbar (AppShell); the strip sticks right below it. */
 const APP_BAR = 72;
@@ -35,21 +36,6 @@ function HeaderStat({ label, children }: { label: string; children: ReactNode })
         {children}
       </Typography>
     </Box>
-  );
-}
-
-function PatientAvatar({ patient: p, size }: { patient: Patient; size: number }) {
-  return (
-    <Avatar
-      sx={{
-        width: size,
-        height: size,
-        fontSize: size * 0.4,
-        bgcolor: p.gender === 'female' ? 'secondary.main' : 'primary.main',
-      }}
-    >
-      {p.fullName.slice(0, 1)}
-    </Avatar>
   );
 }
 
@@ -120,7 +106,9 @@ export function PatientHeader({ patient: p, onMerge, onDelete, children }: Props
               >
                 <Typography variant="body2" color="text.secondary" dir="ltr">
                   {p.fileNumber}
+                  {p.legacyFileNumber && scope.canSee('legacyFileNumber') ? ` · ${p.legacyFileNumber}` : ''}
                 </Typography>
+                {scope.canSee('idVerification') && <IdVerifiedBadge patient={p} />}
                 {age !== null && (
                   <Chip size="small" variant="outlined" label={t('years', { count: age })} />
                 )}
@@ -133,6 +121,7 @@ export function PatientHeader({ patient: p, onMerge, onDelete, children }: Props
                 {p.tags.map((tag) => (
                   <Chip key={tag} size="small" label={<span dir="auto">{tag}</span>} />
                 ))}
+                <PatientFlags patient={p} />
               </Stack>
             </Box>
           </Stack>

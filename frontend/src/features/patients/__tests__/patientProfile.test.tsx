@@ -52,6 +52,7 @@ const family: FamilyMember[] = [
 
 vi.mock('@/shared/rbac/usePermission', () => ({
   usePermission: () => ({ can: (p: string) => !state.denied.has(p) }),
+  useFieldAccess: () => ({ canSee: () => true, canEdit: () => true, isMasked: () => false, access: () => 'write' }),
 }));
 vi.mock('../pages/PatientWorkspace', () => ({ usePatientContext: () => ({ patient }) }));
 vi.mock('../components/PatientPicker', () => ({ PatientPicker: () => <div>patient-picker</div> }));
@@ -93,6 +94,7 @@ vi.mock('../api/patients', async (orig) => ({
   },
   useLinkFamily: () => ({ mutateAsync: vi.fn(), isPending: false }),
   useUnlinkFamily: () => ({ mutateAsync: vi.fn(), isPending: false }),
+  useReferrals: () => ({ data: [], isLoading: false }),
 }));
 
 function wrap(node: ReactNode) {

@@ -19,6 +19,28 @@ export type Patient = Entity & {
   familyGroupId?: string;
   emergencyContact?: { name: string; relation?: string; phone: string };
   referralSource?: string;
+  referredBy?: {
+    type: 'patient' | 'doctor' | 'campaign' | 'other';
+    patientId?: string;
+    patientName?: string;
+    patientFileNumber?: string;
+    name?: string;
+    note?: string;
+  };
+  nationality?: string;
+  maritalStatus?: 'single' | 'married' | 'divorced' | 'widowed';
+  occupation?: string;
+  bloodType?: string;
+  heightCm?: number;
+  weightKg?: number;
+  bmi?: number;
+  legacyFileNumber?: string;
+  photoFileId?: string;
+  photoUrl?: string;
+  idVerifiedAt?: string;
+  idVerifiedBy?: string;
+  idVerifiedByName?: string;
+  flags?: { code: string; note?: string }[];
   preferredDentist?: string;
   preferredDentistName?: string;
   preferredLanguage?: 'ar' | 'en';
@@ -40,6 +62,7 @@ export const patientsApi = resourceHooks<Patient>('/patients');
 export type PatientHit = {
   id: string;
   fileNumber: string;
+  legacyFileNumber?: string;
   fullName: string;
   phone?: string;
   dateOfBirth?: string;
@@ -273,5 +296,58 @@ export function useUnlinkFamily() {
   return useMutation({
     mutationFn: (memberId: string) => deleteData(`/patients/${memberId}/family`),
     onSuccess: () => qc.invalidateQueries({ queryKey: ['/patients'] }),
+  });
+}
+
+/* ---------- photo, ID verification, referrals (03 §4) ---------- */
+
+function usePatientUpdate<T>(fn: (v: T) => Promise<Patient>) {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: fn,
+    onSuccess: (p) => {
+      qc.setQueryData(patientsApi.keys.detail(p.id), p);
+      void qc.invalidateQueries({ queryKey: ['/patients'] });
+    },
+  });
+}
+
+export function usePatientPhoto(patientId: string) {
+  return {
+    upload: usePatientUpdate(async (file: File) => {
+      const fd = new FormData();
+      fd.append('file', file);
+      const res = await api.put<{ data: Patient }>(`/patients/${patientId}/photo`, fd);
+      return res.data.data;
+    }),
+    remove: usePatientUpdate(async () => (await api.delete<{ data: Patient }>(`/patients/${patientId}/photo`)).data.data),
+  };
+}
+
+export function useVerifyId(patientId: string) {
+  return usePatientUpdate(() => postData<Patient>(`/patients/${patientId}/verify-id`, {}));
+}
+
+export type ReferredPatient = { id: string; fileNumber: string; fullName: string; createdAt: string; status: string };
+export function useReferrals(patientId: string, enabled = true) {
+  return useQuery({
+    queryKey: ['/patients', patientId, 'referrals'],
+    queryFn: () => getData<ReferredPatient[]>(`/patients/${patientId}/referrals`),
+    enabled,
+  });
+}
+
+export type ReferralReport = {
+  from: string;
+  to: string;
+  newPatients: number;
+  byType: { type: string; count: number }[];
+  topReferrers: { patientId: string; fullName: string; fileNumber: string; count: number }[];
+  sources: { source: string; count: number }[];
+};
+export function useReferralReport(from: string, to: string) {
+  return useQuery({
+    queryKey: ['reports', 'referrals', from, to],
+    queryFn: () => getData<ReferralReport>('/reports/referrals', { params: { from, to } }),
   });
 }

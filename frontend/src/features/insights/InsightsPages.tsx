@@ -59,6 +59,7 @@ import { RHFCheckbox } from '@/shared/form/RHFInputs';
 import { RHFTextField } from '@/shared/form/RHFTextField';
 import { useAppForm } from '@/shared/form/useAppForm';
 import { useNotify } from '@/shared/hooks/useNotify';
+import { ReferralsReport } from '@/features/patients/components/ReferralsReport';
 import { usePermission } from '@/shared/rbac/usePermission';
 
 /* ---------------- dashboard KPIs ---------------- */
@@ -319,6 +320,7 @@ type Op = {
 
 export function OperationalReportPage() {
   const { t } = useTranslation('insights');
+  const canPatients = usePermission().can('patients.patient.read');
   const { t: ts } = useTranslation('scheduling');
   const [from, setFrom] = useState(`${todayLocal().slice(0, 7)}-01`);
   const [to, setTo] = useState(todayLocal());
@@ -423,6 +425,7 @@ export function OperationalReportPage() {
               </Table>
             )}
           </SectionCard>
+          {canPatients && <ReferralsReport from={from} to={to} />}
           <Typography variant="caption" color="text.secondary">
             {t('ops.financialHint')}{' '}
             <RouterLink to="/clinic/accounting/reports">{t('ops.financialLink')}</RouterLink>

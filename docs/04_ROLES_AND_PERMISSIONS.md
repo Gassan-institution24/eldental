@@ -138,7 +138,10 @@ export const RESOURCE_FIELDS = {
   'patients.patient': {
     name, fileNumber, gender, dateOfBirth, phone (maskable), altPhone (maskable), email (maskable),
     address, nationalId (maskable, sensitive), guardian, emergencyContact, insurance,
-    balance (financial), medicalAlerts (clinical), tags, notes
+    balance (financial), medicalAlerts (clinical), tags, notes,
+    referredBy, legacyFileNumber, photo, flags,                       // basic
+    maritalStatus, occupation, nationality, idVerification,           // identity
+    bloodType, vitals (heightCm, weightKg, bmi)                       // clinical
   },
   'billing.invoice':  { patient, lines, prices, discounts, totals, balanceDue, dentist, insuranceShare },
   'hr.payslip':       { basic, earnings, deductions, commission, socialSecurity, incomeTax, net },

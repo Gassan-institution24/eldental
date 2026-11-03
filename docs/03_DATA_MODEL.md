@@ -177,7 +177,17 @@ User movements, problems users hit, and server errors. Full spec in `15_LOGGING_
 | guardian | `{ patientId?, name, relation, phone }` | for minors |
 | familyGroupId | ObjectId | links family members |
 | emergencyContact | `{ name, relation, phone }` | |
-| referralSource | string | |
+| referralSource | string | free text "how did you hear about us" (kept alongside `referredBy`) |
+| referredBy | `{ type: patient|doctor|campaign|other, patientId?, name?, note? }` | `patient` needs `patientId` (an existing patient of the clinic, not self); `doctor`/`campaign` need `name`; `other` needs `name` or `note` |
+| nationality | string | ISO 3166-1 alpha-2 (`JO`); names come from `Intl.DisplayNames` in the UI |
+| maritalStatus | `single|married|divorced|widowed` | |
+| occupation | string ≤ 80 | |
+| bloodType | `A+|A-|B+|B-|AB+|AB-|O+|O-` | |
+| heightCm, weightKg | int 30–250, number 1–400 (one decimal) | BMI is derived in the API (`bmi`), never stored |
+| legacyFileNumber | string ≤ 30, uppercased | old paper file number; unique per clinic, searchable, part of the duplicate check |
+| photoFileId | → fileAssets (`category: photo`) | re-encoded on upload; served through `/files/:id` |
+| idVerifiedAt, idVerifiedBy | Date, → staff | set by `POST /patients/:id/verify-id`; needs a document with category `id`; audited |
+| flags | `{ code, note? }[]` | non-medical: `anxious, gag_reflex, wheelchair, hearing_impaired, interpreter, vip, payment_issue, often_late, other`; `other` requires a note; unique codes |
 | preferredDentistId | → staff | |
 | preferredLanguage | `ar`\|`en` | |
 | communicationPrefs | `{ whatsapp, sms, email, marketing: boolean }` | |
@@ -191,7 +201,9 @@ Indexes:
 - `{clinicId, fileNumber}` unique;
 - `{clinicId, 'phone.e164'}`;
 - text index on names;
-- `{clinicId, nationalIdHash}`.
+- `{clinicId, nationalIdHash}`;
+- `{clinicId, legacyFileNumber}` unique, partial (only when set);
+- `{clinicId, 'referredBy.patientId'}` (referrals list and report).
 
 ### `medicalHistories`
 `patientId`, `version`, `answers` (structured questionnaire: conditions, medications, pregnancy, smoker, bleeding disorders, …), `allergies: [{ substance, reaction, severity }]`, `reviewedBy`, `reviewedAt`, `signedFileId`. A new version is created on every update and history is kept.

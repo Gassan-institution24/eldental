@@ -2,6 +2,7 @@ import { Schema, model, type InferSchemaType, type HydratedDocument } from 'mong
 import { applyBase } from '@/core/db/plugins';
 import { tenantField } from '@/core/tenancy/tenantPlugin';
 import { phoneSchema } from '@/modules/users/user.model';
+import { BLOOD_TYPES, MARITAL_STATUSES, PATIENT_FLAGS, REFERRAL_TYPES } from '@/shared/patients';
 
 const contactSchema = new Schema({ name: String, relation: String, phone: String }, { _id: false });
 
@@ -33,6 +34,24 @@ const patientSchema = new Schema(
     familyGroupId: { type: Schema.Types.ObjectId },
     emergencyContact: { type: contactSchema, default: undefined },
     referralSource: String,
+    // Who referred the patient (03 §4); referralSource stays "how did you hear about us".
+    referredBy: {
+      type: { type: String, enum: REFERRAL_TYPES },
+      patientId: { type: Schema.Types.ObjectId, ref: 'Patient' },
+      name: String,
+      note: String,
+    },
+    nationality: String,
+    maritalStatus: { type: String, enum: MARITAL_STATUSES },
+    occupation: String,
+    bloodType: { type: String, enum: BLOOD_TYPES },
+    heightCm: Number,
+    weightKg: Number,
+    legacyFileNumber: String,
+    photoFileId: { type: Schema.Types.ObjectId, ref: 'FileAsset' },
+    idVerifiedAt: Date,
+    idVerifiedBy: { type: Schema.Types.ObjectId, ref: 'Staff' },
+    flags: { type: [{ code: { type: String, enum: PATIENT_FLAGS }, note: String, _id: false }], default: [] },
     preferredDentistId: { type: Schema.Types.ObjectId, ref: 'Staff' },
     preferredLanguage: { type: String, enum: ['ar', 'en'], default: 'ar' },
     communicationPrefs: {
@@ -59,6 +78,9 @@ patientSchema.index({ clinicId: 1, nationalIdHash: 1 });
 patientSchema.index({ clinicId: 1, searchName: 1 });
 patientSchema.index({ clinicId: 1, familyGroupId: 1 });
 patientSchema.index({ clinicId: 1, createdAt: -1 });
+// The old paper file number is unique per clinic when set.
+patientSchema.index({ clinicId: 1, legacyFileNumber: 1 }, { unique: true, partialFilterExpression: { legacyFileNumber: { $type: 'string' } } });
+patientSchema.index({ clinicId: 1, 'referredBy.patientId': 1 });
 
 export type Patient = InferSchemaType<typeof patientSchema>;
 export type PatientDoc = HydratedDocument<Patient>;

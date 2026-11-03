@@ -87,6 +87,7 @@ import {
   type Policy,
   type TimelineEvent,
 } from '../api/patients';
+import { IdentityHealthCard, ReferralsCard } from '../components/PatientDetailsCards';
 import { PatientPicker } from '../components/PatientPicker';
 import { ageOf, useAlertLabel, useNextAppointment } from '../utils';
 import { usePatientContext } from './PatientWorkspace';
@@ -484,9 +485,6 @@ export function OverviewTab() {
                 </Stack>
               </Box>
             )}
-            {scope.canSee('referralSource') && p.referralSource && (
-              <Info label={t('fields.referralSource')} value={p.referralSource} />
-            )}
             <Info label={t('overview.registered')} value={formatDate(p.createdAt, lang)} />
           </SectionCard>
         </Grid>
@@ -514,6 +512,8 @@ export function OverviewTab() {
               )}
             </SectionCard>
           )}
+          <IdentityHealthCard patient={p} />
+          <ReferralsCard patient={p} />
           <FamilyCard />
           <SectionCard title={t('overview.portal')}>
             <Chip

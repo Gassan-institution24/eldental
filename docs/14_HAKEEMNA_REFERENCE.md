@@ -31,6 +31,7 @@
 | Dental chart & diagnoses | `models/patients/dental_chart.model.js`, `models/patients/dental_diagnoses.model.js`, FE `src/sections/dental` | `07_MODULE_DENTAL_CLINICAL.md` |
 | Dental lab requests | `models/patients/lab_request.model.js`, `routes/patients/lab_requests.routes.js` | `labOrders` |
 | Prescriptions, sick leave, medical reports | `models/patients/drugs_prescriptions.model.js`, `sick_leave.model.js`, `doctor_reports.model.js` | `prescriptions`, clinical notes / documents |
+| Extra patient details (nationality, marital status, blood type, height/weight, old file number, photo, ID check, "referred by") | `models/patients/patients.model.js`, `unit_service_patients.model.js` | `patients` fields (`03` §4); one input per field, nationality as ISO code, flags as fixed codes |
 | Speciality questionnaires (per clinic activation, patient link) | `models/patients/questionnaires/*`, `utils/questionnaire.js` | medical history questionnaire (versioned) |
 | Attendance late/overtime against the schedule, GPS on check-out | `controller/companies/unitServices/attendance.controller.js` | `08_MODULE_HR.md` §3 (server-side) |
 | Patient per clinic (`unit_service_patients`) | `models/patients/unit_service_patients.model.js` | `patients` is tenant-scoped directly; a portal `users` record links to many clinic patients |

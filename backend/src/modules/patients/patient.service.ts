@@ -10,6 +10,7 @@ import { applyFieldPolicy, assertQueryable, assertWritable, projectionFor, sortF
 import { StaffModel } from '@/modules/staff/staff.model';
 import { decrypt, encrypt, searchHash } from '@/shared/crypto';
 import { parseSort, skipOf } from '@/shared/pagination';
+import { bmiOf } from '@/shared/patients';
 import { normalizePhone } from '@/shared/validation/fields';
 import { escapeRegex, toSearchName } from '@/shared/validation/normalize';
 import { InsurancePolicyModel, MedicalHistoryModel, PatientModel, type Patient } from './patient.models';
@@ -22,6 +23,9 @@ const DB_PATHS: Record<string, readonly string[]> = {
   nationalId: ['nationalIdEnc', 'nationalIdLast4', 'nationalIdHash', 'passportNo'],
   insurance: [],
   preferredDentist: ['preferredDentistId'],
+  photo: ['photoFileId'],
+  idVerification: ['idVerifiedAt', 'idVerifiedBy'],
+  vitals: ['heightCm', 'weightKg'],
 };
 
 /**
@@ -70,6 +74,19 @@ export function toPatientDto(p: Raw) {
     familyGroupId: p.familyGroupId ? String(p.familyGroupId) : undefined,
     emergencyContact: p.emergencyContact?.name ? p.emergencyContact : undefined,
     referralSource: p.referralSource ?? undefined,
+    referredBy: p.referredBy?.type ? { type: p.referredBy.type, patientId: p.referredBy.patientId ? String(p.referredBy.patientId) : undefined, name: p.referredBy.name ?? undefined, note: p.referredBy.note ?? undefined } : undefined,
+    nationality: p.nationality ?? undefined,
+    maritalStatus: p.maritalStatus ?? undefined,
+    occupation: p.occupation ?? undefined,
+    bloodType: p.bloodType ?? undefined,
+    heightCm: p.heightCm ?? undefined,
+    weightKg: p.weightKg ?? undefined,
+    bmi: bmiOf(p.heightCm, p.weightKg),
+    legacyFileNumber: p.legacyFileNumber ?? undefined,
+    photoFileId: p.photoFileId ? String(p.photoFileId) : undefined,
+    idVerifiedAt: p.idVerifiedAt ?? undefined,
+    idVerifiedBy: p.idVerifiedBy ? String(p.idVerifiedBy) : undefined,
+    flags: (p.flags ?? []).map((f) => ({ code: f.code, ...(f.note ? { note: f.note } : {}) })),
     preferredDentist: p.preferredDentistId ? String(p.preferredDentistId) : undefined,
     preferredLanguage: p.preferredLanguage,
     communicationPrefs: p.communicationPrefs,
@@ -116,7 +133,8 @@ export async function listPatients(auth: AuthContext, q: PatientListQuery) {
 /** Name (both scripts), phone, file number, and national ID (only if visible — no inference). */
 function searchFilter(q: string, canSearchNationalId: boolean): Record<string, unknown> {
   const term = toSearchName(q);
-  const or: Record<string, unknown>[] = [{ searchName: { $regex: escapeRegex(term) } }, { fileNumber: { $regex: `^${escapeRegex(q.trim().toUpperCase())}` } }];
+  const upper = escapeRegex(q.trim().toUpperCase());
+  const or: Record<string, unknown>[] = [{ searchName: { $regex: escapeRegex(term) } }, { fileNumber: { $regex: `^${upper}` } }, { legacyFileNumber: { $regex: `^${upper}` } }];
   const digits = q.replace(/\D/g, '');
   if (digits.length >= 4) {
     const e164 = normalizePhone(q);
@@ -130,9 +148,9 @@ function searchFilter(q: string, canSearchNationalId: boolean): Record<string, u
 export async function searchPatients(auth: AuthContext, q: string, limit: number) {
   const policy = fieldPolicyOf(auth, RESOURCE, `${RESOURCE}.read`);
   const filter = await scoped(auth, { ...searchFilter(q, policy.visible.has('nationalId')), status: { $in: ['active', 'inactive'] } });
-  const items = await PatientModel.find(filter).select('fileNumber fullName phone dateOfBirth gender medicalAlerts balance status').sort({ lastVisitAt: -1, createdAt: -1 }).limit(limit).lean();
+  const items = await PatientModel.find(filter).select('fileNumber legacyFileNumber fullName phone dateOfBirth gender medicalAlerts balance status').sort({ lastVisitAt: -1, createdAt: -1 }).limit(limit).lean();
   return items.map((p) => {
-    const dto = applyFieldPolicy({ id: String(p._id), fileNumber: p.fileNumber, fullName: p.fullName, phone: p.phone?.e164, dateOfBirth: p.dateOfBirth, gender: p.gender, medicalAlerts: p.medicalAlerts, balance: p.balance, status: p.status }, policy);
+    const dto = applyFieldPolicy({ id: String(p._id), fileNumber: p.fileNumber, legacyFileNumber: p.legacyFileNumber ?? undefined, fullName: p.fullName, phone: p.phone?.e164, dateOfBirth: p.dateOfBirth, gender: p.gender, medicalAlerts: p.medicalAlerts, balance: p.balance, status: p.status }, policy);
     return dto;
   });
 }
@@ -147,7 +165,15 @@ export async function getPatient(auth: AuthContext, id: string) {
   const dto = serialize(auth, raw as Raw);
   // The profile shows the dentist's name; most roles can't read the staff directory.
   const dentist = dto.preferredDentist ? await StaffModel.findById(dto.preferredDentist).select('name').lean() : null;
-  return { ...dto, ...(dentist ? { preferredDentistName: dentist.name } : {}) };
+  const verifier = dto.idVerifiedBy ? await StaffModel.findById(dto.idVerifiedBy).select('name').lean() : null;
+  const referrer = dto.referredBy?.patientId ? await PatientModel.findById(dto.referredBy.patientId).select('fullName fileNumber').lean() : null;
+  return {
+    ...dto,
+    ...(dentist ? { preferredDentistName: dentist.name } : {}),
+    ...(verifier ? { idVerifiedByName: verifier.name } : {}),
+    ...(dto.photoFileId ? { photoUrl: `/files/${dto.photoFileId}` } : {}),
+    ...(referrer && dto.referredBy ? { referredBy: { ...dto.referredBy, patientName: referrer.fullName, patientFileNumber: referrer.fileNumber } } : {}),
+  };
 }
 
 /** Loads the document after checking scope; 404 outside scope/tenant. */
@@ -164,9 +190,10 @@ function phoneObj(e164: string | null | undefined) {
 /** Maps a validated body onto storage fields (encryption, search name). */
 function toModel(b: Partial<PatientCreate> & { nationalId?: string | null }) {
   const out: Record<string, unknown> = {};
-  for (const k of ['gender', 'dateOfBirth', 'passportNo', 'email', 'address', 'emergencyContact', 'referralSource', 'preferredLanguage', 'communicationPrefs', 'tags', 'notes'] as const) {
-    if (k in b) out[k] = b[k];
+  for (const k of ['gender', 'dateOfBirth', 'passportNo', 'email', 'address', 'emergencyContact', 'referralSource', 'preferredLanguage', 'communicationPrefs', 'tags', 'notes', 'nationality', 'maritalStatus', 'occupation', 'bloodType', 'heightCm', 'weightKg', 'legacyFileNumber', 'flags'] as const) {
+    if (k in b) out[k] = b[k] ?? undefined;
   }
+  if ('referredBy' in b) out.referredBy = b.referredBy ? { ...b.referredBy, patientId: b.referredBy.patientId ? new Types.ObjectId(b.referredBy.patientId) : undefined } : undefined;
   if (b.name) {
     out.name = b.name;
     out.fullName = fullNameOf(b.name);
@@ -187,6 +214,12 @@ function toModel(b: Partial<PatientCreate> & { nationalId?: string | null }) {
 /** Field keys touched by the body → write check against the field policy. */
 function fieldBody(b: Record<string, unknown>) {
   const out: Record<string, unknown> = { ...b };
+  for (const k of ['heightCm', 'weightKg'] as const) {
+    if (k in b) {
+      out.vitals = true;
+      delete out[k];
+    }
+  }
   if ('preferredDentistId' in b) {
     out.preferredDentist = b.preferredDentistId;
     delete out.preferredDentistId;
@@ -196,6 +229,7 @@ function fieldBody(b: Record<string, unknown>) {
 
 export async function createPatient(auth: AuthContext, b: PatientCreate) {
   assertWritable(fieldBody(b), fieldPolicyOf(auth, RESOURCE, `${RESOURCE}.create`));
+  await assertReferences(b);
   const doc = await withTransaction(async (session) => {
     const fileNumber = await nextNumber('patient', 'P', { pad: 6, session });
     const [created] = await PatientModel.create([{ ...toModel(b), fileNumber, status: 'active', ...(b.guardian?.patientId ? { familyGroupId: await familyOf(b.guardian.patientId) } : {}) }], { session });
@@ -203,6 +237,22 @@ export async function createPatient(auth: AuthContext, b: PatientCreate) {
   });
   await recordAudit({ action: 'create', entity: 'patient', entityId: doc._id, after: { fileNumber: doc.fileNumber }, resource: RESOURCE });
   return getPatient({ ...auth, scope: 'all' }, String(doc._id));
+}
+
+/**
+ * Legacy file numbers are unique per clinic (the partial unique index is the last line of defence);
+ * a referring patient must exist in the clinic and can't be the patient itself.
+ */
+async function assertReferences(b: { legacyFileNumber?: string | null; referredBy?: { type: string; patientId?: string } | null }, selfId?: string) {
+  if (b.legacyFileNumber) {
+    const taken = await PatientModel.exists({ legacyFileNumber: b.legacyFileNumber, ...(selfId ? { _id: { $ne: new Types.ObjectId(selfId) } } : {}) });
+    if (taken) throw ApiError.conflict('DUPLICATE', 'This legacy file number is already used', { fields: ['legacyFileNumber'] });
+  }
+  const ref = b.referredBy?.type === 'patient' ? b.referredBy.patientId : undefined;
+  if (ref) {
+    if (ref === selfId) throw ApiError.validation([{ path: 'referredBy.patientId', code: 'invalid' }]);
+    if (!(await PatientModel.exists({ _id: ref, status: { $ne: 'merged' } }))) throw ApiError.validation([{ path: 'referredBy.patientId', code: 'not_found' }]);
+  }
 }
 
 async function familyOf(guardianPatientId: string): Promise<Types.ObjectId> {
@@ -221,6 +271,7 @@ export async function updatePatient(auth: AuthContext, id: string, body: Partial
   assertWritable(fieldBody({ ...changes, ...(status ? { status } : {}) }), fieldPolicyOf(auth, RESOURCE, `${RESOURCE}.update`));
   const doc = await loadScopedPatient(auth, id);
   if ((doc.__v ?? 0) !== version) throw ApiError.conflict('VERSION_CONFLICT', 'The record was changed by someone else.');
+  await assertReferences(changes, id);
   if (doc.status === 'merged') throw ApiError.conflict('INVALID_STATE_TRANSITION', 'Merged patients cannot be edited');
   const before = toPatientDto(doc.toObject() as Raw);
   const merged = { dateOfBirth: doc.dateOfBirth ?? undefined, guardian: doc.guardian?.name ? doc.guardian : undefined, ...changes };
@@ -250,8 +301,9 @@ export async function restorePatient(id: string) {
 }
 
 /** Possible duplicates by phone / national ID (a warning, not a block — 16 §5.2). Only records in the caller's scope. */
-export async function findDuplicates(auth: AuthContext, q: { phone?: string; nationalId?: string; excludeId?: string }) {
+export async function findDuplicates(auth: AuthContext, q: { phone?: string; nationalId?: string; legacyFileNumber?: string; excludeId?: string }) {
   const or: Record<string, unknown>[] = [];
+  if (q.legacyFileNumber?.trim()) or.push({ legacyFileNumber: q.legacyFileNumber.trim().toUpperCase() });
   const e164 = q.phone ? normalizePhone(q.phone) : null;
   if (e164) or.push({ 'phone.e164': e164 });
   if (q.nationalId && /^\d{10}$/.test(q.nationalId)) or.push({ nationalIdHash: searchHash(q.nationalId) });
@@ -259,6 +311,81 @@ export async function findDuplicates(auth: AuthContext, q: { phone?: string; nat
   const filter = await scoped(auth, { $or: or, status: { $ne: 'merged' }, ...(q.excludeId ? { _id: { $ne: new Types.ObjectId(q.excludeId) } } : {}) });
   const items = await PatientModel.find(filter).select('fileNumber fullName phone').limit(5).lean();
   return items.map((p) => ({ id: String(p._id), fileNumber: p.fileNumber, fullName: p.fullName, phone: p.phone?.e164 }));
+}
+
+/* ---------- photo, ID verification, referrals (03 §4) ---------- */
+
+export async function setPhoto(auth: AuthContext, id: string, file: { buffer: Buffer; originalname: string }) {
+  assertWritable({ photo: true }, fieldPolicyOf(auth, RESOURCE, `${RESOURCE}.update`));
+  const doc = await loadScopedPatient(auth, id);
+  if (doc.status === 'merged') throw ApiError.conflict('INVALID_STATE_TRANSITION', 'Merged patients cannot be edited');
+  const { saveFile, FileAssetModel } = await import('@/core/storage/storage');
+  const mime = (await (await import('file-type')).fileTypeFromBuffer(file.buffer))?.mime ?? '';
+  if (!mime.startsWith('image/')) throw ApiError.validation([{ path: 'file', code: 'file_type_not_allowed', params: { types: 'JPEG, PNG, WebP' } }]);
+  // saveFile re-encodes images, which strips EXIF/GPS (11 §6).
+  const f = await saveFile({ clinicId: auth.clinicId!, ownerType: 'patient', ownerId: doc._id, buffer: file.buffer, originalName: file.originalname, category: 'photo', userId: auth.userId, notes: 'profile photo' });
+  const previous = doc.photoFileId;
+  await PatientModel.updateOne({ _id: doc._id }, { $set: { photoFileId: f._id } });
+  if (previous) await FileAssetModel.updateOne({ _id: previous }, { $set: { deletedAt: new Date() } });
+  await recordAudit({ action: 'update', entity: 'patient', entityId: id, summary: 'photo updated', after: { patientId: id, photoFileId: String(f._id) }, resource: RESOURCE });
+  return getPatient(auth, id);
+}
+
+export async function removePhoto(auth: AuthContext, id: string) {
+  assertWritable({ photo: true }, fieldPolicyOf(auth, RESOURCE, `${RESOURCE}.update`));
+  const doc = await loadScopedPatient(auth, id);
+  if (!doc.photoFileId) return getPatient(auth, id);
+  const { FileAssetModel } = await import('@/core/storage/storage');
+  await FileAssetModel.updateOne({ _id: doc.photoFileId }, { $set: { deletedAt: new Date() } });
+  await PatientModel.updateOne({ _id: doc._id }, { $unset: { photoFileId: 1 } });
+  await recordAudit({ action: 'update', entity: 'patient', entityId: id, summary: 'photo removed', after: { patientId: id }, resource: RESOURCE });
+  return getPatient(auth, id);
+}
+
+/** ID verified against an uploaded identity document (category `id`). */
+export async function verifyId(auth: AuthContext, id: string) {
+  assertWritable({ idVerification: true }, fieldPolicyOf(auth, RESOURCE, `${RESOURCE}.update`));
+  const doc = await loadScopedPatient(auth, id);
+  const { FileAssetModel } = await import('@/core/storage/storage');
+  if (!(await FileAssetModel.exists({ ownerType: 'patient', ownerId: doc._id, category: 'id' }))) {
+    throw ApiError.conflict('ID_DOCUMENT_REQUIRED', 'Upload an identity document first');
+  }
+  await PatientModel.updateOne({ _id: doc._id }, { $set: { idVerifiedAt: new Date(), idVerifiedBy: auth.staffId ? new Types.ObjectId(auth.staffId) : undefined } });
+  await recordAudit({ action: 'update', entity: 'patient', entityId: id, summary: 'id verified', after: { patientId: id }, resource: RESOURCE });
+  return getPatient(auth, id);
+}
+
+/** Patients this patient referred, within the caller's scope. */
+export async function referralsOf(auth: AuthContext, id: string) {
+  const policy = fieldPolicyOf(auth, RESOURCE, `${RESOURCE}.read`);
+  const p = await loadScopedPatient(auth, id);
+  if (!policy.visible.has('referredBy')) return [];
+  const rows = await PatientModel.find(await scoped(auth, { 'referredBy.patientId': p._id, status: { $ne: 'merged' } })).select('fileNumber fullName createdAt status').sort({ createdAt: -1 }).limit(100).lean();
+  return rows.map((r) => ({ id: String(r._id), fileNumber: r.fileNumber, fullName: r.fullName, createdAt: r.createdAt, status: r.status }));
+}
+
+/** Referrals report (03 §4): counts by type, top referring patients and "how did you hear" groups. */
+export async function referralReport(auth: AuthContext, from: string, to: string) {
+  const policy = fieldPolicyOf(auth, RESOURCE, `${RESOURCE}.read`);
+  const range = { $gte: new Date(`${from}T00:00:00Z`), $lte: new Date(`${to}T23:59:59Z`) };
+  const filter = await scoped(auth, { createdAt: range, status: { $ne: 'merged' } });
+  const [byType, top, sources, total] = await Promise.all([
+    policy.visible.has('referredBy') ? PatientModel.aggregate<{ _id: string | null; n: number }>([{ $match: filter }, { $group: { _id: '$referredBy.type', n: { $sum: 1 } } }]) : [],
+    policy.visible.has('referredBy')
+      ? PatientModel.aggregate<{ _id: Types.ObjectId; n: number }>([{ $match: { ...filter, 'referredBy.patientId': { $ne: null } } }, { $group: { _id: '$referredBy.patientId', n: { $sum: 1 } } }, { $sort: { n: -1 } }, { $limit: 10 }])
+      : [],
+    policy.visible.has('referralSource') ? PatientModel.aggregate<{ _id: string | null; n: number }>([{ $match: filter }, { $group: { _id: '$referralSource', n: { $sum: 1 } } }, { $sort: { n: -1 } }, { $limit: 20 }]) : [],
+    PatientModel.countDocuments(filter),
+  ]);
+  const names = new Map((await PatientModel.find({ _id: { $in: top.map((t) => t._id) } }).select('fullName fileNumber').lean()).map((p) => [String(p._id), p]));
+  return {
+    from,
+    to,
+    newPatients: total,
+    byType: byType.map((r) => ({ type: r._id ?? 'none', count: r.n })).sort((a, b) => b.count - a.count),
+    topReferrers: top.map((t) => ({ patientId: String(t._id), fullName: names.get(String(t._id))?.fullName ?? '', fileNumber: names.get(String(t._id))?.fileNumber ?? '', count: t.n })),
+    sources: sources.map((r) => ({ source: r._id ?? '', count: r.n })),
+  };
 }
 
 /* ---------- family (familyGroupId is part of the `guardian` field) ---------- */

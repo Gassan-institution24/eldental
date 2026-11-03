@@ -30,7 +30,11 @@
     "guardianHint": "Required for patients under 18.",
     "emergency": "Emergency contact",
     "preferences": "Preferences",
-    "notes": "Notes"
+    "notes": "Notes",
+    "identityHealth": "Identity & health",
+    "identityHealthHint": "Nationality, family status, blood type, height and weight, and the old paper file number.",
+    "flagsReferral": "Flags & referral",
+    "flagsReferralHint": "Practical notes for the team, and who sent the patient to us."
   },
   "fields": {
     "fileNumber": "File no.",
@@ -67,7 +71,24 @@
     "balance": "Balance",
     "lastVisit": "Last visit",
     "status": "Status",
-    "alerts": "Alerts"
+    "alerts": "Alerts",
+    "nationality": "Nationality",
+    "maritalStatus": "Marital status",
+    "occupation": "Occupation",
+    "bloodType": "Blood type",
+    "heightCm": "Height (cm)",
+    "weightKg": "Weight (kg)",
+    "bmiValue": "BMI {{bmi}}",
+    "legacyFileNumber": "Old file number",
+    "legacyFileNumberHint": "The paper file number, if any. Unique in the clinic.",
+    "flags": "Flags",
+    "flagsOtherNote": "Describe the \"other\" flag",
+    "referredBy": "Referred by",
+    "referringPatient": "Referring patient",
+    "campaignName": "Campaign",
+    "referringDoctor": "Referring doctor",
+    "referrerName": "Name",
+    "referralNote": "Referral note"
   },
   "genders": {
     "male": "Male",
@@ -298,5 +319,61 @@
   },
   "noMatches": "No patients match these filters",
   "allDentists": "All dentists",
-  "statusHint": "Inactive and deceased patients are hidden from booking and reminders."
+  "statusHint": "Inactive and deceased patients are hidden from booking and reminders.",
+  "maritalStatuses": {
+    "single": "Single",
+    "married": "Married",
+    "divorced": "Divorced",
+    "widowed": "Widowed"
+  },
+  "flags": {
+    "anxious": "Anxious patient",
+    "gag_reflex": "Strong gag reflex",
+    "wheelchair": "Wheelchair user",
+    "hearing_impaired": "Hearing impaired",
+    "interpreter": "Needs an interpreter",
+    "vip": "VIP",
+    "payment_issue": "Payment issue",
+    "often_late": "Often late",
+    "other": "Other"
+  },
+  "referralTypes": {
+    "patient": "Patient",
+    "doctor": "Doctor",
+    "campaign": "Campaign",
+    "other": "Other"
+  },
+  "identity": {
+    "title": "Identity & health",
+    "vitals": "Height · weight",
+    "heightValue": "{{v}} cm",
+    "weightValue": "{{v}} kg",
+    "addPhoto": "Add photo",
+    "changePhoto": "Change photo",
+    "removePhoto": "Remove",
+    "removePhotoTitle": "Remove the profile photo?",
+    "photoSaved": "Photo saved",
+    "photoRemoved": "Photo removed",
+    "verified": "ID verified",
+    "notVerified": "ID not verified",
+    "verify": "Mark ID verified",
+    "verifiedToast": "ID marked as verified",
+    "verifiedBy": "Verified by {{name}} on {{date}}"
+  },
+  "referrals": {
+    "title": "Referrals",
+    "referredByThem_one": "Referred {{count}} patient",
+    "referredByThem_other": "Referred {{count}} patients",
+    "none": "Has not referred anyone yet",
+    "reportTitle": "Referrals",
+    "reportHint_one": "{{count}} new patient in this period",
+    "reportHint_other": "{{count}} new patients in this period",
+    "reportEmpty": "No new patients in this period",
+    "byType": "By referral type",
+    "noReferral": "Not referred",
+    "topReferrers": "Top referring patients",
+    "source": "How they heard about us",
+    "count": "Patients",
+    "unknownSource": "Not recorded"
+  }
 }

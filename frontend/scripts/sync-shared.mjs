@@ -20,6 +20,7 @@ export const SHARED_FILES = [
   ['shared/errorCodes.ts', 'errorCodes.ts'],
   ['shared/dental/teeth.ts', 'dental/teeth.ts'],
   ['shared/dental/specialties.ts', 'dental/specialties.ts'],
+  ['shared/patients.ts', 'patients.ts'],
 ];
 
 if (!existsSync(backendSrc)) {

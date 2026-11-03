@@ -51,6 +51,7 @@
     "bookableOnline": "Bookable online", "employment": "Employment details", "shift": "Shift", "basicSalary": "Basic salary", "allowances": "Allowances & deductions",
     "commission": "Commission", "bank": "Bank account", "roles": "Roles", "tags": "Tags", "preferredDentist": "Preferred dentist", "preferredLanguage": "Preferred language",
     "communicationPrefs": "Communication preferences", "guardian": "Guardian", "emergencyContact": "Emergency contact", "referralSource": "Referral source",
+    "referredBy": "Referred by", "legacyFileNumber": "Old file number", "flags": "Flags", "maritalStatus": "Marital status", "occupation": "Occupation", "idVerification": "ID verification", "bloodType": "Blood type", "vitals": "Height & weight",
     "insurance": "Insurance", "balance": "Balance", "medicalAlerts": "Medical alerts", "notes": "Notes", "patient": "Patient", "dentist": "Dentist", "lines": "Line items",
     "prices": "Prices & tax", "discounts": "Discounts", "totals": "Totals", "balanceDue": "Balance due", "insuranceShare": "Insurance share", "amount": "Amount",
     "method": "Method", "reference": "Reference", "basic": "Basic pay", "earnings": "Earnings & overtime", "deductions": "Deductions", "socialSecurity": "Social security",

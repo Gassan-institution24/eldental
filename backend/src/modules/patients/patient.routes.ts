@@ -16,7 +16,7 @@ import { authorize, scopeFor } from '@/core/rbac/authorize';
 import { FileAssetModel, saveFile, storage } from '@/core/storage/storage';
 import { body, params, query, validate } from '@/core/validation/validate';
 import { toCsv } from '@/shared/csv';
-import { entityName, freeText, optional, percent, phone, email } from '@/shared/validation/fields';
+import { dateOnly, entityName, freeText, optional, percent, phone, email } from '@/shared/validation/fields';
 import { InsuranceCompanyModel, InsurancePolicyModel, MedicalHistoryModel } from './patient.models';
 import * as s from './patient.schemas';
 import * as svc from './patient.service';
@@ -117,6 +117,35 @@ patientRouter.post(
   asyncHandler(async (req, res) => {
     const b = body(req, s.mergeBody);
     ok(res, await svc.mergePatients(req.auth!, params(req, s.idParams).id, b.sourceId, b.reason ?? ''));
+  }),
+);
+
+/* ---------- photo, ID verification, referrals ---------- */
+
+const imageUpload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 5 * 1024 * 1024, files: 1 } });
+patientRouter.put(
+  '/patients/:id/photo',
+  authorize('patients.patient.update'),
+  imageUpload.single('file'),
+  validate({ params: s.idParams }),
+  asyncHandler(async (req, res) => {
+    if (!req.file) throw ApiError.validation([{ path: 'file', code: 'required' }]);
+    ok(res, await svc.setPhoto(req.auth!, params(req, s.idParams).id, req.file));
+  }),
+);
+patientRouter.delete('/patients/:id/photo', authorize('patients.patient.update'), validate({ params: s.idParams }), asyncHandler(async (req, res) => ok(res, await svc.removePhoto(req.auth!, params(req, s.idParams).id))));
+patientRouter.post('/patients/:id/verify-id', authorize('patients.patient.update'), validate({ params: s.idParams }), asyncHandler(async (req, res) => ok(res, await svc.verifyId(req.auth!, params(req, s.idParams).id))));
+patientRouter.get('/patients/:id/referrals', authorize('patients.patient.read'), validate({ params: s.idParams }), asyncHandler(async (req, res) => ok(res, await svc.referralsOf(req.auth!, params(req, s.idParams).id))));
+
+const rangeQuery = z.object({ from: dateOnly(), to: dateOnly() }).strict();
+patientRouter.get(
+  '/reports/referrals',
+  // Patient scope applies: a dentist with own scope only counts their own patients.
+  authorize('patients.patient.read'),
+  validate({ query: rangeQuery }),
+  asyncHandler(async (req, res) => {
+    const q = query(req, rangeQuery);
+    ok(res, await svc.referralReport(req.auth!, q.from, q.to));
   }),
 );
 
@@ -320,7 +349,7 @@ patientRouter.get(
   asyncHandler(async (req, res) => {
     const f = await FileAssetModel.findById(params(req, s.idParams).id).lean();
     if (!f) throw ApiError.notFound();
-    const perms = OWNER_PERMS[f.ownerType] ?? [];
+    const perms = [...(OWNER_PERMS[f.ownerType] ?? []), ...(f.ownerType === 'patient' && f.category === 'photo' ? ['patients.patient.read'] : [])];
     if (!perms.some((p) => scopeFor(req.auth!, p))) throw ApiError.notFound();
     if (f.ownerType === 'patient') await svc.loadScopedPatient({ ...req.auth!, scope: scopeFor(req.auth!, 'patients.patient.read') ?? 'own' }, String(f.ownerId));
     const data = await storage().get(f.storageKey);
@@ -434,6 +463,9 @@ registerPath({ method: 'post', path: '/patients', tags: ['patients'], summary: '
 registerPath({ method: 'get', path: '/patients/search', tags: ['patients'], summary: 'Typeahead', query: s.searchQuery });
 registerPath({ method: 'post', path: '/patients/:id/merge', tags: ['patients'], summary: 'Merge a duplicate into this patient', params: s.idParams, body: s.mergeBody });
 registerPath({ method: 'post', path: '/patients/:id/medical-history', tags: ['patients'], summary: 'New medical history version', params: s.idParams, body: s.medicalHistoryBody });
+registerPath({ method: 'put', path: '/patients/:id/photo', tags: ['patients'], summary: 'Upload the profile photo (image, re-encoded)', params: s.idParams });
+registerPath({ method: 'post', path: '/patients/:id/verify-id', tags: ['patients'], summary: 'Mark the ID verified (needs an id document)', params: s.idParams });
+registerPath({ method: 'get', path: '/reports/referrals', tags: ['patients'], summary: 'Referrals report (own scope applies)', query: rangeQuery });
 registerPath({ method: 'get', path: '/patients/:id/timeline', tags: ['patients'], summary: 'History (only events the caller may see)', params: s.idParams });
 registerPath({ method: 'get', path: '/patients/:id/family', tags: ['patients'], summary: 'Family members (scoped)', params: s.idParams });
 registerPath({ method: 'post', path: '/patients/:id/family', tags: ['patients'], summary: 'Link another patient into this family', params: s.idParams, body: s.familyLinkBody });
