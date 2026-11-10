@@ -55,6 +55,25 @@ describe('chart', () => {
   });
 });
 
+describe('plans created by the owner (not a dentist)', () => {
+  it('asks for the dentist instead of refusing the owner, then books with the chosen dentist', async () => {
+    const item = { clinicProcedureId: proc.D2391, toothNumbers: [46], surfaces: ['M', 'O'] };
+    const missing = await api(owner).post('/treatment-plans').send({ patientId, items: [item] });
+    expect(missing.status).toBe(422);
+    expect(missing.body.error.details.fields[0]).toMatchObject({ path: 'dentistId', code: 'required' });
+    // Naming a non-dentist explicitly is still refused.
+    const ownerAsDentist = await api(owner).post('/treatment-plans').send({ patientId, dentistId: c.staff.owner!.staffId, items: [item] });
+    expect(ownerAsDentist.body.error.code).toBe('DENTIST_NOT_BOOKABLE');
+
+    const plan = await api(owner).post('/treatment-plans').send({ patientId, dentistId: c.staff.dentist!.staffId, items: [item] });
+    expect(plan.status).toBe(201);
+    expect(plan.body.data.dentistId).toBe(c.staff.dentist!.staffId);
+    const start = atLocal(addDays(localDate(new Date(), TZ), 1), '10:00', TZ).toISOString();
+    const booked = await api(owner).post('/appointments').send({ patientId, dentistId: plan.body.data.dentistId, start, durationMin: 30, source: 'staff', priority: 'normal', override: true });
+    expect(booked.status).toBe(201);
+  });
+});
+
 describe('end to end: finding → plan → accept → book → perform → chart', () => {
   it('runs the whole flow', async () => {
     await api(dentist).post(`/patients/${patientId}/chart/entries`).send({ toothNumber: 46, surfaces: ['M', 'O'], kind: 'finding', conditionCode: 'caries' });

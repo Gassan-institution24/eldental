@@ -47,6 +47,7 @@
 **Lifecycle:** `draft → presented → accepted | partially_accepted | rejected → in_progress → completed`; can be `cancelled` from any non-completed state.
 
 - The dentist builds a plan from chart findings ("add to plan") or by picking procedures. Each item has tooth, surfaces, procedure, quantity and price (clinic price, or the insurer price if a policy is selected).
+- **Dentist:** every plan belongs to a dentist or hygienist (`dentistId`), chosen when the plan is created and not changed later. The forms propose the signed-in user when they are a dentist/hygienist, otherwise the clinic's only dentist. If no `dentistId` is sent and the author is not a dentist (e.g. the owner, whose staff type defaults to manager, or the front desk), the API answers 422 `dentistId: required`; naming a non-dentist answers 409 `DENTIST_NOT_BOOKABLE`. An owner who treats patients sets their own staff type to dentist.
 - Optional **phases**: Urgent / Phase 1 / Phase 2 / Maintenance.
 - **Alternatives:** a plan can have several options (e.g. "Implant" vs "Bridge"). Implemented as separate plans grouped with `alternativeGroupId`; accepting one rejects its siblings.
 - **Estimates per item:**

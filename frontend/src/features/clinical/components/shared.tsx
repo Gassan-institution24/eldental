@@ -4,7 +4,9 @@ import { Eraser } from 'lucide-react';
 import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
 import { proceduresApi, type ClinicProcedure } from '@/features/clinic-settings/api';
+import { useSchedulingLookups } from '@/features/scheduling/components/lookups';
 import { useSeedName } from '@/shared/hooks/useSeedName';
+import { usePermission } from '@/shared/rbac/usePermission';
 import { useConditions } from '../api';
 
 /** The clinic price list (≤ 100 rows per page; enough for one picker) + name helper. */
@@ -21,6 +23,25 @@ export function useProcedureLookup() {
     [byId, seedName],
   );
   return { items, byId, label, loading: list.isLoading };
+}
+
+/**
+ * Dentists a treatment plan can belong to, and the one to propose: the signed-in user when
+ * they are a dentist/hygienist, otherwise the clinic's only dentist. Owners and front-desk
+ * staff are usually not dentists, so a plan must name one (07 §3).
+ */
+export function usePlanDentists() {
+  const lookups = useSchedulingLookups();
+  const { session } = usePermission();
+  const options = useMemo(
+    () => lookups.dentists.map((d) => ({ value: d.id, label: d.name })),
+    [lookups.dentists],
+  );
+  const myId = session?.staff?.id;
+  const defaultId =
+    (myId && lookups.dentistById.has(myId) ? myId : undefined) ??
+    (options.length === 1 ? options[0]!.value : '');
+  return { options, defaultId, loading: lookups.loading };
 }
 
 /** Condition code → colour, from the global tooth-conditions catalog. */

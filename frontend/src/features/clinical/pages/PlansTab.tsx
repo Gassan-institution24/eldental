@@ -38,7 +38,7 @@ import {
   Stethoscope,
   Trash2,
 } from 'lucide-react';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Controller, useFieldArray, useWatch } from 'react-hook-form';
 import { useTranslation } from 'react-i18next';
 import { z } from 'zod';
@@ -62,7 +62,7 @@ import { useAppForm } from '@/shared/form/useAppForm';
 import { useNotify } from '@/shared/hooks/useNotify';
 import { usePermission } from '@/shared/rbac/usePermission';
 import { usePlanMutations, usePlans, useProcedureMutations, type TreatmentPlan } from '../api';
-import { PrintArea, SignaturePad, toothList, useProcedureLookup } from '../components/shared';
+import { PrintArea, SignaturePad, toothList, usePlanDentists, useProcedureLookup } from '../components/shared';
 import { useSpecialtyName } from '@/features/staff/components/SpecialtyFields';
 
 const PHASES = ['urgent', 'phase1', 'phase2', 'maintenance'];
@@ -603,7 +603,11 @@ const planSchema = z.object({
   alternativeLabel: optional(freeText(60)),
   notes: optional(freeText(2000)),
   items: z.array(itemSchema).min(1, { message: 'too_few' }).max(80),
+  // Chosen once, when the plan is created; the owner and front desk are usually not dentists.
+  dentistId: optional(objectId()),
 });
+/** A new plan must name its dentist. */
+const newPlanSchema = planSchema.extend({ dentistId: objectId() });
 type PlanValues = z.input<typeof planSchema>;
 
 function PlanEditor({
@@ -622,11 +626,13 @@ function PlanEditor({
   const procs = useProcedureLookup();
   const policies = usePolicies(patient.id);
   const muts = usePlanMutations(patient.id);
+  const dentists = usePlanDentists();
   const canPrice = can('billing.invoice.discount');
   const currency = useCurrency();
   const form = useAppForm<PlanValues>({
-    schema: planSchema,
+    schema: plan ? planSchema : newPlanSchema,
     defaultValues: {
+      dentistId: plan?.dentistId ?? alternativeOf?.dentistId ?? dentists.defaultId,
       title: plan?.title ?? alternativeOf?.title ?? '',
       insurancePolicyId:
         plan?.insurancePolicyId ?? policies.data?.find((p) => p.isPrimary)?.id ?? '',
@@ -645,6 +651,10 @@ function PlanEditor({
       })),
     },
   });
+  // The dentist list may arrive after the form opens: propose the default once it does.
+  useEffect(() => {
+    if (!plan && dentists.defaultId && !form.getValues('dentistId')) form.setValue('dentistId', dentists.defaultId);
+  }, [plan, dentists.defaultId, form]);
   const { fields, append, remove } = useFieldArray({ control: form.control, name: 'items' });
   const items = useWatch({ control: form.control, name: 'items' });
 
@@ -672,6 +682,7 @@ function PlanEditor({
     else
       await muts.create.mutateAsync({
         ...payload,
+        dentistId: v.dentistId,
         ...(alternativeOf ? { alternativeOf: alternativeOf.id } : {}),
       });
     notify.success(t('plans.saved'));
@@ -698,6 +709,17 @@ function PlanEditor({
       <Form form={form} name="clinical.plan" id="plan-form" onSubmit={onSubmit}>
         <Stack spacing={4}>
           <Grid container spacing={3}>
+            {!plan && (
+              <Grid item xs={12} sm={6}>
+                <RHFSelect
+                  name="dentistId"
+                  label={t('plans.dentist')}
+                  required
+                  disabled={Boolean(alternativeOf)}
+                  options={dentists.options}
+                />
+              </Grid>
+            )}
             <Grid item xs={12} sm={6}>
               <RHFTextField name="title" label={t('plans.planTitle')} maxLength={120} />
             </Grid>

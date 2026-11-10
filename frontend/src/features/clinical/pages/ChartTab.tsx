@@ -40,7 +40,7 @@ import {
   useProcedures,
   type EntryKind,
 } from '../api';
-import { useConditionColors, useProcedureLookup } from '../components/shared';
+import { useConditionColors, usePlanDentists, useProcedureLookup } from '../components/shared';
 import { DEFAULT_VIEW, isAnterior, ToothChart, type ViewOptions } from '../components/ToothChart';
 
 const LAYERS: EntryKind[] = ['existing', 'finding', 'planned', 'completed'];
@@ -228,6 +228,9 @@ function ToothPanel({
   const [notes, setNotes] = useState('');
   const [proc, setProc] = useState<ClinicProcedure | null>(null);
   const [planId, setPlanId] = useState<string>('new');
+  const planDentists = usePlanDentists();
+  const [planDentist, setPlanDentist] = useState('');
+  const newPlanDentist = planDentist || planDentists.defaultId;
 
   const state = chart.data?.teeth[String(tooth)];
   const history = (chart.data?.entries ?? []).filter((e) => e.toothNumber === tooth);
@@ -265,7 +268,7 @@ function ToothPanel({
   const addToPlan = async () => {
     if (!proc) return;
     const item = { clinicProcedureId: proc.id, toothNumbers: [tooth], surfaces };
-    if (planId === 'new') await planMuts.create.mutateAsync({ items: [item] });
+    if (planId === 'new') await planMuts.create.mutateAsync({ dentistId: newPlanDentist, items: [item] });
     else {
       const p = drafts.find((d) => d.id === planId)!;
       await planMuts.update.mutateAsync({
@@ -437,6 +440,22 @@ function ToothPanel({
                   ))}
                 </TextField>
               )}
+              {tab === 'plan' && planId === 'new' && (
+                <TextField
+                  select
+                  size="small"
+                  required
+                  label={t('plans.dentist')}
+                  value={newPlanDentist}
+                  onChange={(e) => setPlanDentist(e.target.value)}
+                >
+                  {planDentists.options.map((o) => (
+                    <MenuItem key={o.value} value={o.value}>
+                      {o.label}
+                    </MenuItem>
+                  ))}
+                </TextField>
+              )}
               <Button
                 variant="contained"
                 startIcon={tab === 'plan' ? <ClipboardPlus size={16} /> : <Stethoscope size={16} />}
@@ -444,6 +463,7 @@ function ToothPanel({
                 disabled={
                   !proc ||
                   (proc.surfacesRequired && surfaces.length === 0) ||
+                  (tab === 'plan' && planId === 'new' && !newPlanDentist) ||
                   procMuts.perform.isPending ||
                   planMuts.create.isPending ||
                   planMuts.update.isPending

@@ -147,7 +147,11 @@ export async function createPlan(auth: AuthContext, b: PlanInput) {
   if (!dentistId) throw ApiError.validation([{ path: 'dentistId', code: 'required' }]);
   if (scopeFor(auth, 'clinical.treatmentPlan.create') === 'own' && dentistId !== auth.staffId) throw ApiError.forbidden();
   const dentist = await StaffModel.findById(dentistId).select('staffType').lean();
-  if (!dentist || !BOOKABLE.includes(dentist.staffType)) throw ApiError.conflict('DENTIST_NOT_BOOKABLE', 'Plans belong to a dentist');
+  if (!dentist || !BOOKABLE.includes(dentist.staffType)) {
+    // No dentist chosen and the author (e.g. the owner or front desk) isn't one: ask for the field.
+    if (!b.dentistId) throw ApiError.validation([{ path: 'dentistId', code: 'required' }]);
+    throw ApiError.conflict('DENTIST_NOT_BOOKABLE', 'Plans belong to a dentist');
+  }
   const priced = await priceItems(b.items, b.insurancePolicyId, canDiscount(auth));
   let groupId: Types.ObjectId | undefined;
   if (b.alternativeOf) {

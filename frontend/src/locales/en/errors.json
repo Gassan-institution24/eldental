@@ -63,7 +63,7 @@
   "APPOINTMENT_IN_PAST": "You can't book in the past.",
   "NO_SHOW_TOO_EARLY": "You can mark a no-show only after the grace period.",
   "COMPLETE_REQUIRES_PROCEDURE": "Record at least one procedure, or confirm there were none.",
-  "DENTIST_NOT_BOOKABLE": "This staff member can't take appointments.",
+  "DENTIST_NOT_BOOKABLE": "Only dentists and hygienists take appointments and own treatment plans. If the owner treats patients, set their staff type to Dentist in Staff.",
   "CHAIR_INACTIVE": "This chair is inactive.",
   "SCHEDULE_OVERLAP": "The schedule overlaps an existing one.",
   "ONLINE_BOOKING_DISABLED": "Online booking isn't available for this clinic.",
