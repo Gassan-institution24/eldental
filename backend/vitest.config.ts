@@ -10,9 +10,10 @@ export default defineConfig({
     globalSetup: ['test/global-setup.ts'],
     testTimeout: 30000,
     hookTimeout: 120000,
-    // One worker thread for every file (same sharing as one fork). On Windows the child processes of the
-    // forks pool were occasionally terminated mid-run ("Worker exited unexpectedly"); threads are not.
-    pool: 'threads',
-    poolOptions: { threads: { singleThread: true } },
+    // One worker process for every file. On the Windows dev machine Node 24.15 crashes test workers
+    // at random (0xC0000409 / "Worker exited unexpectedly"), worst with the threads pool; the same
+    // suite is stable under Node 22. A single fork is the most reliable setting on both.
+    pool: 'forks',
+    poolOptions: { forks: { singleFork: true } },
   },
 });
