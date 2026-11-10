@@ -21,6 +21,7 @@ export const SHARED_FILES = [
   ['shared/dental/teeth.ts', 'dental/teeth.ts'],
   ['shared/dental/specialties.ts', 'dental/specialties.ts'],
   ['shared/patients.ts', 'patients.ts'],
+  ['shared/inventory.ts', 'inventory.ts'],
 ];
 
 if (!existsSync(backendSrc)) {

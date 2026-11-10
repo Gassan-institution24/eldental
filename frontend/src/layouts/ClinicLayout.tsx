@@ -236,6 +236,18 @@ export const CLINIC_NAV: GroupDef[] = [
         icon: <Boxes size={I} />,
         perm: 'inventory.item.read',
       },
+      {
+        key: 'inventoryPurchasing',
+        to: '/clinic/inventory/purchasing',
+        icon: <Truck size={I} />,
+        perm: 'inventory.purchase.read',
+      },
+      {
+        key: 'inventoryUsage',
+        to: '/clinic/inventory/usage',
+        icon: <FlaskConical size={I} />,
+        perm: 'inventory.usage.record',
+      },
     ],
   },
   {

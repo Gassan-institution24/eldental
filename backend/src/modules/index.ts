@@ -19,6 +19,9 @@ import { rolesRouter } from './roles/roles.routes';
 import { staffRouter } from './staff/staff.routes';
 import { telemetryRouter } from './telemetry/telemetry.routes';
 import { adminRouter } from './admin/admin.routes';
+import { inventoryRouter } from './inventory/inventory.routes';
+import { purchasingRouter } from './inventory/purchasing.routes';
+import { usageRouter } from './inventory/usage.routes';
 
 /** Every feature module's router. Each router declares its own full paths (e.g. `/patients`). */
-export const moduleRouters: Router[] = [authRouter, patientAuthRouter, portalRouter, telemetryRouter, staffRouter, rolesRouter, contactRouter, clinicRouter, patientRouter, communicationRouter, schedulingRouter, clinicalRouter, certificateRouter, instructionRouter, billingRouter, accountingRouter, hrRouter, notificationsRouter, insightsRouter, adminRouter];
+export const moduleRouters: Router[] = [authRouter, patientAuthRouter, portalRouter, telemetryRouter, staffRouter, rolesRouter, contactRouter, clinicRouter, patientRouter, communicationRouter, schedulingRouter, clinicalRouter, certificateRouter, instructionRouter, billingRouter, accountingRouter, hrRouter, notificationsRouter, insightsRouter, inventoryRouter, purchasingRouter, usageRouter, adminRouter];

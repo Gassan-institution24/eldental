@@ -24,7 +24,8 @@
     "opening": "Opening balance",
     "closing": "Year-end close",
     "reversal": "Reversal",
-    "void": "Void"
+    "void": "Void",
+    "inventory": "Inventory"
   },
   "accounts": {
     "title": "Chart of accounts",

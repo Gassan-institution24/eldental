@@ -145,7 +145,7 @@
 - [x] Clinic dashboard KPIs (today, production, collections, new patients, no-show rate, plan conversion), per-role variants
 - [x] Operational reports (print/PDF in the browser)
 - [ ] XLSX/PDF export jobs for large ranges
-- [x] Inventory (items, movements, low-stock alerts, link to supplier bills)
+- [x] Inventory (items, movements, low-stock alerts, link to supplier bills) — replaced by Phase 10c
 - [ ] Superadmin stats
 
 ## Phase 10b — Doctor attribution, owner identity & specialties
@@ -162,6 +162,17 @@
 - [ ] Run `npm run migrate:specialties -- --apply` on other environments after a backup and a reviewed dry run
 - [ ] Production: create the two doctor-scope invoice indexes before deploying (procedure in `03` §7)
 - [ ] Online booking specialty filter in the portal UI (the portal booking page is still a placeholder, Phase 9)
+
+## Phase 10c — Inventory (DentMadar v2, spec `08b`)
+- [x] Items with lots and expiry; locations (store, chair cabinet, medication preparation, quarantine); balances per location and lot
+- [x] Purchasing: PO → goods receipt (Dr Inventory / Cr GRNI) → supplier bill from the receipt (Dr GRNI / Cr AP) → payment in accounting
+- [x] Transfers, write-offs, administrative issue, opening stock; immutable movement ledger; idempotent postings
+- [x] Individual containers: open (beyond-use date), partial use, multi-dose and single-use rules, move, discard, event history
+- [x] Materials used on performed procedures with per-procedure defaults (FEFO lots), own scope for dentists
+- [x] Cost field hidden unless granted; low-stock and expiry overview; ar/en UI
+- [x] `npm run migrate:inventory -- --apply` applied on the local dev database
+- [ ] Run `npm run migrate:inventory -- --apply` on other environments (Railway) after a reviewed dry run
+- [ ] Stock counts, returns to supplier, receipt price variance and tax, usage reversal (not in DentMadar either)
 
 ## Phase 11 — Hardening & Deploy
 - [ ] Security review against `11_SECURITY.md` (checklist), dependency audit, rate-limit tuning

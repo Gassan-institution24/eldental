@@ -498,9 +498,15 @@ Index: `{clinicId, staffId, date}` unique.
 
 ---
 
-## 10. Inventory (T, later phase)
-- `inventoryItems`: `sku`, `name`, `unit`, `reorderLevel`, `costMethod: average`, `quantityOnHand`, `averageCost`, `inventoryAccountId`, `expenseAccountId`.
-- `stockMovements`: `itemId`, `type` (`purchase`\|`consumption`\|`adjustment`\|`return`), `quantity`, `unitCost`, `refType`, `refId`, `journalEntryId?`.
+## 10. Inventory (T) — full spec in `08b_MODULE_INVENTORY.md`
+- `inventoryItems`: `sku` (unique when set), `name`, `category`, `type`, `unit` (base unit), `purchaseUnit`, `unitsPerPack`, `reorderLevel`, `trackContainers`, `containerPolicy`, `containerCapacity`, `quantityOnHand`, `supplierId`, `isActive`.
+- `inventoryLocations`: `name`, `type` (`warehouse`\|`chair`\|`medication_prep`\|`quarantine`), `chairId?`, `isDefault`, `isActive`.
+- `inventoryBatches` (lots): `itemId`, `lotNumber`, `expiresAt?`, `packCost`, `unitsPerPack`, `receiptId?`, `supplierId?`, `source`.
+- `inventoryBalances`: unique `{clinicId, locationId, itemId, batchId}` → `quantity`.
+- `inventoryMovements` (immutable): `type`, `itemId`, `batchId`, `containerId?`, `quantity`, `cost`, `fromLocationId?`, `toLocationId?`, `sourceType`, `sourceId`, `patientId?`, `date`.
+- `inventoryContainers`: unique `{clinicId, code}`, `itemId`, `batchId`, `locationId`, `initialQuantity`, `remainingQuantity`, `status`, `policy`, `openedAt?`, `beyondUseDate?`; events in `inventoryContainerEvents`.
+- `purchaseOrders` (`PO-`), `goodsReceipts` (`GRN-`, `billId?`), `inventoryTransfers` (`TRF-`), `inventoryAdjustments` (`ADJ-`; `waste`\|`admin_issue`\|`opening`), `procedureMaterials` (unique `clinicProcedureId`), `clinicalUsages` (`USE-`, unique `performedProcedureId`).
+- Posted documents carry an optional unique `idempotencyKey`. The old `stockMovements` collection is no longer written.
 
 ---
 

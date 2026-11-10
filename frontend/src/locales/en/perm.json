@@ -22,7 +22,7 @@
     "billing": { "invoice": "Invoices", "payment": "Payments", "insurance": "Insurance", "cashSession": "Cash sessions" },
     "accounting": { "account": "Chart of accounts", "journal": "Journal entries", "period": "Fiscal periods", "supplier": "Suppliers & bills", "expense": "Expenses", "report": "Financial reports", "einvoice": "E-invoicing" },
     "hr": { "shift": "Shifts", "attendance": "Attendance", "leave": "Leave", "leaveType": "Leave types", "compensation": "Compensation", "payroll": "Payroll & payslips" },
-    "inventory": { "item": "Items", "stock": "Stock" },
+    "inventory": { "item": "Items", "stock": "Stock", "purchase": "Purchasing", "usage": "Materials used" },
     "reports": { "operational": "Operational reports", "production": "Production reports", "dashboard": "Dashboard" },
     "logs": { "audit": "Audit log", "activity": "User activity", "issues": "User issues" },
     "platform": {
@@ -55,7 +55,7 @@
     "insurance": "Insurance", "balance": "Balance", "medicalAlerts": "Medical alerts", "notes": "Notes", "patient": "Patient", "dentist": "Dentist", "lines": "Line items",
     "prices": "Prices & tax", "discounts": "Discounts", "totals": "Totals", "balanceDue": "Balance due", "insuranceShare": "Insurance share", "amount": "Amount",
     "method": "Method", "reference": "Reference", "basic": "Basic pay", "earnings": "Earnings & overtime", "deductions": "Deductions", "socialSecurity": "Social security",
-    "incomeTax": "Income tax", "net": "Gross & net", "patientNotes": "Patient notes"
+    "incomeTax": "Income tax", "net": "Gross & net", "patientNotes": "Patient notes", "cost": "Costs & stock value"
   },
   "clinic": {
     "settings": { "read": "View clinic settings", "update": "Edit clinic settings" },
@@ -117,7 +117,9 @@
   },
   "inventory": {
     "item": { "read": "View inventory", "manage": "Manage inventory items" },
-    "stock": { "adjust": "Adjust stock" }
+    "stock": { "adjust": "Transfer, write off and open/discard containers" },
+    "purchase": { "read": "View purchase orders and receipts", "manage": "Create and cancel purchase orders", "receive": "Receive goods" },
+    "usage": { "read": "View materials used", "record": "Record materials used on procedures" }
   },
   "reports": {
     "operational": { "read": "View operational reports" },

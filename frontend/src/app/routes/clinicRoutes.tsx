@@ -47,7 +47,8 @@ import {
   PayrollRunPage,
   ShiftsPage,
 } from '@/features/hr/pages/HrPages';
-import { InventoryPage, LogsPage, OperationalReportPage } from '@/features/insights/InsightsPages';
+import { LogsPage, OperationalReportPage } from '@/features/insights/InsightsPages';
+import { InventoryPage } from '@/features/inventory/pages/InventoryPage';
 import { ChartTab } from '@/features/clinical/pages/ChartTab';
 import { NotesTab, PerioTab } from '@/features/clinical/pages/NotesPerioTabs';
 import { PlansTab } from '@/features/clinical/pages/PlansTab';
@@ -179,11 +180,8 @@ export const clinicRoutes: RouteObject[] = [
   page(<PayrollPage />, { perm: 'hr.payroll.run', title: 'nav:payroll' }, 'hr/payroll'),
   page(<PayrollRunPage />, { perm: 'hr.payroll.run', title: 'nav:payroll' }, 'hr/payroll/:id'),
   page(<MyPayslipsPage />, { perm: 'hr.payroll.read', title: 'nav:myPayslips' }, 'hr/my-payslips'),
-  page(
-    <InventoryPage />,
-    { perm: 'inventory.item.read', title: 'nav:inventoryItems' },
-    'inventory',
-  ),
+  // Each tab checks its own permission (stock, purchasing, materials used…).
+  page(<InventoryPage />, { title: 'nav:inventoryItems' }, 'inventory/:tab?'),
   page(
     <OperationalReportPage />,
     { perm: 'reports.operational.read', title: 'nav:reportsOperational' },

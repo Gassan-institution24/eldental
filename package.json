@@ -9,6 +9,7 @@
   "scripts": {
     "build": "npm ci --include=dev --prefix frontend && npm run build --prefix frontend && npm ci --include=dev --prefix backend && npm run build --prefix backend",
     "start": "npm start --prefix backend",
-    "seed": "npm run seed --prefix backend"
+    "seed": "npm run seed --prefix backend",
+    "migrate:inventory": "npm run migrate:inventory --prefix backend"
   }
 }

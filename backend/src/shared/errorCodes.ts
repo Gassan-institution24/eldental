@@ -114,6 +114,21 @@ export const ERROR_CODES = [
   'PAYROLL_EXISTS',
   'PAYROLL_FOUR_EYES',
   'INSUFFICIENT_STOCK',
+  'BATCH_EXPIRED',
+  'OVER_RECEIPT',
+  'PO_NOT_OPEN',
+  'RECEIPT_ALREADY_BILLED',
+  'USAGE_ALREADY_POSTED',
+  'PROCEDURE_VOIDED',
+  'NOT_CONSUMABLE',
+  'CONTAINER_REQUIRED',
+  'CONTAINER_NOT_SEALED',
+  'CONTAINER_NOT_OPEN',
+  'CONTAINER_CLOSED',
+  'CONTAINER_BEYOND_USE',
+  'CONTAINER_POLICY_VIOLATION',
+  'ITEM_HAS_STOCK',
+  'COST_TOO_SMALL',
 ] as const;
 export type ErrorCode = (typeof ERROR_CODES)[number];
 
@@ -176,5 +191,12 @@ export const VALIDATION_CODES = [
   'not_dentist',
   'primary_not_in_list',
   'not_allowed_for_staff_type',
+  'invalid_stock_quantity',
+  'container_policy_mismatch',
+  'capacity_must_divide_pack',
+  'same_location',
+  'beyond_use_after_expiry',
+  'expired_lot',
+  'date_in_past',
 ] as const;
 export type ValidationCode = (typeof VALIDATION_CODES)[number];

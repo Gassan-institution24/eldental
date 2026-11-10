@@ -104,7 +104,10 @@ Labels are i18n keys (`ar`/`en` in the locale files). There are no bilingual fie
 | | `hr.compensation.read` / `.update` | own, all | |
 | | `hr.payroll.read` | own, all | |
 | | `hr.payroll.run` / `.approve` | all | |
-| **inventory** | `inventory.item.read` / `.manage`, `inventory.stock.adjust` | all | |
+| **inventory** | `inventory.item.read` / `.manage`, `inventory.stock.adjust` | all | Catalog & stock / transfers, write-offs, opening stock, containers (`08b` §7) |
+| | `inventory.purchase.read` / `.manage` / `.receive` | all | Purchase orders and goods receipts |
+| | `inventory.usage.read` / `.record` | own, all | Materials used on performed procedures (own = the procedure's dentist or assistant) |
+| | field `inventory.item.cost` | — | Lot costs, stock value, usage cost; **hidden** unless granted (accountant: read) |
 | **reports** | `reports.operational.read`, `reports.production.read`, `reports.dashboard.read` | own, all | |
 | **logs** | `logs.audit.read` | all | Clinic audit trail |
 | | `logs.activity.read` | own, all | User movements in this clinic (own = my own activity) |

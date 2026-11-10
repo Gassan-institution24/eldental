@@ -68,7 +68,7 @@ export const FiscalPeriodModel = model('FiscalPeriod', fiscalPeriodSchema);
 
 /* ---------- journal (immutable once posted) ---------- */
 
-export const JOURNAL_SOURCES = ['invoice', 'credit_note', 'payment', 'refund', 'credit_application', 'cheque', 'expense', 'supplier_bill', 'supplier_payment', 'payroll', 'payroll_payment', 'cash_session', 'claim', 'manual', 'opening', 'closing', 'reversal', 'void'] as const;
+export const JOURNAL_SOURCES = ['invoice', 'credit_note', 'payment', 'refund', 'credit_application', 'cheque', 'expense', 'supplier_bill', 'supplier_payment', 'payroll', 'payroll_payment', 'cash_session', 'claim', 'manual', 'opening', 'closing', 'reversal', 'void', 'inventory'] as const;
 export type JournalSource = (typeof JOURNAL_SOURCES)[number];
 
 const lineSchema = new Schema(

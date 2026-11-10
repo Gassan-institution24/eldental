@@ -21,6 +21,7 @@ The specs live in `docs/`. Read the relevant ones before touching a module:
 | `docs/06_MODULE_APPOINTMENTS.md` | scheduling |
 | `docs/07_MODULE_DENTAL_CLINICAL.md` | chart, plans, procedures, notes… |
 | `docs/08_MODULE_HR.md` | HR, leave, payroll |
+| `docs/08b_MODULE_INVENTORY.md` | inventory: lots, locations, purchasing, containers, clinical usage |
 | `docs/09_MODULE_ACCOUNTING.md` | billing, ledger, reports, JoFotara |
 | `docs/10_FRONTEND.md` | frontend structure & conventions |
 | `docs/11_SECURITY.md` | auth, hardening, never-do list |

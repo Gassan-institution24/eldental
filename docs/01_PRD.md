@@ -126,8 +126,12 @@ A user can have **multiple roles** inside one clinic (e.g. Owner + Dentist).
   - dentist commission on collected or produced amounts.
 - Payslips, plus a ledger posting for each run.
 
-### 4.8 Inventory (lightweight, Phase 10+)
-- Consumable items, stock movements, low-stock alerts, link to supplier bills.
+### 4.8 Inventory (spec: `08b_MODULE_INVENTORY.md`)
+- Items with lots and expiry, stock per location (stores, chair cabinets, medication preparation, quarantine).
+- Purchasing: purchase order → goods receipt → supplier bill → payment (through accounting).
+- Individual containers (bottles, vials) with opening, partial use, multi-dose and single-use rules.
+- Materials used recorded on performed procedures, suggested from per-procedure defaults; perpetual accounting.
+- Low-stock and expiry alerts.
 
 ### 4.9 Notifications
 - In-app notifications (socket), email, WhatsApp, and push in the future.

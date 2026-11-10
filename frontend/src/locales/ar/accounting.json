@@ -24,7 +24,8 @@
     "opening": "رصيد افتتاحي",
     "closing": "إقفال سنوي",
     "reversal": "قيد عكسي",
-    "void": "إلغاء"
+    "void": "إلغاء",
+    "inventory": "المخزون"
   },
   "accounts": {
     "title": "دليل الحسابات",

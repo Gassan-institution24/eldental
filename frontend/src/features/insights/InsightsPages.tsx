@@ -3,12 +3,7 @@ import {
   Button,
   Card,
   Chip,
-  Dialog,
-  DialogActions,
-  DialogContent,
-  DialogTitle,
   Grid,
-  MenuItem,
   Stack,
   Tab,
   Table,
@@ -21,7 +16,7 @@ import {
   Typography,
 } from '@mui/material';
 import { alpha } from '@mui/material/styles';
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { useQuery } from '@tanstack/react-query';
 import {
   AlertTriangle,
   CalendarCheck,
@@ -30,7 +25,6 @@ import {
   FileWarning,
   FlaskConical,
   PackageMinus,
-  Plus,
   Printer,
   Stethoscope,
   TrendingUp,
@@ -40,25 +34,13 @@ import {
 import { useState, type ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link as RouterLink } from 'react-router-dom';
-import { z } from 'zod';
-import { useAccountLookup } from '@/features/accounting/api';
-import { getData, postData } from '@/lib/api/axios';
+import { getData } from '@/lib/api/axios';
 import { formatDateTime, todayLocal } from '@/lib/dates';
-import { resourceHooks, type Entity } from '@/shared/api/resource';
-import { entityName, freeText, optional } from '@/shared/generated/validation/fields';
-import { DataTable } from '@/shared/components/DataTable';
-import { FormDrawer } from '@/shared/components/FormDrawer';
-import { MoneyText, useCurrency } from '@/shared/components/MoneyText';
+import { MoneyText } from '@/shared/components/MoneyText';
 import { PageHeader } from '@/shared/components/PageHeader';
 import { SectionCard } from '@/shared/components/SectionCard';
 import { EmptyState, ErrorState, PageSkeleton } from '@/shared/components/States';
 import { StatusChip } from '@/shared/components/StatusChip';
-import { Form } from '@/shared/form/Form';
-import { MoneyInput } from '@/shared/form/MoneyInput';
-import { RHFCheckbox } from '@/shared/form/RHFInputs';
-import { RHFTextField } from '@/shared/form/RHFTextField';
-import { useAppForm } from '@/shared/form/useAppForm';
-import { useNotify } from '@/shared/hooks/useNotify';
 import { ReferralsReport } from '@/features/patients/components/ReferralsReport';
 import { usePermission } from '@/shared/rbac/usePermission';
 
@@ -265,7 +247,7 @@ export function DashboardKpis() {
     { k: 'unsignedNotes', icon: <FileWarning size={14} />, to: undefined },
     { k: 'pendingLeave', icon: <CalendarCheck size={14} />, to: '/clinic/hr/leave' },
     { k: 'labDueSoon', icon: <FlaskConical size={14} />, to: '/clinic/lab-orders' },
-    { k: 'lowStock', icon: <PackageMinus size={14} />, to: '/clinic/inventory' },
+    { k: 'lowStock', icon: <PackageMinus size={14} />, to: '/clinic/inventory/items' },
     {
       k: 'draftInvoices',
       icon: <CreditCard size={14} />,
@@ -433,279 +415,6 @@ export function OperationalReportPage() {
         </Stack>
       )}
     </Box>
-  );
-}
-
-/* ---------------- inventory ---------------- */
-
-type Item = Entity & {
-  sku: string;
-  name: string;
-  unit: string;
-  category: string;
-  reorderLevel: number;
-  quantityOnHand: number;
-  averageCost: number;
-  isActive: boolean;
-};
-const itemsApi = resourceHooks<Item>('/inventory-items');
-const itemSchema = z.object({
-  name: entityName({ max: 120 }),
-  sku: optional(freeText(40)),
-  unit: optional(freeText(20)),
-  category: optional(freeText(60)),
-  reorderLevel: z.coerce.number().min(0, { message: 'too_small' }).max(1_000_000),
-  isActive: z.boolean(),
-});
-type ItemValues = z.input<typeof itemSchema>;
-
-export function InventoryPage() {
-  const { t } = useTranslation('insights');
-  const { can } = usePermission();
-  const [low, setLow] = useState(false);
-  const list = itemsApi.useAll({ low: low ? 'true' : undefined });
-  const [editing, setEditing] = useState<Item | 'new' | null>(null);
-  const [moving, setMoving] = useState<Item | null>(null);
-  return (
-    <Box>
-      <PageHeader
-        title={t('inventory.title')}
-        subtitle={t('inventory.subtitle')}
-        primary={
-          can('inventory.item.manage') && (
-            <Button
-              variant="contained"
-              startIcon={<Plus size={18} />}
-              onClick={() => setEditing('new')}
-            >
-              {t('inventory.add')}
-            </Button>
-          )
-        }
-      />
-      <DataTable<Item>
-        clientSide
-        rows={list.data ?? []}
-        loading={list.isLoading}
-        error={list.error}
-        onRetry={() => void list.refetch()}
-        onRowClick={(r) => can('inventory.item.manage') && setEditing(r)}
-        toolbar={
-          <Button
-            size="small"
-            variant={low ? 'contained' : 'outlined'}
-            color="warning"
-            onClick={() => setLow(!low)}
-          >
-            {t('inventory.lowOnly')}
-          </Button>
-        }
-        empty={<EmptyState title={t('inventory.empty')} />}
-        columns={[
-          { field: 'name', headerName: t('inventory.name'), flex: 1, minWidth: 180 },
-          { field: 'sku', headerName: t('inventory.sku'), width: 120 },
-          {
-            field: 'quantityOnHand',
-            headerName: t('inventory.onHand'),
-            width: 130,
-            renderCell: ({ row }) => (
-              <Chip
-                size="small"
-                color={row.quantityOnHand <= row.reorderLevel ? 'warning' : 'default'}
-                label={`${row.quantityOnHand} ${row.unit}`}
-              />
-            ),
-          },
-          { field: 'reorderLevel', headerName: t('inventory.reorder'), width: 120 },
-          {
-            field: 'averageCost',
-            headerName: t('inventory.avgCost'),
-            width: 130,
-            align: 'right',
-            headerAlign: 'right',
-            renderCell: ({ row }) => <MoneyText value={row.averageCost} />,
-          },
-          {
-            field: 'actions',
-            headerName: '',
-            width: 140,
-            sortable: false,
-            renderCell: ({ row }) =>
-              can('inventory.stock.adjust') ? (
-                <Button size="small" onClick={(e) => (e.stopPropagation(), setMoving(row))}>
-                  {t('inventory.move')}
-                </Button>
-              ) : null,
-          },
-        ]}
-      />
-      {editing && (
-        <ItemDrawer item={editing === 'new' ? null : editing} onClose={() => setEditing(null)} />
-      )}
-      {moving && <MovementDialog item={moving} onClose={() => setMoving(null)} />}
-    </Box>
-  );
-}
-
-function ItemDrawer({ item, onClose }: { item: Item | null; onClose: () => void }) {
-  const { t } = useTranslation('insights');
-  const notify = useNotify();
-  const create = itemsApi.useCreate();
-  const update = itemsApi.useUpdate();
-  const form = useAppForm<ItemValues>({
-    schema: itemSchema,
-    defaultValues: {
-      name: item?.name ?? '',
-      sku: item?.sku ?? '',
-      unit: item?.unit ?? 'pcs',
-      category: item?.category ?? '',
-      reorderLevel: item?.reorderLevel ?? 0,
-      isActive: item?.isActive ?? true,
-    },
-  });
-  return (
-    <FormDrawer
-      open
-      onClose={onClose}
-      title={item ? t('inventory.edit') : t('inventory.add')}
-      formId="item-form"
-      submitting={form.formState.isSubmitting}
-      dirty={form.formState.isDirty}
-    >
-      <Form
-        form={form}
-        name="inventory.item"
-        id="item-form"
-        onSubmit={async (raw) => {
-          const v = raw as z.output<typeof itemSchema>;
-          if (item)
-            await update.mutateAsync({
-              id: item.id,
-              version: item.version,
-              ...(v as Partial<Item>),
-            });
-          else await create.mutateAsync(v as Partial<Item>);
-          notify.success(t('inventory.saved'));
-          onClose();
-        }}
-      >
-        <Stack spacing={4}>
-          <RHFTextField name="name" label={t('inventory.name')} required maxLength={120} />
-          <RHFTextField name="sku" label={t('inventory.sku')} maxLength={40} />
-          <RHFTextField name="unit" label={t('inventory.unit')} maxLength={20} />
-          <RHFTextField name="category" label={t('inventory.category')} maxLength={60} />
-          <RHFTextField
-            name="reorderLevel"
-            label={t('inventory.reorder')}
-            type="number"
-            inputProps={{ dir: 'ltr', min: 0 }}
-          />
-          <RHFCheckbox name="isActive" label={t('inventory.active')} asSwitch />
-        </Stack>
-      </Form>
-    </FormDrawer>
-  );
-}
-
-function MovementDialog({ item, onClose }: { item: Item; onClose: () => void }) {
-  const { t } = useTranslation('insights');
-  const { t: tc } = useTranslation();
-  const notify = useNotify();
-  const qc = useQueryClient();
-  const currency = useCurrency();
-  const accounts = useAccountLookup();
-  const [type, setType] = useState<'purchase' | 'consumption' | 'adjustment' | 'return'>(
-    'consumption',
-  );
-  const [qty, setQty] = useState('1');
-  const [cost, setCost] = useState<number>(item.averageCost);
-  const [from, setFrom] = useState(accounts.bySystem('CASH_DEFAULT')?.id ?? '');
-  const [note, setNote] = useState('');
-  const m = useMutation({
-    mutationFn: () =>
-      postData('/stock-movements', {
-        itemId: item.id,
-        type,
-        quantity: Number(qty),
-        ...(type === 'purchase' ? { unitCost: cost, paidFromAccountId: from } : {}),
-        ...(note ? { note } : {}),
-      }),
-    onSuccess: () => {
-      void qc.invalidateQueries({ queryKey: ['/inventory-items'] });
-      notify.success(t('inventory.moved'));
-      onClose();
-    },
-    onError: notify.error,
-  });
-  const n = Number(qty);
-  const valid =
-    Number.isFinite(n) &&
-    n !== 0 &&
-    (type === 'adjustment' || n > 0) &&
-    (type !== 'purchase' || (cost > 0 && from));
-  return (
-    <Dialog open onClose={onClose} fullWidth maxWidth="xs">
-      <DialogTitle>{t('inventory.moveTitle', { name: item.name })}</DialogTitle>
-      <DialogContent>
-        <Stack spacing={3} sx={{ pt: 1 }}>
-          <TextField
-            select
-            label={t('inventory.type')}
-            value={type}
-            onChange={(e) => setType(e.target.value as typeof type)}
-          >
-            {(['consumption', 'purchase', 'adjustment', 'return'] as const).map((x) => (
-              <MenuItem key={x} value={x}>
-                {t(`inventory.types.${x}`)}
-              </MenuItem>
-            ))}
-          </TextField>
-          <TextField
-            label={t('inventory.quantity')}
-            value={qty}
-            onChange={(e) => setQty(e.target.value)}
-            inputProps={{ dir: 'ltr', inputMode: 'decimal' }}
-            helperText={type === 'adjustment' ? t('inventory.adjustHint') : undefined}
-            error={!valid && qty !== ''}
-          />
-          {type === 'purchase' && (
-            <>
-              <MoneyInput
-                label={t('inventory.unitCost')}
-                value={cost}
-                currency={currency}
-                onChange={(v) => setCost(typeof v === 'number' ? v : 0)}
-              />
-              <TextField
-                select
-                label={t('inventory.paidFrom')}
-                value={from}
-                onChange={(e) => setFrom(e.target.value)}
-              >
-                {accounts.postable
-                  .filter((a) => ['cash', 'bank'].includes(a.subtype))
-                  .map((a) => (
-                    <MenuItem key={a.id} value={a.id}>
-                      {accounts.label(a)}
-                    </MenuItem>
-                  ))}
-              </TextField>
-            </>
-          )}
-          <TextField
-            label={t('inventory.note')}
-            value={note}
-            onChange={(e) => setNote(e.target.value.slice(0, 300))}
-          />
-        </Stack>
-      </DialogContent>
-      <DialogActions>
-        <Button onClick={onClose}>{tc('actions.cancel')}</Button>
-        <Button variant="contained" disabled={!valid || m.isPending} onClick={() => m.mutate()}>
-          {tc('actions.save')}
-        </Button>
-      </DialogActions>
-    </Dialog>
   );
 }
 

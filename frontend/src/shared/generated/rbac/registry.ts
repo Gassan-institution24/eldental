@@ -77,6 +77,8 @@ const defs: [string, PermissionDef][] = [
   // inventory
   ...['read', 'manage'].map(p('inventory.item', ALL)),
   p('inventory.stock', ALL)('adjust'),
+  ...['read', 'manage', 'receive'].map(p('inventory.purchase', ALL)),
+  ...['read', 'record'].map(p('inventory.usage', OWN_ALL)),
   // reports
   p('reports.operational', OWN_ALL)('read'),
   p('reports.production', OWN_ALL)('read'),
@@ -202,6 +204,10 @@ export const RESOURCE_FIELDS = {
     allowances: { group: 'compensation', default: 'read', sensitive: true },
     commission: { group: 'compensation', default: 'read', sensitive: true },
     bank: { group: 'compensation', default: 'read', maskable: true, mask: 'tail4', sensitive: true },
+  },
+  'inventory.item': {
+    // Lot costs, stock value and usage cost (08b §7).
+    cost: { group: 'financial', default: 'hidden' },
   },
   'scheduling.appointment': {
     patient: { group: 'basic', default: 'read', paths: ['patientId'] },

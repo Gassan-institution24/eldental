@@ -51,26 +51,9 @@ describe('notifications', () => {
   });
 });
 
-describe('inventory', () => {
-  it('purchase and consumption use average cost and keep the books balanced', async () => {
-    const item = await api(owner).post('/inventory-items').send({ name: 'Composite A2', unit: 'syringe', reorderLevel: 2 });
-    expect(item.status).toBe(201);
-    const bank = ((await api(owner).get('/accounts')).body.data as { id: string; systemKey?: string }[]).find((a) => a.systemKey === 'BANK_DEFAULT')!;
-    await api(owner).post('/stock-movements').send({ itemId: item.body.data.id, type: 'purchase', quantity: 4, unitCost: 10_000, paidFromAccountId: bank.id });
-    await api(owner).post('/stock-movements').send({ itemId: item.body.data.id, type: 'purchase', quantity: 4, unitCost: 20_000, paidFromAccountId: bank.id });
-    const used = await api(owner).post('/stock-movements').send({ itemId: item.body.data.id, type: 'consumption', quantity: 7 });
-    expect(used.body.data.item).toMatchObject({ quantityOnHand: 1, averageCost: 15_000 });
-    expect((await api(owner).post('/stock-movements').send({ itemId: item.body.data.id, type: 'consumption', quantity: 5 })).body.error.code).toBe('INSUFFICIENT_STOCK');
-    expect((await api(owner).get('/reports/trial-balance')).body.data.balanced).toBe(true);
-    const low = await api(owner).get('/inventory-items?low=true');
-    expect(low.body.data).toHaveLength(1);
-    expect((await api(owner).get('/notifications')).body.data.items[0].type).toBe('low_stock');
-  });
-});
-
 describe('logs', () => {
   it('owner reads the clinic audit trail; staff without the permission cannot', async () => {
-    await api(owner).post('/inventory-items').send({ name: 'Gloves' });
+    await api(owner).post('/inventory-items').send({ name: 'Gloves', unit: 'piece' });
     const audit = await api(owner).get('/logs?kind=audit');
     expect(audit.status).toBe(200);
     expect(audit.body.data.some((r: { entity: string }) => r.entity === 'inventoryItem')).toBe(true);

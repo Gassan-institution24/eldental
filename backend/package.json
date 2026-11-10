@@ -14,6 +14,7 @@
     "worker:prod": "node dist/worker.js",
     "seed": "tsx src/scripts/seed.ts",
     "migrate:specialties": "tsx src/scripts/migrateSpecialties.ts",
+    "migrate:inventory": "tsx src/scripts/migrateInventory.ts",
     "lint": "eslint . --max-warnings 0",
     "format": "prettier --write .",
     "typecheck": "tsc --noEmit",

@@ -1,33 +1,28 @@
 import { Router } from 'express';
-import { Schema, Types, model } from 'mongoose';
+import { Types } from 'mongoose';
 import { z } from 'zod';
-import { recordAudit } from '@/core/audit/audit.service';
 import { AuditLogModel } from '@/core/audit/auditLog.model';
 import type { AuthContext } from '@/core/auth/auth.types';
-import { crudRouter, updateOf } from '@/core/crud/crudRouter';
-import { withTransaction } from '@/core/db/transaction';
-import { applyBase } from '@/core/db/plugins';
 import { asyncHandler } from '@/core/http/asyncHandler';
 import { ApiError } from '@/core/http/ApiError';
-import { created, ok } from '@/core/http/response';
+import { ok } from '@/core/http/response';
 import { ActivityLogModel, ClientIssueModel } from '@/core/logging/telemetry.models';
 import { authorize, scopeFor } from '@/core/rbac/authorize';
-import { currentClinicId, tenantField } from '@/core/tenancy/tenantPlugin';
-import { body, query, validate } from '@/core/validation/validate';
-import { AccountModel } from '@/modules/accounting/accounting.models';
-import { clinicToday, loadAccountMap, postEntry } from '@/modules/accounting/journal.service';
+import { currentClinicId } from '@/core/tenancy/tenantPlugin';
+import { query, validate } from '@/core/validation/validate';
 import { InvoiceModel, PaymentModel } from '@/modules/billing/billing.models';
 import { doctorInvoiceFilter, ownDoctorOf, shareOf } from '@/modules/billing/attribution';
 import { dues } from '@/modules/billing/invoice.service';
 import { ClinicalNoteModel, LabOrderModel, PerformedProcedureModel, TreatmentPlanModel } from '@/modules/clinical/clinical.models';
 import { LeaveRequestModel } from '@/modules/hr/hr.models';
+import { InventoryItemModel } from '@/modules/inventory/inventory.models';
 import { PatientModel } from '@/modules/patients/patient.models';
 import { AppointmentModel, RecallModel } from '@/modules/scheduling/scheduling.models';
 import { loadClinic } from '@/modules/scheduling/scheduling.service';
 import { StaffModel } from '@/modules/staff/staff.model';
 import { addDays, localDate, startOfLocalDay } from '@/shared/dates';
-import { mulFraction, sum } from '@/shared/money';
-import { dateOnly, entityName, freeText, money, objectId, optional } from '@/shared/validation/fields';
+import { sum } from '@/shared/money';
+import { dateOnly, objectId, optional } from '@/shared/validation/fields';
 
 export const insightsRouter = Router();
 const cid = () => new Types.ObjectId(currentClinicId());
@@ -137,138 +132,6 @@ insightsRouter.get(
     ok(res, { from: q.from, to: q.to, total: appts.length, statuses, sources, newPatients, noShowRate: done ? Math.round(((statuses.no_show ?? 0) / done) * 1000) / 10 : 0, dentists: [...perDentist.values()].sort((a, b) => b.total - a.total) });
   }),
 );
-
-/* ---------- inventory (03 §10) ---------- */
-
-const itemSchema = new Schema(
-  {
-    clinicId: tenantField,
-    sku: { type: String, default: '' },
-    name: { type: String, required: true },
-    searchName: String,
-    unit: { type: String, default: 'pcs' },
-    category: { type: String, default: '' },
-    reorderLevel: { type: Number, default: 0 },
-    quantityOnHand: { type: Number, default: 0 },
-    averageCost: { type: Number, default: 0 },
-    supplierId: { type: Schema.Types.ObjectId, ref: 'Supplier' },
-    isActive: { type: Boolean, default: true },
-  },
-  { timestamps: true, collection: 'inventoryItems' },
-);
-applyBase(itemSchema);
-itemSchema.index({ clinicId: 1, name: 1 });
-export const InventoryItemModel = model('InventoryItem', itemSchema);
-
-const movementSchema = new Schema(
-  {
-    clinicId: tenantField,
-    itemId: { type: Schema.Types.ObjectId, ref: 'InventoryItem', required: true },
-    type: { type: String, enum: ['purchase', 'consumption', 'adjustment', 'return'], required: true },
-    quantity: { type: Number, required: true },
-    unitCost: { type: Number, default: 0 },
-    date: { type: String, required: true },
-    note: { type: String, default: '' },
-    journalEntryId: { type: Schema.Types.ObjectId, ref: 'JournalEntry' },
-    byUserId: Schema.Types.ObjectId,
-  },
-  { timestamps: true, collection: 'stockMovements' },
-);
-applyBase(movementSchema, { softDelete: false });
-movementSchema.index({ clinicId: 1, itemId: 1, date: -1 });
-export const StockMovementModel = model('StockMovement', movementSchema);
-
-const itemShape = {
-  sku: optional(freeText(40)),
-  name: entityName({ max: 120 }),
-  unit: optional(freeText(20)),
-  category: optional(freeText(60)),
-  reorderLevel: z.number().min(0).max(1_000_000).default(0),
-  supplierId: optional(objectId()),
-  isActive: z.boolean().default(true),
-};
-insightsRouter.use(
-  crudRouter({
-    path: '/inventory-items',
-    entity: 'inventoryItem',
-    tag: 'inventory',
-    model: InventoryItemModel as never,
-    perms: { read: 'inventory.item.read', create: 'inventory.item.manage' },
-    createSchema: z.object(itemShape).strict(),
-    updateSchema: updateOf(itemShape),
-    filters: { low: z.enum(['true', 'false']).optional() },
-    buildFilter: (q) => ({ ...(q.includeInactive === 'true' ? {} : { isActive: true }), ...(q.low === 'true' ? { $expr: { $lte: ['$quantityOnHand', '$reorderLevel'] } } : {}) }),
-    sortable: ['name', 'quantityOnHand', 'createdAt'],
-    defaultSort: { name: 1 },
-    searchFrom: (b) => [b.name, b.sku].filter(Boolean).join(' '),
-    unpaged: true,
-  }),
-);
-
-/**
- * Stock movement with average costing. Purchases: Dr INVENTORY / Cr paid-from account.
- * Consumption & negative adjustments: Dr SUPPLIES_COST / Cr INVENTORY at average cost.
- */
-const movementBody = z
-  .object({ itemId: objectId(), type: z.enum(['purchase', 'consumption', 'adjustment', 'return']), quantity: z.number().refine((v) => v !== 0 && Math.abs(v) <= 1_000_000, { message: 'invalid_quantity' }), unitCost: money().optional(), paidFromAccountId: optional(objectId()), date: optional(dateOnly()), note: optional(freeText(300)) })
-  .strict()
-  .superRefine((v, ctx) => {
-    if (v.type === 'purchase' && (!v.unitCost || !v.paidFromAccountId)) ctx.addIssue({ code: 'custom', path: [v.unitCost ? 'paidFromAccountId' : 'unitCost'], message: 'required' });
-    if (v.type !== 'adjustment' && v.quantity < 0) ctx.addIssue({ code: 'custom', path: ['quantity'], message: 'must_be_positive' });
-  });
-insightsRouter.post(
-  '/stock-movements',
-  authorize('inventory.stock.adjust'),
-  validate({ body: movementBody }),
-  asyncHandler(async (req, res) => {
-    const b = body(req, movementBody);
-    const date = b.date ?? (await clinicToday());
-    const result = await withTransaction(async (session) => {
-      const s = session ?? undefined;
-      const item = await InventoryItemModel.findById(b.itemId).session(s ?? null);
-      if (!item) throw ApiError.notFound();
-      const delta = b.type === 'purchase' || b.type === 'return' ? b.quantity : b.type === 'consumption' ? -b.quantity : b.quantity;
-      if ((item.quantityOnHand ?? 0) + delta < 0) throw ApiError.conflict('INSUFFICIENT_STOCK', 'Not enough stock', { onHand: item.quantityOnHand });
-      const accounts = await loadAccountMap(s);
-      let value = 0;
-      let lines: { accountId: string; debit: number; credit: number; description?: string }[] = [];
-      if (b.type === 'purchase') {
-        const paidFrom = await AccountModel.findById(b.paidFromAccountId).lean();
-        if (!paidFrom || paidFrom.isGroup) throw ApiError.validation([{ path: 'paidFromAccountId', code: 'invalid_option' }]);
-        value = Math.round((b.unitCost ?? 0) * b.quantity);
-        const totalQty = (item.quantityOnHand ?? 0) + b.quantity;
-        item.averageCost = totalQty > 0 ? mulFraction((item.averageCost ?? 0) * (item.quantityOnHand ?? 0) + value, 1, Math.round(totalQty)) : (b.unitCost ?? 0);
-        lines = [{ accountId: accounts('INVENTORY'), debit: value, credit: 0, description: item.name }, { accountId: String(paidFrom._id), debit: 0, credit: value }];
-      } else {
-        value = Math.round(Math.abs(delta) * (item.averageCost ?? 0));
-        const out = delta < 0;
-        if (value > 0) lines = out ? [{ accountId: accounts('SUPPLIES_COST'), debit: value, credit: 0, description: item.name }, { accountId: accounts('INVENTORY'), debit: 0, credit: value }] : [{ accountId: accounts('INVENTORY'), debit: value, credit: 0, description: item.name }, { accountId: accounts('SUPPLIES_COST'), debit: 0, credit: value }];
-      }
-      item.quantityOnHand = (item.quantityOnHand ?? 0) + delta;
-      await item.save({ session: s });
-      const [mv] = await StockMovementModel.create([{ itemId: item._id, type: b.type, quantity: delta, unitCost: b.type === 'purchase' ? (b.unitCost ?? 0) : (item.averageCost ?? 0), date, note: b.note ?? '', byUserId: req.auth!.userId }], { session: s });
-      if (lines.length) {
-        const je = await postEntry(req.auth!, { date, source: 'expense', sourceId: mv!._id, memo: `Stock ${b.type}: ${item.name}`, lines: lines.map((l) => ({ ...l, description: l.description ?? '' })) }, s);
-        mv!.journalEntryId = je._id;
-        await mv!.save({ session: s });
-      }
-      return { item, mv: mv! };
-    });
-    await recordAudit({ action: 'create', entity: 'stockMovement', entityId: result.mv._id, after: { item: String(result.item._id), quantity: result.mv.quantity } });
-    if ((result.item.quantityOnHand ?? 0) <= (result.item.reorderLevel ?? 0) && result.item.reorderLevel) {
-      const { notify, usersOf } = await import('@/modules/notifications/notifications');
-      const clinicId = String(currentClinicId());
-      await notify(clinicId, await usersOf(clinicId, { owners: true, staffTypes: ['manager', 'receptionist'] }), { type: 'low_stock', titleKey: 'notifications:types.low_stock', bodyKey: 'notifications:msg.lowStock', params: { item: result.item.name, qty: result.item.quantityOnHand ?? 0 }, link: '/clinic/inventory' });
-    }
-    created(res, { item: { id: String(result.item._id), quantityOnHand: result.item.quantityOnHand, averageCost: result.item.averageCost }, movement: { id: String(result.mv._id), quantity: result.mv.quantity } });
-  }),
-);
-const movementQuery = z.object({ itemId: optional(objectId()) }).strict();
-insightsRouter.get('/stock-movements', authorize('inventory.item.read'), validate({ query: movementQuery }), asyncHandler(async (req, res) => {
-  const q = query(req, movementQuery);
-  const rows = await StockMovementModel.find(q.itemId ? { itemId: q.itemId } : {}).sort({ createdAt: -1 }).limit(300).lean();
-  ok(res, rows.map((r) => ({ id: String(r._id), itemId: String(r.itemId), type: r.type, quantity: r.quantity, unitCost: r.unitCost, date: r.date, note: r.note })));
-}));
 
 /* ---------- clinic logs (15) ---------- */
 

@@ -153,7 +153,7 @@ Reports `/reports/accounting/…`: `trial-balance`, `profit-and-loss`, `balance-
 `/shifts` CRUD · `/attendance` (list; `POST /attendance/check-in`; `/check-out`; `PATCH /:id` adjust) · `/leave-types` CRUD · `/leave-balances?staffId&year` · `/leave-requests` (POST own; `/:id/approve|reject|cancel`) · `/salary-components` CRUD · `/payroll-runs` (POST create for a period; `/:id/calculate`; `/:id/approve`; `/:id/mark-paid`) · `/payslips` (list; `/:id/pdf`; `/:id/acknowledge`).
 
 ### Inventory
-`/inventory/items` CRUD · `/inventory/movements` (POST adjust/consume).
+`/inventory-items`, `/inventory-locations` CRUD · `GET /inventory/overview|balances|movements|containers` · `POST /inventory/transfers|adjustments|opening-stock` · `POST /inventory/containers/:id/open|transfer|discard` · `GET|PUT /procedure-materials/:clinicProcedureId` · `/purchase-orders` (+ `/:id/cancel`) · `/goods-receipts` (+ `/:id/bill`) · `/clinical-usages` (+ `/procedures`, `/suggestions`). Postings accept `Idempotency-Key` (`08b`).
 
 ### Notifications
 `/notifications` (list; `/:id/read`; `/read-all`) · `/notification-preferences` · `/message-logs` (clinic admin view).

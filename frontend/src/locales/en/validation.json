@@ -62,5 +62,11 @@
   "requiredLegend": "* required",
   "optional": "(optional)",
   "pregnancy_required": "Tick “Pregnant” in the conditions to record the weeks",
-  "date_in_past": "Pick today or a later date"
+  "date_in_past": "Pick today or a later date",
+  "invalid_stock_quantity": "Enter a quantity above 0 with up to 4 decimals",
+  "container_policy_mismatch": "Choose how the containers are used, or turn container tracking off",
+  "capacity_must_divide_pack": "The quantity must be a whole number of containers",
+  "same_location": "Choose a different location",
+  "beyond_use_after_expiry": "The beyond-use date can't be after the lot's expiry date",
+  "expired_lot": "An expired lot can't be received"
 }

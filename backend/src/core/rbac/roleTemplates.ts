@@ -97,6 +97,10 @@ const dentist: RoleTemplate = {
     g('reports.dashboard.read', 'own'),
     g('reports.production.read', 'own'),
     g('reports.operational.read', 'own'),
+    // inventory (08b §7)
+    g('inventory.item.read', 'all'),
+    g('inventory.usage.read', 'own'),
+    g('inventory.usage.record', 'own'),
     ...selfService,
   ],
 };
@@ -126,6 +130,10 @@ const hygienist: RoleTemplate = {
     g('clinical.instruction.give', 'own'),
     g('reports.dashboard.read', 'own'),
     g('reports.production.read', 'own'),
+    // inventory (08b §7)
+    g('inventory.item.read', 'all'),
+    g('inventory.usage.read', 'own'),
+    g('inventory.usage.record', 'own'),
     ...selfService,
   ],
 };
@@ -143,6 +151,10 @@ const assistant: RoleTemplate = {
     g('clinical.perio.read', 'own'),
     g('clinical.imaging.read', 'own'),
     g('clinical.imaging.upload', 'all'),
+    // inventory (08b §7)
+    g('inventory.item.read', 'all'),
+    g('inventory.usage.read', 'all'),
+    g('inventory.usage.record', 'all'),
     ...selfService,
   ],
 };
@@ -187,6 +199,8 @@ const receptionist: RoleTemplate = {
     g('billing.cashSession.manage'),
     g('reports.dashboard.read', 'all'),
     g('reports.operational.read', 'all'),
+    // inventory (08b §7)
+    g('inventory.item.read', 'all'),
     ...selfService,
   ],
 };
@@ -209,6 +223,10 @@ const accountant: RoleTemplate = {
     g('reports.dashboard.read', 'all'),
     g('reports.operational.read', 'all'),
     g('reports.production.read', 'all'),
+    // inventory (08b §7)
+    g('inventory.item.read', 'all', { cost: 'read' }),
+    g('inventory.purchase.read', 'all'),
+    g('inventory.usage.read', 'all'),
     ...selfService.filter((s) => s.permission !== 'hr.payroll.read' && s.permission !== 'hr.compensation.read'),
   ],
 };

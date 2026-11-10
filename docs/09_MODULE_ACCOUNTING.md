@@ -43,6 +43,7 @@
 2000 Liabilities (group)
   2100 Accounts Payable – Suppliers          [AP_SUPPLIERS]
   2110 Accounts Payable – Dental Labs        [AP_LABS]
+  2120 Goods Received Not Invoiced           [GRNI]                 (created by inventory on first use)
   2200 VAT / Sales Tax Payable               [VAT_OUTPUT]
   2210 VAT Recoverable (input)               [VAT_INPUT]
   2300 Salaries Payable                      [SALARIES_PAYABLE]
@@ -73,6 +74,8 @@
 5000 Cost of Services (group)
   5100 Dental Lab Fees                       [LAB_COST]
   5200 Dental Supplies Consumed              [SUPPLIES_COST]
+  5210 Clinical Materials Used               [CLINICAL_MATERIALS]   (created by inventory on first use)
+  5220 Inventory Waste & Write-offs          [INVENTORY_WASTE]      (created by inventory on first use)
 6000 Operating Expenses (group)
   6100 Salaries & Wages                      [SALARIES_EXPENSE]
   6110 Employer Social Security              [SSC_EXPENSE]
@@ -281,3 +284,6 @@ Exports: JSON for the UI, PDF and XLSX via report jobs for large ranges.
 - Money helpers: rounding and `allocate` (sum preserved).
 - Period closed → 423; reversal of a reversal is not allowed; double issue (same Idempotency-Key) → single entry.
 - Concurrency: two simultaneous issues of the same draft give one number and one journal.
+
+## Inventory postings
+Perpetual inventory, journal source `inventory`. Receipt Dr INVENTORY / Cr GRNI; the supplier bill raised from a receipt Dr GRNI / Cr AP; clinical use Dr CLINICAL_MATERIALS / Cr INVENTORY; waste and discards Dr INVENTORY_WASTE / Cr INVENTORY; administrative issue Dr SUPPLIES_COST / Cr INVENTORY; opening stock Dr INVENTORY / Cr OPENING_BALANCE. Full matrix in `08b_MODULE_INVENTORY.md` §4.
