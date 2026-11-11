@@ -41,11 +41,21 @@ export function HomeRedirect() {
   return <Navigate to={homeFor(a.session)} replace />;
 }
 
-/** Login, forgot/reset, invite: only for guests. */
+/** `?next=` when it belongs to this kind of user, so a signed-in user lands back where they were. */
+function nextFor(s: Session, search: string): string | null {
+  const next = new URLSearchParams(search).get('next');
+  if (!next || !next.startsWith('/') || next.startsWith('//') || s.user.mustChangePassword) return null;
+  const area = s.user.kind === 'platform' ? '/admin' : s.user.kind === 'patient' ? '/portal' : '/clinic';
+  if (!next.startsWith(area)) return null;
+  return s.user.kind === 'staff' && !s.clinic ? null : next;
+}
+
+/** Login, forgot/reset, invite: only for guests. A signed-in user goes back to `?next=` or home. */
 export function GuestGuard({ children }: { children: ReactNode }) {
   const a = useAuthed();
+  const location = useLocation();
   if (a.status === 'loading') return <PageSkeleton rows={3} />;
-  if (a.status === 'ok' && a.session) return <Navigate to={homeFor(a.session)} replace />;
+  if (a.status === 'ok' && a.session) return <Navigate to={nextFor(a.session, location.search) ?? homeFor(a.session)} replace />;
   return <>{children}</>;
 }
 

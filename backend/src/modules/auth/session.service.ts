@@ -67,27 +67,48 @@ export async function createRefreshToken(userId: Types.ObjectId | string, opts: 
   return { raw, expiresAt, remember: opts.remember };
 }
 
+/**
+ * A token rotated this recently may still arrive from a parallel request (two tabs, a reload while
+ * a refresh is in flight). Within this window it gets a sibling token instead of being treated as
+ * theft, as long as the session itself is still live (11 §1).
+ */
+export const REFRESH_REUSE_GRACE_MS = 30_000;
+
+type TokenDoc = InstanceType<typeof RefreshTokenModel>;
+
+const familyOptsOf = (t: TokenDoc) => ({
+  clinicId: t.clinicId ? String(t.clinicId) : undefined,
+  patientId: t.patientId ? String(t.patientId) : undefined,
+  familyId: t.familyId,
+  remember: t.remember ?? true,
+  impersonatorUserId: t.impersonatorUserId ? String(t.impersonatorUserId) : undefined,
+});
+
+/** Rotated moments ago by a parallel request, and the session not logged out since. */
+async function withinGrace(t: TokenDoc): Promise<boolean> {
+  if (t.revokedReason !== 'rotated' || !t.revokedAt || Date.now() - t.revokedAt.getTime() > REFRESH_REUSE_GRACE_MS) return false;
+  return Boolean(await RefreshTokenModel.exists({ familyId: t.familyId, revokedAt: null, expiresAt: { $gt: new Date() } }));
+}
+
 /** Rotation with reuse detection (11 §1): presenting a rotated token revokes the whole family. */
-export async function rotateRefreshToken(raw: string): Promise<{ refresh: IssuedRefresh; token: InstanceType<typeof RefreshTokenModel> }> {
+export async function rotateRefreshToken(raw: string): Promise<{ refresh: IssuedRefresh; token: TokenDoc }> {
   const hash = sha256(raw);
   const current = await RefreshTokenModel.findOne({ tokenHash: hash });
   if (!current) throw ApiError.unauthenticated('SESSION_REVOKED', 'Unknown refresh token');
   if (current.revokedAt) {
+    if (await withinGrace(current)) return { refresh: await createRefreshToken(current.userId, familyOptsOf(current)), token: current };
     await RefreshTokenModel.updateMany({ familyId: current.familyId, revokedAt: null }, { $set: { revokedAt: new Date(), revokedReason: 'reuse_detected' } });
     await recordAudit({ action: 'logout', entity: 'session', entityId: current.familyId, summary: 'refresh_token_reuse_detected', actorUserId: current.userId, clinicId: current.clinicId ? String(current.clinicId) : null });
     throw ApiError.unauthenticated('SESSION_REVOKED', 'Refresh token reuse detected');
   }
   if (current.expiresAt.getTime() < Date.now()) throw ApiError.unauthenticated('SESSION_REVOKED', 'Refresh token expired');
-  const next = await createRefreshToken(current.userId, {
-    clinicId: current.clinicId ? String(current.clinicId) : undefined,
-    patientId: current.patientId ? String(current.patientId) : undefined,
-    familyId: current.familyId,
-    remember: current.remember ?? true,
-    impersonatorUserId: current.impersonatorUserId ? String(current.impersonatorUserId) : undefined,
-  });
-  // Conditional update so two parallel refreshes cannot both succeed.
+  const next = await createRefreshToken(current.userId, familyOptsOf(current));
+  // Conditional update so two parallel refreshes can't both rotate it.
   const res = await RefreshTokenModel.updateOne({ _id: current._id, revokedAt: null }, { $set: { revokedAt: new Date(), revokedReason: 'rotated', replacedByHash: sha256(next.raw), lastUsedAt: new Date() } });
   if (res.modifiedCount === 0) {
+    // Lost the race to a parallel refresh: fine if that one rotated it (same session), not after a logout.
+    const latest = await RefreshTokenModel.findById(current._id);
+    if (latest && (await withinGrace(latest))) return { refresh: next, token: current };
     await RefreshTokenModel.deleteOne({ tokenHash: sha256(next.raw) });
     throw ApiError.unauthenticated('SESSION_REVOKED', 'Refresh token already used');
   }

@@ -77,7 +77,11 @@ describe('refresh rotation', () => {
     expect(r1.status).toBe(200);
     const newCookie = String((r1.headers['set-cookie'] as unknown as string[])[0]).split(';')[0]!;
     expect(newCookie).not.toBe(s.cookie);
-    // Reusing the old (rotated) token → whole family revoked.
+    // A parallel request (another tab, a reload) presenting it moments later still gets in.
+    const parallel = await request(getApp()).post('/api/v1/auth/refresh').set('Cookie', s.cookie);
+    expect(parallel.status).toBe(200);
+    // After the grace window, reusing the old (rotated) token → whole family revoked.
+    await RefreshTokenModel.updateMany({ revokedReason: 'rotated' }, { $set: { revokedAt: new Date(Date.now() - 60_000) } });
     const reuse = await request(getApp()).post('/api/v1/auth/refresh').set('Cookie', s.cookie);
     expect(reuse.status).toBe(401);
     expect(reuse.body.error.code).toBe('SESSION_REVOKED');
@@ -89,6 +93,15 @@ describe('refresh rotation', () => {
   it('logout revokes the session', async () => {
     const s = await login(c.ownerEmail);
     await request(getApp()).post('/api/v1/auth/logout').set('Cookie', s.cookie);
+    expect((await request(getApp()).post('/api/v1/auth/refresh').set('Cookie', s.cookie)).status).toBe(401);
+  });
+
+  it('the grace window never reopens a logged-out session', async () => {
+    const s = await login(c.ownerEmail);
+    const r1 = await request(getApp()).post('/api/v1/auth/refresh').set('Cookie', s.cookie);
+    const fresh = String((r1.headers['set-cookie'] as unknown as string[])[0]).split(';')[0]!;
+    await request(getApp()).post('/api/v1/auth/logout').set('Cookie', fresh);
+    // The old token was rotated seconds ago, but the session is gone.
     expect((await request(getApp()).post('/api/v1/auth/refresh').set('Cookie', s.cookie)).status).toBe(401);
   });
 });

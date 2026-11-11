@@ -1,5 +1,5 @@
 import { useCallback } from 'react';
-import { api, postData, setAuthHandlers } from '@/lib/api/axios';
+import { api, postData, refreshOnce, setAuthHandlers } from '@/lib/api/axios';
 import { queryClient } from '@/lib/api/queryClient';
 import { rotateSessionId } from '@/lib/session';
 import { flush, trackActivity } from '@/lib/telemetry';
@@ -57,9 +57,12 @@ function logoutAndRedirect(): void {
 
 setAuthHandlers(refreshAccessToken, logoutAndRedirect);
 
-/** On app load: try the refresh cookie; a failure just means "guest". */
+/**
+ * On app load: try the refresh cookie; a failure just means "guest". Single-flight with the 401
+ * handler, so a request that fails while the page loads doesn't send a second refresh.
+ */
 export async function bootstrapAuth(): Promise<void> {
-  await refreshAccessToken();
+  await refreshOnce();
   useAuthStore.getState().setBootstrapped(true);
 }
 
