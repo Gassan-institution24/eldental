@@ -13,6 +13,7 @@
     "worker": "tsx src/worker.ts",
     "worker:prod": "node dist/worker.js",
     "seed": "tsx src/scripts/seed.ts",
+    "seed:admin": "tsx src/scripts/seedAdmin.ts",
     "migrate:specialties": "tsx src/scripts/migrateSpecialties.ts",
     "migrate:inventory": "tsx src/scripts/migrateInventory.ts",
     "lint": "eslint . --max-warnings 0",

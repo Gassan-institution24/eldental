@@ -51,6 +51,9 @@ DEFAULT_CURRENCY=JOD
 DEFAULT_LOCALE=ar
 DEFAULT_COUNTRY_CODE=962
 
+# Email: Resend over HTTPS (recommended on Railway, where outgoing SMTP can be blocked) …
+RESEND_API_KEY=<re_… from resend.com → API keys>
+# … or SMTP (used when RESEND_API_KEY is empty)
 SMTP_HOST=<host>
 SMTP_PORT=587
 SMTP_SECURE=false
@@ -76,7 +79,11 @@ Secrets: `node -e "console.log(require('crypto').randomBytes(48).toString('hex')
 
 ### First deploy
 1. Deploy, then check `https://<app>/health` (liveness) and `https://<app>/ready` (Mongo + Redis).
-2. Run the seed once against the production database (Railway shell: `npm run seed`). It also creates the indexes (`autoIndex` is off in production). It creates the demo clinic and demo users with `Password123!`: change or disable them before real clinics use the system.
+2. Seed the database once (Railway shell). It also creates the indexes (`autoIndex` is off in production).
+   - **Real use:** `npm run seed:admin` — role templates, catalogs and the root superadmin only (`SEED_SUPERADMIN_EMAIL` / `SEED_SUPERADMIN_PASSWORD`). Create clinics from the admin panel.
+   - **Demo:** `npm run seed` — the same plus the demo clinic and demo users with `Password123!`.
 3. Open `https://<app>` and sign in.
+
+**Email sender (Resend):** `MAIL_FROM` must use a domain verified in Resend (Domains → Add domain, then the DNS records). Without a domain use `ElDental <onboarding@resend.dev>`: Resend then delivers **only to the email of your Resend account**, which is enough for testing but not for patients.
 
 If the service does not start, the deploy log begins with `[env] Invalid environment configuration` and the variable at fault.
