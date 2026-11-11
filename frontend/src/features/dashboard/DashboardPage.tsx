@@ -6,6 +6,7 @@ import type { ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link as RouterLink } from 'react-router-dom';
 import { useSessionData } from '@/features/auth/api/session';
+import { chairsApi, proceduresApi, useClinic } from '@/features/clinic-settings/api';
 import { DashboardKpis } from '@/features/insights/InsightsPages';
 import { AttendanceWidget } from '@/features/hr/pages/HrPages';
 import { useQuickBook } from '@/features/scheduling/components/quickBookStore';
@@ -76,32 +77,58 @@ function QuickAction({
   );
 }
 
+/** Setup checklist: each step is ticked from the clinic's real data and links to where it's done. */
+export function useSetupSteps() {
+  const session = useSessionData();
+  const { can } = usePermission();
+  const staff = useQuery({
+    queryKey: ['staff', 'count'],
+    // Refetched on every visit, so a new team member ticks the step straight away.
+    staleTime: 0,
+    enabled: can('staff.member.read', 'all'),
+    queryFn: () => getPaged<unknown>('/staff', { limit: 1, status: 'active' }),
+  });
+  const canSetup = can('clinic.settings.update');
+  const clinic = useClinic({ enabled: canSetup });
+  const chairs = chairsApi.useAll(undefined, { enabled: canSetup && can('clinic.chair.manage') });
+  const procedures = proceduresApi.useList(
+    { limit: 1 },
+    { enabled: canSetup && can('clinic.procedure.manage') },
+  );
+  const steps = [
+    {
+      k: 'profile',
+      to: '/clinic/settings/general',
+      done:
+        Boolean(session?.clinic?.onboardingCompleted) ||
+        Boolean(clinic.data?.phone && clinic.data.addressLine1),
+    },
+    { k: 'chairs', to: '/clinic/settings/chairs', done: (chairs.data?.length ?? 0) > 0 },
+    { k: 'team', to: '/clinic/hr/staff', done: (staff.data?.meta.total ?? 0) > 1 },
+    {
+      k: 'procedures',
+      to: '/clinic/settings/procedures',
+      done: (procedures.data?.meta.total ?? 0) > 0,
+    },
+  ] as const;
+  const doneCount = steps.filter((s) => s.done).length;
+  const setupLoading = clinic.isLoading || chairs.isLoading || procedures.isLoading;
+  // Hidden once every step is done.
+  const showSetup = canSetup && !setupLoading && doneCount < steps.length;
+  return { steps, doneCount, show: showSetup };
+}
+
 /** Clinic home: greeting, KPIs, quick actions and the setup checklist. */
 export function DashboardPage() {
   const { t } = useTranslation('dashboard');
   const session = useSessionData();
   const { can } = usePermission();
   const openQuickBook = useQuickBook((s) => s.open);
-  const staff = useQuery({
-    queryKey: ['staff', 'count'],
-    enabled: can('staff.member.read', 'all'),
-    queryFn: () => getPaged<unknown>('/staff', { limit: 1, status: 'active' }),
-  });
 
   const hour = inClinicTz(new Date()).hour();
   const part = hour < 12 ? 'morning' : hour < 18 ? 'afternoon' : 'evening';
   const name = session?.staff?.name ?? session?.user.displayName ?? '';
-  const done = {
-    profile: Boolean(session?.clinic?.onboardingCompleted),
-    chairs: false,
-    team: (staff.data?.meta.total ?? 0) > 1,
-    procedures: false,
-  };
-  const steps = (['profile', 'chairs', 'team', 'procedures'] as const).map((k) => ({
-    k,
-    done: done[k],
-  }));
-  const doneCount = steps.filter((s) => s.done).length;
+  const { steps, doneCount, show: showSetup } = useSetupSteps();
 
   return (
     <Box>
@@ -173,7 +200,7 @@ export function DashboardPage() {
       </Box>
 
       <Grid container spacing={8}>
-        <Grid item xs={12} lg={7}>
+        <Grid item xs={12} lg={showSetup ? 7 : 12}>
           <Typography variant="h4" sx={{ mb: 4 }}>
             {t('quick.title')}
           </Typography>
@@ -220,7 +247,7 @@ export function DashboardPage() {
             )}
           </Grid>
         </Grid>
-        {can('clinic.settings.update') && (
+        {showSetup && (
           <Grid item xs={12} lg={5}>
             <Card sx={{ p: 6 }}>
               <Typography variant="h4">{t('setup.title')}</Typography>
@@ -253,7 +280,7 @@ export function DashboardPage() {
                       {t(`setup.${s.k}`)}
                     </Typography>
                     {!s.done && (
-                      <Button size="small" component={RouterLink} to="/clinic/settings">
+                      <Button size="small" component={RouterLink} to={s.to}>
                         {t('setup.go')}
                       </Button>
                     )}

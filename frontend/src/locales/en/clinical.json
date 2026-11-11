@@ -1,4 +1,5 @@
 {
+  "picker": {"chooseTeeth":"Choose teeth","chooseSurfaces":"Choose surfaces","teethFirst":"Choose the teeth first","babyTeeth":"Baby teeth","upper":"Upper jaw","lower":"Lower jaw","patientRight":"Patient's right","patientLeft":"Patient's left","clear":"Clear","done":"Done"},
   "kinds": { "existing": "Existing", "finding": "Finding", "planned": "Planned", "completed": "Completed" },
   "dentition": { "permanent": "Permanent", "mixed": "Mixed", "primary": "Primary" },
   "surfaces": { "M": "Mesial", "D": "Distal", "O": "Occlusal", "I": "Incisal", "B": "Buccal", "F": "Facial", "L": "Lingual", "P": "Palatal" },

@@ -1,4 +1,5 @@
 {
+  "picker": {"chooseTeeth":"اختر الأسنان","chooseSurfaces":"اختر الأسطح","teethFirst":"اختر الأسنان أولًا","babyTeeth":"الأسنان اللبنية","upper":"الفك العلوي","lower":"الفك السفلي","patientRight":"يمين المريض","patientLeft":"يسار المريض","clear":"مسح","done":"تم"},
   "kinds": { "existing": "موجود سابقًا", "finding": "تشخيص", "planned": "مخطط", "completed": "منجز" },
   "dentition": { "permanent": "دائمة", "mixed": "مختلطة", "primary": "لبنية" },
   "surfaces": { "M": "أنسي", "D": "وحشي", "O": "إطباقي", "I": "قاطع", "B": "شدقي", "F": "شفوي", "L": "لساني", "P": "حنكي" },

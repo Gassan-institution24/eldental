@@ -65,6 +65,7 @@ import {
   type LabStatus,
 } from '../api';
 import { PrintArea, SignaturePad, toothList } from '../components/shared';
+import { RHFTeethPicker } from '../components/TeethPicker';
 import { useSpecialtyName } from '@/features/staff/components/SpecialtyFields';
 
 /* ---------------- prescriptions (07 §7) ---------------- */
@@ -775,11 +776,9 @@ function LabDrawer({
                 />
               </Grid>
               <Grid item xs={4} sm={2.5}>
-                <RHFTextField
+                <RHFTeethPicker
                   name={`items.${i}.teeth`}
                   label={t('procedures.teeth')}
-                  size="small"
-                  inputProps={{ dir: 'ltr' }}
                   disabled={closed}
                 />
               </Grid>

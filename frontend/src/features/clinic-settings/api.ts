@@ -48,8 +48,12 @@ export type Clinic = Entity & {
 
 export const clinicKey = ['clinic'] as const;
 
-export function useClinic() {
-  return useQuery({ queryKey: clinicKey, queryFn: () => getData<Clinic>('/clinic') });
+export function useClinic(opts: { enabled?: boolean } = {}) {
+  return useQuery({
+    queryKey: clinicKey,
+    queryFn: () => getData<Clinic>('/clinic'),
+    enabled: opts.enabled ?? true,
+  });
 }
 
 export function useUpdateClinic() {

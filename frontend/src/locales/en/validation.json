@@ -29,7 +29,7 @@
   "out_of_range": "Enter a value between 0 and 100",
   "invalid_quantity": "Enter a whole number from 1 to 999",
   "invalid_tooth": "Pick a valid tooth from the chart",
-  "invalid_surface": "This surface isn't valid for the selected tooth",
+  "invalid_surface": "That surface isn't on this tooth. Front teeth have Incisal (I) and Facial (F); back teeth have Occlusal (O) and Buccal (B)",
   "invalid_option": "Choose one of the options",
   "not_found": "The selected item no longer exists",
   "inactive": "The selected item is inactive",

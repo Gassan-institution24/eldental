@@ -47,7 +47,13 @@ import { usePatientContext } from '@/features/patients/pages/PatientWorkspace';
 import { useQuickBook } from '@/features/scheduling/components/quickBookStore';
 import { useSchedulingLookups } from '@/features/scheduling/components/lookups';
 import { formatDate } from '@/lib/dates';
-import { dateOnly, freeText, objectId, optional } from '@/shared/generated/validation/fields';
+import {
+  dateOnly,
+  freeText,
+  isValidTooth,
+  objectId,
+  optional,
+} from '@/shared/generated/validation/fields';
 import { useConfirm } from '@/shared/components/ConfirmDialog';
 import { FormDrawer } from '@/shared/components/FormDrawer';
 import { MoneyText, useCurrency, useFormatMoney } from '@/shared/components/MoneyText';
@@ -63,6 +69,7 @@ import { useNotify } from '@/shared/hooks/useNotify';
 import { usePermission } from '@/shared/rbac/usePermission';
 import { usePlanMutations, usePlans, useProcedureMutations, type TreatmentPlan } from '../api';
 import { PrintArea, SignaturePad, toothList, usePlanDentists, useProcedureLookup } from '../components/shared';
+import { RHFSurfacesPicker, RHFTeethPicker } from '../components/TeethPicker';
 import { useSpecialtyName } from '@/features/staff/components/SpecialtyFields';
 
 const PHASES = ['urgent', 'phase1', 'phase2', 'maintenance'];
@@ -578,7 +585,7 @@ const itemSchema = z.object({
   teeth: z
     .string()
     .max(120)
-    .refine((v) => toothList(v).every((n) => /^[1-8][1-8]$/.test(String(n))), {
+    .refine((v) => toothList(v).every(isValidTooth), {
       message: 'invalid_tooth',
     }),
   surfaces: z
@@ -780,22 +787,18 @@ function PlanEditor({
                     />
                   </Grid>
                   <Grid item xs={6} md={2}>
-                    <RHFTextField
+                    <RHFTeethPicker
                       name={`items.${i}.teeth`}
                       label={t('procedures.teeth')}
-                      size="small"
-                      inputProps={{ dir: 'ltr' }}
                       required={p?.toothRequired}
-                      placeholder="36, 37"
                     />
                   </Grid>
                   <Grid item xs={6} md={1.5}>
-                    <RHFTextField
+                    <RHFSurfacesPicker
                       name={`items.${i}.surfaces`}
+                      teethName={`items.${i}.teeth`}
                       label={t('procedures.surfaces')}
-                      size="small"
-                      inputProps={{ dir: 'ltr', style: { textTransform: 'uppercase' } }}
-                      placeholder="MO"
+                      required={p?.surfacesRequired}
                     />
                   </Grid>
                   <Grid item xs={4} md={1}>

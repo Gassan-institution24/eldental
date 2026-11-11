@@ -69,7 +69,7 @@
   "ONLINE_BOOKING_DISABLED": "Online booking isn't available for this clinic.",
   "CANCELLATION_WINDOW_PASSED": "It's too late to cancel online. Please call the clinic.",
   "TOOTH_REQUIRED": "Select a tooth for this procedure.",
-  "INVALID_SURFACE": "This surface isn't valid for the selected tooth.",
+  "INVALID_SURFACE": "That surface isn't on this tooth. Front teeth have Incisal (I) and Facial (F); back teeth have Occlusal (O) and Buccal (B).",
   "NOTE_SIGNED": "Signed notes can't be edited. Add an amendment instead.",
   "CONSENT_REQUIRED": "A signed consent is required before this procedure.",
   "PROCEDURE_INVOICED": "This procedure is on an issued invoice. Create a credit note first.",

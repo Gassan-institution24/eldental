@@ -13,6 +13,7 @@
 
 - Constants live in `shared/dental/teeth.ts`: `PERMANENT_TEETH`, `PRIMARY_TEETH`, `isValidTooth(n)`, `quadrantOf(n)`, `isAnterior(n)`, and a display helper that converts to Universal numbering (display preference only; FDI is always stored).
 - Surfaces: `M` mesial, `D` distal, `O` occlusal (posterior), `I` incisal (anterior), `B` buccal, `F` facial/labial (anterior), `L` lingual, `P` palatal. Validation: `O` is only valid on posterior teeth and `I` only on anterior teeth.
+- Forms never ask the user to type teeth or surfaces: teeth are picked on a small mouth map (`TeethPicker`, FDI, permanent + baby teeth) and the surface picker offers only the surfaces that exist on every chosen tooth, dropping any that stop fitting when the teeth change.
 
 ## 2. Odontogram (Tooth Chart)
 
