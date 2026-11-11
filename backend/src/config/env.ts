@@ -77,6 +77,8 @@ const schema = z
     SMTP_USER: z.string().optional().default(''),
     SMTP_PASSWORD: z.string().optional().default(''),
     MAIL_FROM: z.string().default('ElDental <no-reply@eldental.local>'),
+    /** Resend (https://resend.com): when set, email goes through its HTTPS API instead of SMTP. */
+    RESEND_API_KEY: z.string().optional().default(''),
 
     STORAGE_DRIVER: z.enum(['local', 's3']).default('local'),
     UPLOAD_DIR: z.string().default('./uploads'),

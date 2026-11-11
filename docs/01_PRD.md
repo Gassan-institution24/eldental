@@ -139,7 +139,7 @@ A user can have **multiple roles** inside one clinic (e.g. Owner + Dentist).
 - All outbound messages are queued and logged.
 
 ### 4.10 Patient portal
-- Sign up with phone/email and OTP verification; link to an existing clinic patient record via OTP.
+- Sign up with name, mobile and email; the verification code is sent **by email**. Link to an existing clinic patient record with a code sent to the contacts on that file (its email, and WhatsApp when configured).
 - Online booking (only appointment types and dentists the clinic allows online).
 - View and cancel appointments within the clinic's cancellation window.
 - View treatment plans and accept them.

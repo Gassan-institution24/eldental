@@ -3,6 +3,7 @@ import { isProd, env } from '@/config/env';
 import { recordAudit } from '@/core/audit/audit.service';
 import { nextNumber } from '@/core/db/sequence';
 import { ApiError } from '@/core/http/ApiError';
+import { emails } from '@/core/notifications/email/email.service';
 import { runInTenant, runWithoutTenant } from '@/core/tenancy/tenantPlugin';
 import { issueOtp, verifyOtp } from '@/modules/auth/otp.service';
 import { publicUser } from '@/modules/auth/auth.service';
@@ -34,6 +35,9 @@ import { toSearchName } from '@/shared/validation/normalize';
 
 const LIVE = { $in: ['active', 'inactive'] };
 type Rel = 'self' | 'dependant';
+
+/** l•••@example.com */
+const maskEmail = (e: string) => e.replace(/^(.)[^@]*(@.*)$/, '$1•••$2');
 type Mine = { _id: Types.ObjectId; clinicId: Types.ObjectId; fileNumber: string; fullName: string; dateOfBirth?: string | null; gender?: string | null; phone?: { e164?: string | null } | null; relation: Rel };
 
 export async function myPatients(userId: string): Promise<Mine[]> {
@@ -148,7 +152,7 @@ export async function onlineAvailability(slug: string, q: { appointmentTypeId: s
 
 async function fileFor(slug: string, fileNumber: string) {
   const c = await clinicBySlugOr404(slug);
-  const p = await runInTenant(c._id, () => PatientModel.findOne({ fileNumber, status: LIVE }).select('phone userId fileNumber').lean());
+  const p = await runInTenant(c._id, () => PatientModel.findOne({ fileNumber, status: LIVE }).select('phone email userId fileNumber').lean());
   if (!p?.phone?.e164) throw ApiError.validation([{ path: 'fileNumber', code: 'not_found' }]);
   return { clinic: c, patient: p as typeof p & { phone: { e164: string } } };
 }
@@ -159,9 +163,11 @@ export async function linkStart(userId: string, b: { clinicSlug: string; fileNum
   const phone = patient.phone.e164;
   const issued = await issueOtp(phone, 'link_patient');
   if (!('code' in issued)) throw new ApiError(429, 'OTP_COOLDOWN', 'Wait before requesting another code', { seconds: issued.cooldown });
+  // The code goes to the contacts on the clinic's file: its email (when known) and WhatsApp.
+  if (patient.email) await emails.otp(patient.email, locale, issued.code);
   await sendOtpWhatsApp(phone, locale, issued.code);
-  // Development has no WhatsApp provider: hand the code back so the flow can be tried.
-  return { phoneHint: `•••• ${phone.slice(-4)}`, expiresInMinutes: env.OTP_TTL_MINUTES, ...(isProd ? {} : { devCode: issued.code }) };
+  // Outside production the code is also returned, so the flow can be tried without email/WhatsApp.
+  return { phoneHint: `•••• ${phone.slice(-4)}`, ...(patient.email ? { emailHint: maskEmail(patient.email) } : {}), expiresInMinutes: env.OTP_TTL_MINUTES, ...(isProd ? {} : { devCode: issued.code }) };
 }
 
 export async function linkConfirm(userId: string, b: { clinicSlug: string; fileNumber: string; code: string }) {

@@ -24,7 +24,7 @@ let examTypeId: string;
 let fillingTypeId: string;
 
 async function patientAccount(phone: string, firstName = 'Lina'): Promise<Session> {
-  const person = { firstName, lastName: 'Haddad', phone };
+  const person = { firstName, lastName: 'Haddad', phone, email: `p${phone.slice(-6)}@example.com` };
   const start = await api().post('/auth/patient/register/start').send(person);
   const done = await api().post('/auth/patient/register').send({ ...person, code: start.body.data.devCode, password: 'MySmile2026' });
   expect(done.status).toBe(200);

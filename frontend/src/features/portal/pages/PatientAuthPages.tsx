@@ -21,7 +21,6 @@ import { rotateSessionId } from '@/lib/session';
 import { track, trackActivity } from '@/lib/telemetry';
 import {
   email,
-  optional,
   otpCode,
   password,
   personName,
@@ -124,7 +123,7 @@ const detailsSchema = z.object({
   firstName: personName(),
   lastName: personName(),
   phone: phone({ mobile: true }),
-  email: optional(email()),
+  email: email(),
 });
 type Details = z.infer<typeof detailsSchema>;
 
@@ -241,7 +240,9 @@ export function PatientRegisterPage() {
             />
             <RHFTextField
               name="email"
-              label={`${t('auth.email')} ${t('validation:optional')}`}
+              label={t('auth.email')}
+              required
+              helperText={t('auth.emailHelper')}
               type="email"
               autoComplete="email"
               inputProps={{ dir: 'ltr', inputMode: 'email' }}
@@ -261,8 +262,8 @@ export function PatientRegisterPage() {
         <Form form={verifyForm} name="portal.register.verify" onSubmit={create}>
           <Stack spacing={4}>
             <Typography color="text.secondary">
-              {/* U+2066/U+2069 isolate the number so it reads left-to-right inside Arabic text. */}
-              {t('auth.codeSentTo', { phone: ltrIsolate(details.phone) })}
+              {/* U+2066/U+2069 isolate the address so it reads left-to-right inside Arabic text. */}
+              {t('auth.codeSentTo', { target: ltrIsolate(details.email) })}
             </Typography>
             {devCode && <Alert severity="info">{t('auth.devCode', { code: devCode })}</Alert>}
             <RHFOtp name="code" label={t('auth.code')} autoFocus />

@@ -298,8 +298,10 @@ export async function forgotPassword(rawTarget: string): Promise<void> {
   if (!user || user.status === 'disabled') return;
   const issued = await issueOtp(target.key, 'reset_password');
   if (!('code' in issued)) return;
-  if (target.email) await emails.otp(target.email, user.locale, issued.code);
-  else if (target.phone) {
+  // A phone number also gets the code by email when the account has one (WhatsApp may be off).
+  const mailTo = target.email ?? user.email;
+  if (mailTo) await emails.otp(mailTo, user.locale, issued.code);
+  if (target.phone) {
     const { sendOtpWhatsApp } = await import('@/modules/notifications/whatsapp.hooks');
     await sendOtpWhatsApp(target.phone, user.locale, issued.code);
   }

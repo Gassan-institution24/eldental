@@ -16,7 +16,7 @@ let patientId: string;
 type Template = { id: string; systemKey?: string; name: string | null; procedureCodes: string[] };
 
 async function patientAccount(phone: string): Promise<Session> {
-  const person = { firstName: 'Hala', lastName: 'Odeh', phone };
+  const person = { firstName: 'Hala', lastName: 'Odeh', phone, email: `p${phone.slice(-6)}@example.com` };
   const start = await api().post('/auth/patient/register/start').send(person);
   const done = await api().post('/auth/patient/register').send({ ...person, code: start.body.data.devCode, password: 'MySmile2026' });
   return { token: done.body.data.accessToken, cookie: '', userId: done.body.data.user.id };

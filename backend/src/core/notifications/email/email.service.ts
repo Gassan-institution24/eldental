@@ -59,18 +59,52 @@ ${parts.button ? `<p style="text-align:center;margin:28px 0"><a href="${esc(part
   return { html, text };
 }
 
-/** Sends now (used by the job handler). Failures go to systemErrors (integration: smtp). */
+/** Resend's HTTPS API (no SMTP port needed). Attachments go base64-encoded. */
+export async function sendViaResend(msg: EmailMessage, apiKey: string, from: string): Promise<void> {
+  const res = await fetch('https://api.resend.com/emails', {
+    method: 'POST',
+    headers: { Authorization: `Bearer ${apiKey}`, 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      from,
+      to: [msg.to],
+      subject: msg.subject,
+      html: msg.html,
+      text: msg.text,
+      ...(msg.attachments?.length
+        ? { attachments: msg.attachments.map((a) => ({ filename: a.filename, content: Buffer.isBuffer(a.content) ? a.content.toString('base64') : a.encoding === 'base64' ? a.content : Buffer.from(a.content).toString('base64') })) }
+        : {}),
+    }),
+    signal: AbortSignal.timeout(15_000),
+  });
+  if (!res.ok) {
+    // Resend explains the problem (unverified domain, test-mode recipient…); keep it, never the key.
+    const detail = (await res.text().catch(() => '')).slice(0, 300);
+    throw new Error(`Resend ${res.status}: ${detail}`);
+  }
+}
+
+/**
+ * Sends now (used by the job handler). Order: SMTP entered by the superadmin, then Resend
+ * (`RESEND_API_KEY`), then the SMTP variables. Failures go to systemErrors.
+ */
 export async function deliverEmail(msg: EmailMessage): Promise<void> {
   if (isTest) {
     sentEmails.push(msg);
     return;
   }
+  const override = await overrideProvider();
+  const useResend = !override && Boolean(env.RESEND_API_KEY);
   try {
-    const { t, from } = await getTransport();
-    await t.sendMail({ from, to: msg.to, subject: msg.subject, html: msg.html, text: msg.text, attachments: msg.attachments });
-    logger.info({ subject: msg.subject }, 'email sent');
+    if (useResend) {
+      await sendViaResend(msg, env.RESEND_API_KEY, env.MAIL_FROM);
+    } else {
+      const { t, from } = await getTransport();
+      await t.sendMail({ from, to: msg.to, subject: msg.subject, html: msg.html, text: msg.text, attachments: msg.attachments });
+    }
+    logger.info({ subject: msg.subject, via: useResend ? 'resend' : 'smtp' }, 'email sent');
   } catch (err) {
-    void recordSystemError({ error: err, source: 'integration', integration: 'smtp', route: 'email' });
+    // Email is one integration ("smtp") in the error log; the route tells which transport failed.
+    void recordSystemError({ error: err, source: 'integration', integration: 'smtp', route: useResend ? 'email.resend' : 'email' });
     throw err;
   }
 }

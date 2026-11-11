@@ -7,7 +7,7 @@
 |---|---|
 | Passwords | bcrypt cost 12; min 10 chars; checked against a common-password list; never logged |
 | Access token | JWT HS256 (`JWT_ACCESS_SECRET`), 15 min, claims `sub, kind, cid, sid, own, pv, iat, exp, jti`; kept **in memory** on the client |
-| Refresh token | Opaque random 256-bit, **stored hashed** (sha256) in `refreshTokens`; httpOnly + Secure + SameSite=Strict cookie scoped to `/api/v1/auth`; 30 days; **rotated on every use** |
+| Refresh token | Opaque random 256-bit, **stored hashed** (sha256) in `refreshTokens`; httpOnly + Secure + SameSite=Strict cookie scoped to `/api/v1/auth`; 30 days; **rotated on every use**. A token rotated less than 30 s ago is accepted once more from a parallel request (two tabs, a reload during a refresh) and gets a sibling token, but only while its session is live; any later reuse revokes the whole family |
 | Reuse detection | Presenting an already-rotated refresh token revokes the **whole family** and forces re-login (stolen-token defense) |
 | Password change / reset | Sets `passwordChangedAt`; access tokens with `iat` < it are rejected; all refresh tokens are revoked except the current one |
 | Lockout | 5 failed logins → exponential lockout (`lockedUntil`); per-IP and per-account rate limits on `/auth/*` |
@@ -71,7 +71,7 @@
   Do **not** send database dumps through chat apps; Hakeemna sent them via Telegram.
 
 ## 8. Secrets & Config
-- Infrastructure secrets (DB, Redis, JWT, encryption key, SMTP) go only in `.env` (gitignored) or the deployment secret store. `.env.example` has placeholders only.
+- Infrastructure secrets (DB, Redis, JWT, encryption key, SMTP or `RESEND_API_KEY`) go only in `.env` (gitignored) or the deployment secret store. `.env.example` has placeholders only.
 - **Third-party integration credentials (WhatsApp/Mazbot, JoFotara) are never in `.env` or the repo.**
   - WhatsApp is entered by the superadmin in Admin → Settings → Integrations; JoFotara by each clinic in its settings.
   - Both are stored encrypted (`FIELD_ENCRYPTION_KEY`) and are write-only from the API.
