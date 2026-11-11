@@ -113,6 +113,15 @@ inventoryRouter.use(
 
 /* ---------- locations ---------- */
 
+/**
+ * A clinic with no location at all gets the default "Main store" warehouse on first use (08b §2).
+ * New clinics get it from the clinic seeder; this covers clinics created before inventory v2.
+ */
+export async function ensureDefaultLocation(): Promise<void> {
+  if (await InventoryLocationModel.exists({})) return;
+  await InventoryLocationModel.create({ name: 'Main store', type: 'warehouse', isDefault: true });
+}
+
 inventoryRouter.use(
   crudRouter({
     path: '/inventory-locations',
@@ -126,6 +135,7 @@ inventoryRouter.use(
     sortable: ['name', 'type', 'createdAt'],
     defaultSort: { name: 1 },
     unpaged: true,
+    beforeList: ensureDefaultLocation,
     toModel: async (b, _auth, existing) => {
       const type = (b.type ?? existing?.type) as string;
       const chairId = (b.chairId ?? existing?.chairId) as string | undefined;

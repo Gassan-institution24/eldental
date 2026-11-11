@@ -1,5 +1,7 @@
 import { beforeEach, describe, expect, it } from 'vitest';
+import { runInTenant } from '@/core/tenancy/tenantPlugin';
 import { syncCatalogs } from '@/modules/clinic/clinic.seeders';
+import { InventoryLocationModel } from '@/modules/inventory/inventory.models';
 import { addDays, localDate } from '@/shared/dates';
 import { useTestDb } from './db';
 import { api, login, makeClinic, resetState, type Session, type TestClinic } from './helpers';
@@ -75,6 +77,14 @@ beforeEach(async () => {
 });
 
 describe('catalog and locations', () => {
+  it('gives a clinic created before inventory v2 its default warehouse on first use', async () => {
+    await runInTenant(c.clinicId, () => InventoryLocationModel.deleteMany({}));
+    const locs = (await api(owner).get('/inventory-locations')).body.data as { name: string; type: string; isDefault: boolean }[];
+    expect(locs).toEqual([expect.objectContaining({ name: 'Main store', type: 'warehouse', isDefault: true })]);
+    // Only when the clinic has none: a second list doesn't add another.
+    expect((await api(owner).get('/inventory-locations')).body.data).toHaveLength(1);
+  });
+
   it('validates container rules and freezes units once stock exists', async () => {
     const bad = await api(owner).post('/inventory-items').send({ name: 'Bottle', unit: 'ml', unitsPerPack: 250, trackContainers: true, containerPolicy: 'general', containerCapacity: 100 });
     expect(bad.status).toBe(422);

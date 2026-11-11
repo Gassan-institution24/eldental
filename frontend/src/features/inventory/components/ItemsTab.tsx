@@ -313,6 +313,10 @@ function OpeningStockDrawer({ onClose }: { onClose: () => void }) {
     schema: openingForm,
     defaultValues: { locationId: store?.id ?? '', lines: [{ itemId: '', quantity: '', unitCost: 0, lotNumber: '', expiresAt: '' }] } as unknown as OpeningValues,
   });
+  // The list usually arrives after the drawer opens: preselect the default warehouse then.
+  useEffect(() => {
+    if (store && !form.getValues('locationId')) form.setValue('locationId', store.id);
+  }, [store, form]);
   const { fields, append, remove } = useFieldArray({ control: form.control, name: 'lines' });
   return (
     <FormDrawer open onClose={onClose} title={t('opening.title')} subtitle={t('opening.hint')} formId="inv-opening-form" submitting={form.formState.isSubmitting} dirty={form.formState.isDirty} submitLabel={t('opening.submit')} width={860}>

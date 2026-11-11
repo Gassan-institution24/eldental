@@ -34,7 +34,7 @@ usage, stock counts, implant–patient UDI linkage, sterilisation.
   `unit`, `unitsPerPack` and the container fields are **frozen once the item has stock or lots** (`ITEM_HAS_STOCK`).
 - **Quantities** are base units with ≤ 4 decimals (`stockQty()`); **money** is integer minor units.
   Cost of `q` units of a lot = `costOf(q, packCost, unitsPerPack)` (rational, half-even rounding).
-- **Location**: one default warehouse per clinic (created with the clinic; receipts and opening stock default there).
+- **Location**: one default warehouse per clinic (created with the clinic; receipts and opening stock default there). A clinic with no location at all (created before inventory v2) gets it when the location list is first read.
 - **Movement types**: `opening`, `purchase_receipt`, `transfer`, `container_transfer`, `clinical_use`, `clinical_waste`,
   `single_use_remainder`, `waste`, `admin_issue`, `container_discard`. Movements and posted documents are never edited.
 

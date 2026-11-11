@@ -1,6 +1,6 @@
 import { Alert, Box, Button, Dialog, DialogActions, DialogContent, DialogTitle, Grid, IconButton, Stack, Tooltip, Typography } from '@mui/material';
 import { FileText, PackageCheck, Plus, Trash2, XCircle } from 'lucide-react';
-import { useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { useFieldArray, useWatch } from 'react-hook-form';
 import { useTranslation } from 'react-i18next';
 import { Link as RouterLink } from 'react-router-dom';
@@ -295,6 +295,10 @@ function ReceiveDrawer({ po, onClose }: { po: PurchaseOrder; onClose: () => void
     schema: receiveForm,
     defaultValues: { locationId: store?.id ?? '', lines: open.map((l) => ({ poLineId: l.id, quantity: String(l.remainingQuantity), lotNumber: '', expiresAt: '' })) } as unknown as ReceiveValues,
   });
+  // The list usually arrives after the drawer opens: preselect the default warehouse then.
+  useEffect(() => {
+    if (store && !form.getValues('locationId')) form.setValue('locationId', store.id);
+  }, [store, form]);
   return (
     <FormDrawer open onClose={onClose} title={t('receipt.receiveTitle', { number: po.number })} subtitle={t('receipt.receiveHint')} formId="inv-receive-form" submitting={form.formState.isSubmitting} dirty={form.formState.isDirty} submitLabel={t('receipt.submit')} width={760}>
       <Form

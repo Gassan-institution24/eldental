@@ -38,6 +38,8 @@ export type CrudOptions<C extends ZodTypeAny, U extends ZodTypeAny> = {
   toModel?: (body: Record<string, unknown>, auth: AuthContext, existing?: Doc) => Promise<Record<string, unknown>> | Record<string, unknown>;
   beforeDelete?: (doc: Doc, auth: AuthContext) => Promise<void>;
   afterWrite?: (doc: Doc, auth: AuthContext, kind: 'create' | 'update' | 'delete') => Promise<void>;
+  /** Runs before the list query (e.g. to create a default record on first use). */
+  beforeList?: (auth: AuthContext) => Promise<void>;
   /** Default `true`: deletes set `deletedAt`. */
   softDelete?: boolean;
   /** List without pagination (small reference lists like chairs). */
@@ -68,6 +70,7 @@ export function crudRouter<C extends ZodTypeAny, U extends ZodTypeAny>(o: CrudOp
     validate({ query: listQuery }),
     asyncHandler(async (req, res) => {
       const q = req.valid.query as Record<string, unknown> & { page: number; limit: number; sort?: string; q?: string };
+      await o.beforeList?.(req.auth!);
       const filter: Record<string, unknown> = { ...(o.buildFilter?.(q, req.auth!) ?? {}) };
       if (q.q && o.searchFrom) filter.searchName = { $regex: escapeRegex(toSearchName(q.q)) };
       const finalFilter = scoped(req, filter);
