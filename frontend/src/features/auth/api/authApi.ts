@@ -1,4 +1,5 @@
 import { useCallback } from 'react';
+import { isApiError } from '@/lib/api/apiError';
 import { api, postData, refreshOnce, setAuthHandlers } from '@/lib/api/axios';
 import { queryClient } from '@/lib/api/queryClient';
 import { rotateSessionId } from '@/lib/session';
@@ -24,18 +25,28 @@ export function storeToken(token: string, broadcast = true): void {
   if (broadcast) channel?.postMessage({ type: 'token', token } satisfies AuthMessage);
 }
 
-/** POST /auth/refresh (cookie). Returns the new access token or null. */
+const wait = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
+
+/**
+ * POST /auth/refresh (cookie). Returns the new access token, or null when the session is over
+ * (401/403). A temporary failure (offline, 429, 5xx during a redeploy) is retried twice and then
+ * rethrown, so the caller keeps the session instead of signing the user out.
+ */
 export async function refreshAccessToken(): Promise<string | null> {
-  try {
-    const res = await api.post<{ data: { accessToken: string } }>('/auth/refresh', undefined, {
-      skipAuthRefresh: true,
-      silent: true,
-    });
-    const token = res.data.data.accessToken;
-    storeToken(token);
-    return token;
-  } catch {
-    return null;
+  for (let attempt = 0; ; attempt += 1) {
+    try {
+      const res = await api.post<{ data: { accessToken: string } }>('/auth/refresh', undefined, {
+        skipAuthRefresh: true,
+        silent: true,
+      });
+      const token = res.data.data.accessToken;
+      storeToken(token);
+      return token;
+    } catch (err) {
+      if (isApiError(err) && (err.status === 401 || err.status === 403)) return null;
+      if (attempt >= 2) throw err;
+      await wait(1000 * 2 ** attempt);
+    }
   }
 }
 
@@ -45,24 +56,23 @@ function localLogout(): void {
   channel?.postMessage({ type: 'logout' } satisfies AuthMessage);
 }
 
-let redirecting = false;
-function logoutAndRedirect(): void {
+/**
+ * The server ended the session. Drop it here and in the other tabs; the route guards then show
+ * the right sign-in page with `?next=` inside the app, without reloading the page.
+ */
+function sessionEnded(): void {
   if (!useAuthStore.getState().accessToken) return;
   localLogout();
-  if (redirecting) return;
-  redirecting = true;
-  const next = encodeURIComponent(window.location.pathname + window.location.search);
-  window.location.assign(`/login?next=${next}`);
 }
 
-setAuthHandlers(refreshAccessToken, logoutAndRedirect);
+setAuthHandlers(refreshAccessToken, sessionEnded);
 
 /**
  * On app load: try the refresh cookie; a failure just means "guest". Single-flight with the 401
  * handler, so a request that fails while the page loads doesn't send a second refresh.
  */
 export async function bootstrapAuth(): Promise<void> {
-  await refreshOnce();
+  await refreshOnce().catch(() => null);
   useAuthStore.getState().setBootstrapped(true);
 }
 

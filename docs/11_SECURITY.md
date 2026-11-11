@@ -10,7 +10,7 @@
 | Refresh token | Opaque random 256-bit, **stored hashed** (sha256) in `refreshTokens`; httpOnly + Secure + SameSite=Strict cookie scoped to `/api/v1/auth`; 30 days; **rotated on every use**. A token rotated less than 30 s ago is accepted once more from a parallel request (two tabs, a reload during a refresh) and gets a sibling token, but only while its session is live; any later reuse revokes the whole family |
 | Reuse detection | Presenting an already-rotated refresh token revokes the **whole family** and forces re-login (stolen-token defense) |
 | Password change / reset | Sets `passwordChangedAt`; access tokens with `iat` < it are rejected; all refresh tokens are revoked except the current one |
-| Lockout | 5 failed logins → exponential lockout (`lockedUntil`); per-IP and per-account rate limits on `/auth/*` |
+| Lockout | 5 failed logins → exponential lockout (`lockedUntil`); per-IP and per-account rate limits on the credential routes (§4) |
 | OTP | 6 digits, hashed, 10 min TTL, max 5 attempts, resend cooldown 60 s |
 | Enumeration | Login and forgot-password responses do not reveal whether an account exists |
 | MFA | Optional TOTP for staff; **required** for superadmins |
@@ -36,7 +36,7 @@
 - CORS: an allow-list from `CORS_ORIGINS`, `credentials: true`. **Never `*`**, including Socket.IO.
 - Rate limits (Redis store):
   - global 300/min/IP;
-  - `/auth/*` 10/min/IP and 5/min/account;
+  - credential routes (`/auth/login*`, `/auth/password/*`, `/auth/patient/register*`, `/auth/invitations/*`, `/auth/verify/*`, `/auth/mfa/*`) 10/min/IP and 5/min/account. Session routes (`/auth/refresh`, `/auth/me`, `/auth/logout*`, `/auth/select-clinic`) only have the global limit: every page load and token renewal calls them, and a strict limit there signs out whole clinics behind one IP;
   - public booking 20/min/IP;
   - export endpoints 5/hour/user.
 - Body limit 1 MB (uploads go through multer with their own limits).

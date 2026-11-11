@@ -108,8 +108,9 @@ Rule: a feature imports from `shared/` and `lib/`, never from another feature's 
 - On app load: `POST /auth/refresh` (with `withCredentials`). On success, store the token and fetch `/auth/me`. On failure, the user is a guest.
 - Axios request interceptor: add `Authorization` and `X-Requested-With`.
 - Axios response interceptor:
-  - `401 TOKEN_EXPIRED` → single-flight refresh (queue concurrent requests), then retry once;
-  - refresh fails → logout and redirect to `/login?next=`.
+  - any `401` → single-flight refresh (queue concurrent requests), then retry once. If another request or tab already renewed the token, retry with it without a new refresh;
+  - refresh answers `401`/`403` → the session is over: clear the token (all tabs) and let the route guards show the sign-in page with `?next=`. **No full page reload**;
+  - refresh fails for a temporary reason (offline, `429`, `5xx` during a redeploy) → retried twice with backoff, then the request fails but the user stays signed in.
 - The interceptor normalises errors to an `ApiError { code, message, details, status }`. `getErrorMessage(err, t)` translates `errors.<code>`.
 - Multi-tab: a BroadcastChannel `auth` syncs logout and refreshed tokens.
 - Clinic switcher: `POST /auth/select-clinic` → new token → `queryClient.clear()` → navigate to `/clinic/dashboard`.

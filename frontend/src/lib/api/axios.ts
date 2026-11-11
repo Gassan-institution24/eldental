@@ -32,6 +32,7 @@ api.interceptors.request.use((config: RetryConfig) => {
   return config;
 });
 
+/** Resolves the new token, `null` when the session is over, and rejects on a temporary failure. */
 type RefreshHandler = () => Promise<string | null>;
 type LogoutHandler = () => void;
 let refreshHandler: RefreshHandler | null = null;
@@ -87,19 +88,22 @@ api.interceptors.response.use(
     const config = (error.config ?? {}) as RetryConfig;
     const apiErr = toApiError(error);
 
-    if (
-      apiErr.status === 401 &&
-      apiErr.code === 'TOKEN_EXPIRED' &&
-      !config._retried &&
-      !config.skipAuthRefresh
-    ) {
+    // Any 401: renew once and retry. If another request (or tab) already renewed the token, just
+    // retry with it. Sign out only when the server says the session is over, never on a
+    // temporary failure (offline, 429, a redeploy), so the page doesn't bounce to the login.
+    if (apiErr.status === 401 && !config._retried && !config.skipAuthRefresh) {
       config._retried = true;
-      const token = await refreshOnce();
+      const current = getAccessToken();
+      const sent = String(config.headers.get('Authorization') ?? '');
+      const token =
+        current && sent !== `Bearer ${current}`
+          ? current
+          : await refreshOnce().catch(() => undefined);
       if (token) {
         config.headers.set('Authorization', `Bearer ${token}`);
         return api.request(config);
       }
-      logoutHandler?.();
+      if (token === null) logoutHandler?.();
       return Promise.reject(apiErr);
     }
     if (apiErr.status === 401 && !config.skipAuthRefresh) logoutHandler?.();
